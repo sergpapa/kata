@@ -123,19 +123,55 @@ describe('Lesson 1, whose request example depends on a blank line', () => {
   });
 });
 
-describe('the three Mermaid diagrams, before slice 3 renders them', () => {
-  it.each([
-    'HTTP_Lesson_01_Student_Edition_v2.md',
-    'HTTP_Lesson_02_Student_Edition_v1.md',
-    'HTTP_Lesson_05_Student_Edition_v1.md',
-  ])('shows %s’s diagram source in a labelled block', (file) => {
+/**
+ * Criteria F1, F6, M4 and P1 in docs/specs/mermaid-diagrams.md, against the author's own bytes.
+ *
+ * Mermaid is deliberately not mocked here. jsdom has no SVG layout, so the real library either
+ * refuses to load or refuses to draw — which is exactly criterion F5's path, exercised for free.
+ * Whichever happens, the authored source must be on the page and must still read character for
+ * character. That a diagram genuinely becomes a picture is checked by tools/screenshots.mjs in a
+ * real browser; jsdom cannot answer that question and this suite does not pretend to.
+ *
+ * (Supersedes slice 2's criterion D4, which required all three fences to stay labelled source
+ * blocks. Two of the three now become pictures where a browser can draw them.)
+ */
+const diagramLessons = [
+  'HTTP_Lesson_01_Student_Edition_v2.md',
+  'HTTP_Lesson_02_Student_Edition_v1.md',
+  'HTTP_Lesson_05_Student_Edition_v1.md',
+];
+
+/** The exact bytes between the fences, which is what the reader must be able to get back to. */
+function mermaidSourceOf(file: string): string {
+  const text = fs.readFileSync(path.join(lessonsDir, file), 'utf8');
+  const start = text.indexOf('```mermaid\n') + '```mermaid\n'.length;
+  return text.slice(start, text.indexOf('\n```', start) + 1);
+}
+
+describe('the three Mermaid diagrams', () => {
+  it.each(diagramLessons)('never leaves %s’s diagram source off the page', (file) => {
     const container = renderLesson(file);
 
-    const diagram = [...container.querySelectorAll('pre')]
-      .map((block) => block.textContent ?? '')
-      .find((text) => text.includes('sequenceDiagram'));
+    const blocks = [...container.querySelectorAll('pre')].map((block) => block.textContent ?? '');
+    expect(blocks).toContain(mermaidSourceOf(file));
+  });
 
+  it.each(diagramLessons)('keeps %s’s “In words” prose beside the diagram', (file) => {
+    const container = renderLesson(file);
+
+    const diagram = [...container.querySelectorAll('.diagram')].find((element) =>
+      (element.textContent ?? '').includes('sequenceDiagram'),
+    );
     expect(diagram).toBeDefined();
-    expect(container.textContent).toContain('mermaid');
+    expect(diagram?.nextElementSibling?.textContent).toMatch(/^In words:/);
+  });
+
+  it('still reaches the source after the draw has been attempted and has failed', async () => {
+    const file = 'HTTP_Lesson_01_Student_Edition_v2.md';
+    const container = renderLesson(file);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const blocks = [...container.querySelectorAll('pre')].map((block) => block.textContent ?? '');
+    expect(blocks).toContain(mermaidSourceOf(file));
   });
 });

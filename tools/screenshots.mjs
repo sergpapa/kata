@@ -36,11 +36,11 @@ const schemes = ['light', 'dark'];
  */
 const routes = [
   { name: 'home', path: '/' },
-  { name: 'lesson-01', path: '/lessons/LS-M020-01' },
-  { name: 'lesson-02', path: '/lessons/LS-M020-02' },
-  { name: 'lesson-03', path: '/lessons/LS-M020-03' },
-  { name: 'lesson-04', path: '/lessons/LS-M020-04' },
-  { name: 'lesson-05', path: '/lessons/LS-M020-05' },
+  { name: 'lesson-01', path: '/lessons/LS-M020-01', diagram: 'drawn' },
+  { name: 'lesson-02', path: '/lessons/LS-M020-02', diagram: 'fallback' },
+  { name: 'lesson-03', path: '/lessons/LS-M020-03', diagram: 'none' },
+  { name: 'lesson-04', path: '/lessons/LS-M020-04', diagram: 'none' },
+  { name: 'lesson-05', path: '/lessons/LS-M020-05', diagram: 'drawn' },
 ];
 
 const serverEntry = path.join(repoRoot, 'apps', 'server', 'dist', 'index.js');
@@ -52,6 +52,43 @@ for (const [file, what] of [
   if (!fs.existsSync(file)) {
     console.error(`The ${what} build is missing (${file}). Run: npm run build`);
     process.exit(1);
+  }
+}
+
+/** Every check that failed, so one run reports all of them instead of the first. */
+const failures = [];
+
+/**
+ * Criterion M5 in docs/specs/mermaid-diagrams.md: a lesson with no diagram must not pay for
+ * Mermaid. No test in jsdom can prove this — `vi.mock('mermaid')` intercepts the module whether
+ * the import is lazy or eager — so the built bundle is the only place the claim can be checked.
+ * Mermaid must live in a chunk of its own that the entry does not pull in.
+ */
+function checkMermaidIsLazy() {
+  const assetsDir = path.join(repoRoot, 'apps', 'web', 'dist', 'assets');
+  const html = fs.readFileSync(webIndex, 'utf8');
+  const entryName = /<script[^>]+src="[^"]*\/assets\/([^"]+\.js)"/.exec(html)?.[1];
+  if (!entryName) {
+    failures.push('could not find the entry script in apps/web/dist/index.html');
+    return;
+  }
+
+  // A string from Mermaid's own grammar, which none of this application's source contains.
+  const marker = 'sequenceDiagram';
+  const carrying = fs
+    .readdirSync(assetsDir)
+    .filter((name) => name.endsWith('.js'))
+    .filter((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8').includes(marker));
+
+  if (carrying.includes(entryName)) {
+    failures.push(
+      `Mermaid is bundled into the entry chunk (${entryName}), so lessons 3 and 4 pay for a ` +
+        `diagram library they do not use. It must be reached by a dynamic import().`,
+    );
+  } else if (carrying.length === 0) {
+    failures.push(`no built chunk contains Mermaid — the diagram code did not reach the bundle`);
+  } else {
+    console.log(`  Mermaid is lazy: ${carrying.join(', ')}, not the entry ${entryName}`);
   }
 }
 
@@ -69,6 +106,8 @@ async function waitForHealth(timeoutMs = 20_000) {
   throw new Error(`The app did not answer at ${baseUrl} within ${timeoutMs}ms`);
 }
 
+checkMermaidIsLazy();
+
 const child = spawn(process.execPath, [serverEntry], {
   env: {
     ...process.env,
@@ -77,9 +116,6 @@ const child = spawn(process.execPath, [serverEntry], {
   },
   stdio: 'ignore',
 });
-
-/** Every check that failed, so one run reports all of them instead of the first. */
-const failures = [];
 
 let browser;
 try {
@@ -99,6 +135,82 @@ try {
         });
         const page = await context.newPage();
         await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
+
+        // Criteria R1, R2 and L4 in docs/specs/mermaid-diagrams.md. jsdom has no SVG layout, so a
+        // real browser is the only place that can answer whether a diagram actually became a
+        // picture — or whether the one Mermaid refuses fell back to its source with a reason.
+        if (route.diagram) {
+          await page
+            .waitForSelector('.diagram iframe, .diagram [role="status"]', { timeout: 15_000 })
+            .catch(() => {});
+          const diagram = await page.evaluate(() => {
+            const frames = [...document.querySelectorAll('.diagram-scroll iframe')];
+            const notice = document.querySelector('.diagram [role="status"]');
+            const source = [...document.querySelectorAll('.diagram pre')].some((block) =>
+              (block.textContent ?? '').includes('sequenceDiagram'),
+            );
+            return {
+              frames: frames.length,
+              sandbox: frames.map((frame) => frame.getAttribute('sandbox')),
+              sizes: frames.map((frame) => {
+                const box = frame.getBoundingClientRect();
+                return { w: Math.round(box.width), h: Math.round(box.height) };
+              }),
+              notice: notice?.textContent ?? null,
+              source,
+            };
+          });
+
+          if (route.diagram === 'drawn') {
+            if (diagram.frames !== 1) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px drew ${diagram.frames} diagram(s), expected 1` +
+                  (diagram.notice ? ` — the page says: ${diagram.notice.trim()}` : ''),
+              );
+            }
+            if (diagram.sandbox.some((value) => value !== '')) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px has a diagram frame whose sandbox is ` +
+                  `${JSON.stringify(diagram.sandbox)}, expected "" (no allowance at all)`,
+              );
+            }
+            for (const box of diagram.sizes) {
+              if (box.w < 100 || box.h < 100) {
+                failures.push(
+                  `${route.name} (${scheme}) at ${size.width}px has a diagram frame of ${box.w}x${box.h}px, ` +
+                    `which is too small to be the drawing`,
+                );
+              }
+            }
+          } else if (route.diagram === 'none') {
+            // Criterion R3: these two lessons have no diagram at all, and this slice must not have
+            // grown them one. An unchecked route cannot report a regression.
+            if (diagram.frames !== 0 || diagram.notice !== null) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px has diagram machinery on a lesson that has no ` +
+                  `diagram: ${diagram.frames} frame(s), notice ${JSON.stringify(diagram.notice)}`,
+              );
+            }
+          } else {
+            if (diagram.frames !== 0) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px drew ${diagram.frames} diagram(s); this lesson's ` +
+                  `diagram does not parse and must fall back to its source`,
+              );
+            }
+            if (!/could not be drawn/i.test(diagram.notice ?? '')) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px does not say the diagram could not be drawn ` +
+                  `(found ${JSON.stringify(diagram.notice)})`,
+              );
+            }
+            if (!diagram.source) {
+              failures.push(
+                `${route.name} (${scheme}) at ${size.width}px lost the diagram source it was supposed to fall back to`,
+              );
+            }
+          }
+        }
 
         const overflow = await page.evaluate(() => {
           const root = document.documentElement;
