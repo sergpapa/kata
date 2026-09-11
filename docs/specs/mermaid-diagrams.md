@@ -146,7 +146,7 @@ reissued.
       text is the fence content character for character — the same guarantee criterion W1 gives
       every other fence.
 - [ ] M5. A lesson with no `mermaid` fence never imports Mermaid. Two halves, because no single
-      check covers it: the jsdom suite proves the library is never *used* on such a lesson, and
+      check covers it: the jsdom suite proves the library is never _used_ on such a lesson, and
       `tools/screenshots.mjs` reads the built bundle to prove Mermaid is in a chunk the entry does
       not pull in. A mocked module is intercepted whether the import is lazy or eager, so jsdom
       alone cannot answer this.

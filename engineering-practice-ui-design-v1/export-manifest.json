@@ -1,0 +1,271 @@
+{
+  "export_id": "FSSE-UI-DESIGN-001",
+  "version": "1.0.0",
+  "date": "2026-09-11",
+  "entry_document": "README.md",
+  "design_specification": "DESIGN_SPECIFICATION.md",
+  "integration_guide": "INTEGRATION_GUIDE.md",
+  "source_revision": "5f9d8eb737281be0b84610b44e4b0a73374c9a65",
+  "companion_package": "VS_Code_App_and_First_Five_Lessons_v1.zip",
+  "verification": {
+    "status": "passed",
+    "scope": "Source-copy, references, tokens, image structure, and archive integrity; no target app integration tested"
+  },
+  "files": [
+    {
+      "path": "COMPONENT_MAP.md",
+      "bytes": 4313,
+      "sha256": "36717148448fa249151373b3bed48ae026d9367da4595db32bd6a851774a267f"
+    },
+    {
+      "path": "DESIGN_SPECIFICATION.md",
+      "bytes": 9255,
+      "sha256": "469681d6adc9ad3d845df8d43b2df33aad3e80f1dac5c0fab37753e853b83b0a"
+    },
+    {
+      "path": "INTEGRATION_GUIDE.md",
+      "bytes": 7437,
+      "sha256": "130e2cf1df50cb0bca21f1bbea53a456065d16128b4d25b7c813c540d1c2193a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5138,
+      "sha256": "2067579c04bab5840020e30cfc08f4f27248af577b1f139e4465d40156462d7a"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 1087,
+      "sha256": "0998764705810fb8c21158af130c43fa08c15654c4d360c830bfb24a31578ca9"
+    },
+    {
+      "path": "VERIFICATION.md",
+      "bytes": 1778,
+      "sha256": "de134fa68366be619a2fca4cb4cae973263e7f21dd972c43bfef42faf629b4c0"
+    },
+    {
+      "path": "assets/original-ui-reference.png",
+      "bytes": 102580,
+      "sha256": "05c05d530a79c6d344c2749b44e411f89dcbf3dddd41a731536a24c7610e02ca"
+    },
+    {
+      "path": "design/dependency-inventory.json",
+      "bytes": 3467,
+      "sha256": "ad426b21f740bb8db38cebe9ce53b412cfea31c2b0cb26a024941db74960b0aa"
+    },
+    {
+      "path": "design/design-tokens.json",
+      "bytes": 5428,
+      "sha256": "80a6b93f6c5789f32405749faabc20745d6f134b1b26787e17e82f6693f2fd71"
+    },
+    {
+      "path": "design/theme-tokens.css",
+      "bytes": 1163,
+      "sha256": "69e9e9db5b99b4ba81993107e315466e3a12692aa21ff5ec3e25ccb89541d751"
+    },
+    {
+      "path": "reference-source/app/globals.css",
+      "bytes": 25041,
+      "sha256": "01b049f38727109c409a0b5c6668511b29a4bdcea79971cc31ea7b624a18f330"
+    },
+    {
+      "path": "reference-source/app/layout.tsx",
+      "bytes": 556,
+      "sha256": "cbc3f2970c069ff99f2a740de96939154cff1778419f4512d9c374161f9b9f0f"
+    },
+    {
+      "path": "reference-source/app/page.tsx",
+      "bytes": 119,
+      "sha256": "685ab573b32b92cf16b855a483ea1b0c66a593a42a5098b5f64d3373c133ad37"
+    },
+    {
+      "path": "reference-source/components/ui/alert-dialog.tsx",
+      "bytes": 5439,
+      "sha256": "9a8d950f2b9b4352d5ebb762fb44d5c28c2d353aa29712071973656a8736e311"
+    },
+    {
+      "path": "reference-source/components/ui/button.tsx",
+      "bytes": 2392,
+      "sha256": "cc36af0f8b5019c33cc039fbf03bb952a513072b15b55b53c592b78af3e5f4c4"
+    },
+    {
+      "path": "reference-source/components/ui/checkbox.tsx",
+      "bytes": 1214,
+      "sha256": "b23ab9d4deeedf2ac8f512c368361ede681aa383437ef48563a6f9b7dbe95f27"
+    },
+    {
+      "path": "reference-source/components/ui/input.tsx",
+      "bytes": 962,
+      "sha256": "8c4612a7c41319ac5049daa3b34b080f9784b6245c17780eb87c127e58e473db"
+    },
+    {
+      "path": "reference-source/components/ui/progress.tsx",
+      "bytes": 755,
+      "sha256": "c8c26e8f5f041c3cdf4915347dc1d9c022f9448f149990fadcaf303e952fa57d"
+    },
+    {
+      "path": "reference-source/components/ui/select.tsx",
+      "bytes": 6353,
+      "sha256": "0b796a108a4eb5ba52d9ad938b7aea36dc56ae66c703a6d0a23dbc24f96daff3"
+    },
+    {
+      "path": "reference-source/components/ui/separator.tsx",
+      "bytes": 694,
+      "sha256": "6da346505c8629a4668420d2a5ca48891383bbe0b0ceb14163537c671879427e"
+    },
+    {
+      "path": "reference-source/components/ui/sheet.tsx",
+      "bytes": 4188,
+      "sha256": "63863cf2df8f8973e52b3459ac9bdbf81be1262dbc70eb53d5271ffb03488e16"
+    },
+    {
+      "path": "reference-source/components/ui/sidebar.tsx",
+      "bytes": 21526,
+      "sha256": "4a8d73e7730a2b1fcecfca31299ed26db65c2307b84197a59c6ec7c01c7ad28e"
+    },
+    {
+      "path": "reference-source/components/ui/skeleton.tsx",
+      "bytes": 276,
+      "sha256": "ba48dd5be5a6a1378bd4e011028654b5bf419f1e7d20ee4b9f8330c1264e7239"
+    },
+    {
+      "path": "reference-source/components/ui/table.tsx",
+      "bytes": 2478,
+      "sha256": "20e5a7f224959c6b75802995706a97e9da171f693d4b6b1b436388fcd9df96f3"
+    },
+    {
+      "path": "reference-source/components/ui/tabs.tsx",
+      "bytes": 3782,
+      "sha256": "865d0194331b9b2be36723fa79d3575dc83078b4cb941cafee87cb72fc2cff46"
+    },
+    {
+      "path": "reference-source/components/ui/tooltip.tsx",
+      "bytes": 1830,
+      "sha256": "a0784eb77831a799fad7991df4f1b666f876201565a80175e1aa68733574a2e4"
+    },
+    {
+      "path": "reference-source/components/workspace.tsx",
+      "bytes": 60332,
+      "sha256": "da9dfd99592e45967c75016a2d66e8cf486065fd3e7721d29f060db24de09aca"
+    },
+    {
+      "path": "reference-source/components.json",
+      "bytes": 420,
+      "sha256": "31f4ca67a4a62572571003d3d5aac85ee6fbfca67a192924bac6b168d95e98fd"
+    },
+    {
+      "path": "reference-source/docs/Prototype_Review.md",
+      "bytes": 9069,
+      "sha256": "ab177a923b020de9985dc3da0e99cf52fa96f3d55420fd54d4cd8e1f006e452f"
+    },
+    {
+      "path": "reference-source/hooks/use-mobile.ts",
+      "bytes": 565,
+      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b"
+    },
+    {
+      "path": "reference-source/lib/lessons.json",
+      "bytes": 27862,
+      "sha256": "1bad1765ec7595230d385d99f82aa5f3dda59371112118e255373ceadf69b1fd"
+    },
+    {
+      "path": "reference-source/lib/utils.ts",
+      "bytes": 177,
+      "sha256": "53f3d3d070f0a9082934da25b875f9499855c2b0693868dd28be8c23d8730f68"
+    },
+    {
+      "path": "reference-source/lib/workflow.ts",
+      "bytes": 17731,
+      "sha256": "e8d23a2a5c7c0b8643d7755bb53df94d8642c88411c7b988ebefef4e4c7b3ef4"
+    },
+    {
+      "path": "reference-source/package.json",
+      "bytes": 2014,
+      "sha256": "0956b2a061de5f9f8942d0fe45f333e6e8a06f2715002ef3583fcec529150ace"
+    },
+    {
+      "path": "reference-source/pnpm-lock.yaml",
+      "bytes": 341070,
+      "sha256": "3af996b61423dd2bbb4cd97f4df28da28cee34b73aae4e73f48a5100aea6dce4"
+    },
+    {
+      "path": "reference-source/postcss.config.mjs",
+      "bytes": 94,
+      "sha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde"
+    },
+    {
+      "path": "reference-source/public/favicon.svg",
+      "bytes": 252,
+      "sha256": "dcfd47da89b8cd51f2331a4563e9893ef6ce8b07a95de6f599e7128d318ef776"
+    },
+    {
+      "path": "reference-source/tsconfig.json",
+      "bytes": 800,
+      "sha256": "7199c6e4e400921e8049729840165a39f1476fa97901bed00239e7697bfe8da4"
+    },
+    {
+      "path": "reference-source/vendor/shadcn-tailwind-4.13.0.LICENSE.md",
+      "bytes": 1063,
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+    },
+    {
+      "path": "reference-source/vendor/shadcn-tailwind-4.13.0.css",
+      "bytes": 16041,
+      "sha256": "bc7d83425702955b4cb67cb14ede9d603f9d912376d57a2d81d661094d2a782a"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 14514,
+      "sha256": "c1f4406fbef2949e62f004ac8c70f49668809c45028e569007c01e074f1d67ca"
+    },
+    {
+      "path": "third-party-licenses/class-variance-authority-LICENSE",
+      "bytes": 10753,
+      "sha256": "0ccbf956cffc8dcf515809433cb5242ee67c94513d46e48c261d68d0880de406"
+    },
+    {
+      "path": "third-party-licenses/clsx-license",
+      "bytes": 1104,
+      "sha256": "9a9edad7baae52622bddf3c15b2ef8a33d2c89f2d25408ad13e8a7481c6b0c97"
+    },
+    {
+      "path": "third-party-licenses/lucide-react-LICENSE",
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "path": "third-party-licenses/next-license.md",
+      "bytes": 1079,
+      "sha256": "ee765244e2d59f5234d474f62e0766fa0c8b99af967fdd4c0cb8dcb0c76ea224"
+    },
+    {
+      "path": "third-party-licenses/radix-ui-LICENSE",
+      "bytes": 1063,
+      "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138"
+    },
+    {
+      "path": "third-party-licenses/react-LICENSE",
+      "bytes": 1088,
+      "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "path": "third-party-licenses/react-dom-LICENSE",
+      "bytes": 1088,
+      "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+    },
+    {
+      "path": "third-party-licenses/tailwind-merge-LICENSE.md",
+      "bytes": 1070,
+      "sha256": "d4c70c7ce38cea8778f0aed3fc0bef0a9dbd27f13bd8b6773cbd6d37941971e5"
+    },
+    {
+      "path": "third-party-licenses/tailwindcss-LICENSE",
+      "bytes": 1071,
+      "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+    },
+    {
+      "path": "third-party-licenses/tw-animate-css-LICENSE",
+      "bytes": 1068,
+      "sha256": "039184dfa0a822397b3f45a435b5b1e538721587fbade96b9fa80f86cb354109"
+    }
+  ]
+}

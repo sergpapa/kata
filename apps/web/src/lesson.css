@@ -237,3 +237,71 @@ main a:visited {
 .lesson-title a {
   text-decoration-thickness: 1px;
 }
+
+/* A diagram sits where the author put it, with their prose directly after. Nothing is inserted
+   between the two, which is what "keep the prose equivalent beside each diagram" asks for. */
+.diagram {
+  margin: 1rem 0;
+}
+
+/* The frame keeps the drawing's natural size and the box scrolls, rather than the drawing being
+   scaled to fit. Lesson 5's diagram is 687px wide; squeezed into a 343px phone column its
+   participant labels land at about 5px, which is a shape rather than words. Same treatment, and
+   the same reason, as .code-block-text and .table-scroll. */
+.diagram-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.diagram-scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+/* `block` because an iframe is inline by default, and the line box under it would otherwise leave
+   a few pixels of gap that read as a misaligned border. */
+.diagram-scroll iframe {
+  display: block;
+  border: 0;
+  max-width: none;
+}
+
+.diagram-source,
+.diagram-reason {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.diagram-source summary,
+.diagram-reason summary {
+  cursor: pointer;
+  padding: 0.15rem 0;
+}
+
+.diagram-source summary:focus-visible,
+.diagram-reason summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The diagram this lesson could not draw is still the author's work, so the notice explains rather
+   than alarms. Deliberately not .notice-bad: that one is red and monospace because it carries the
+   two 64-character hashes of a refused import, and neither the colour nor the face suits a
+   sentence of prose about a diagram the author mis-typed. */
+.diagram-notice {
+  margin-bottom: 0.5rem;
+  border-left-color: #b54708;
+  background: color-mix(in srgb, #b54708 8%, transparent);
+  font-size: 0.9rem;
+}
+
+.diagram-reason pre {
+  margin: 0.4rem 0 0;
+  padding: 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.8rem;
+}

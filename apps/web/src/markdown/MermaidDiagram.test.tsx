@@ -260,8 +260,14 @@ describe('F — a diagram that cannot be drawn', () => {
     await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
     expect(container.querySelector('pre')?.textContent).toBe(DIAGRAM_SOURCE);
 
-    vi.doUnmock('mermaid');
+    // Restored, not unmocked: vi.doUnmock('mermaid') removes the file-level vi.mock as well, and
+    // every later test then imports the real library into jsdom and hangs.
+    vi.doMock('mermaid', () => ({ default: mermaid }));
     vi.resetModules();
+    // Warmed here, where there is no waitFor budget. Re-resolving the module graph after a reset
+    // costs most of a second, and the next test to await a draw would otherwise spend its whole
+    // timeout on this test's cleanup rather than on the behaviour it is checking.
+    await import('mermaid');
   });
 
   it('shows the source block from the first paint, before any drawing is attempted', () => {
@@ -361,9 +367,7 @@ describe('L — layout', () => {
     stubColourScheme(false);
     const frame = await diagramFrame(renderMarkdown(LESSON));
 
-    expect(mermaid.initialize).toHaveBeenCalledWith(
-      expect.objectContaining({ theme: 'default' }),
-    );
+    expect(mermaid.initialize).toHaveBeenCalledWith(expect.objectContaining({ theme: 'default' }));
     expect(frame.getAttribute('srcdoc')).toMatch(/background/);
   });
 
@@ -383,9 +387,7 @@ describe('L — layout', () => {
     scheme.change(true);
 
     await waitFor(() => expect(mermaid.render).toHaveBeenCalledTimes(2));
-    expect(mermaid.initialize).toHaveBeenLastCalledWith(
-      expect.objectContaining({ theme: 'dark' }),
-    );
+    expect(mermaid.initialize).toHaveBeenLastCalledWith(expect.objectContaining({ theme: 'dark' }));
   });
 
   it('still draws where the browser cannot report a colour scheme', async () => {
@@ -420,7 +422,9 @@ describe('a result that arrives too late is not used', () => {
     );
     await waitFor(() => expect(settlers).toHaveLength(2));
 
-    settlers[0]({ svg: SVG });
+    const stale = settlers[0];
+    expect(stale).toBeDefined();
+    stale?.({ svg: SVG });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(container.querySelector('iframe')).toBeNull();

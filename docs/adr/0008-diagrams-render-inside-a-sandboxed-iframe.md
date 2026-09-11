@@ -32,11 +32,18 @@ popups, no top-level navigation, no plugins, and an opaque origin that is not sa
 application. Whatever Mermaid emits is a separate, fully restricted document that cannot reach
 this one.
 
-**`mermaid.parse()` is asked before `mermaid.render()` is called.** `parse(text,
-{ suppressErrors: true })` answers `false` for source Mermaid cannot read and adds nothing to the
-document. `render()` on the same source throws *and* leaves a `div#d<id>` in `document.body`
-holding Mermaid's error-bomb graphic. Asking first keeps the failure path off the page entirely;
-the `render()` call is still wrapped and still removes that div if it ever appears.
+**`mermaid.parse()` is asked before `mermaid.render()` is called, and without `suppressErrors`.**
+`render()` on source Mermaid cannot read throws _and_ leaves a `div#d<id>` in `document.body`
+holding Mermaid's error-bomb graphic. `parse()` adds nothing to the document either way, so asking
+it first keeps the failure path off the page entirely.
+
+`suppressErrors: true` is deliberately not passed. With it, `parse()` answers a bare `false` and
+the parser's message is lost — and that message is the only thing that tells a reviewer which line
+of a lesson was refused, which is the whole point of showing a reason rather than a shrug. Without
+it, `parse()` rejects with an `Error` carrying the message in full.
+
+The `render()` call is still wrapped and still removes that div if it ever appears, because a
+guarantee with one mechanism behind it is one bug from being no guarantee.
 
 **Mermaid is loaded by dynamic `import()`, only on a page that has a diagram.** Lessons 3 and 4
 have no `mermaid` fence and pay nothing for the dependency.

@@ -12,6 +12,8 @@ export default tseslint.config(
       'test-results/**',
       'playwright-report/**',
       'VS_Code_App_and_First_Five_Lessons_v1/**',
+      // Supplied reference material, like the release above: not this application's source to lint.
+      'engineering-practice-ui-design-v1/**',
     ],
   },
   js.configs.recommended,

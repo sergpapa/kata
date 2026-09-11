@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import type { Element } from 'hast';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
+import { MermaidDiagram } from './MermaidDiagram.js';
 
 /**
  * Renders an authored lesson body. The contract is docs/specs/markdown-rendering.md.
@@ -27,6 +28,19 @@ function fenceLanguage(node: Element | undefined): string | undefined {
     }
   }
   return undefined;
+}
+
+/**
+ * The characters between the fences, taken from the tree rather than from the React children.
+ *
+ * Mermaid is given exactly what the author typed. Reassembling the source out of rendered children
+ * would mean trusting React's text nodes to have preserved every space and newline, and a fence's
+ * whitespace is load-bearing here for the same reason criterion W1 says it is everywhere else.
+ */
+function fenceText(node: Element | undefined): string {
+  const code = node?.children.find((child) => child.type === 'element');
+  if (!code || code.type !== 'element') return '';
+  return code.children.map((child) => (child.type === 'text' ? child.value : '')).join('');
 }
 
 const components: Components = {
@@ -63,7 +77,7 @@ const components: Components = {
    */
   pre({ node, children }) {
     const language = fenceLanguage(node);
-    return (
+    const block = (
       <div className="code-block">
         {language ? <p className="code-block-language">{language}</p> : null}
         <pre
@@ -76,6 +90,12 @@ const components: Components = {
         </pre>
       </div>
     );
+
+    // A diagram is the one fence that becomes something other than itself. The block above is
+    // handed over as the fallback rather than rebuilt, so the labelled source a reader falls back
+    // to is the same markup every other fence gets — including its character-for-character text.
+    if (language !== 'mermaid') return block;
+    return <MermaidDiagram source={fenceText(node)}>{block}</MermaidDiagram>;
   },
 
   /** A wide table scrolls inside its own box, so the page never scrolls sideways at 375px. */
