@@ -136,16 +136,16 @@ reissued.
 
 ### M — A diagram is drawn
 
-- [ ] M1. A `mermaid` fence whose source parses renders as an `iframe`, not as a `pre`. The page
+- [x] M1. A `mermaid` fence whose source parses renders as an `iframe`, not as a `pre`. The page
       holds no `pre` containing that diagram's source outside the disclosure of criterion M4.
-- [ ] M2. The `iframe` carries `sandbox=""` — the empty value, with no allowance of any kind — and
+- [x] M2. The `iframe` carries `sandbox=""` — the empty value, with no allowance of any kind — and
       an accessible name describing what it shows. Its content arrives through `srcDoc`.
-- [ ] M3. No `dangerouslySetInnerHTML` appears anywhere in `apps/web/src`. Checked by reading the
+- [x] M3. No `dangerouslySetInnerHTML` appears anywhere in `apps/web/src`. Checked by reading the
       source, so the guarantee cannot rot silently.
-- [ ] M4. The diagram's authored source is reachable from a collapsed disclosure below it, and its
+- [x] M4. The diagram's authored source is reachable from a collapsed disclosure below it, and its
       text is the fence content character for character — the same guarantee criterion W1 gives
       every other fence.
-- [ ] M5. A lesson with no `mermaid` fence never imports Mermaid. Two halves, because no single
+- [x] M5. A lesson with no `mermaid` fence never imports Mermaid. Two halves, because no single
       check covers it: the jsdom suite proves the library is never _used_ on such a lesson, and
       `tools/screenshots.mjs` reads the built bundle to prove Mermaid is in a chunk the entry does
       not pull in. A mocked module is intercepted whether the import is lazy or eager, so jsdom
@@ -153,61 +153,61 @@ reissued.
 
 ### F — A diagram that cannot be drawn
 
-- [ ] F1. Source Mermaid refuses renders as the labelled `mermaid` code block that shipped in
+- [x] F1. Source Mermaid refuses renders as the labelled `mermaid` code block that shipped in
       slice 2 — same markup, same label, same character-for-character text. Nothing is deleted and
       nothing is invented.
-- [ ] F2. The page says, in its own words, that the diagram could not be drawn and that the source
+- [x] F2. The page says, in its own words, that the diagram could not be drawn and that the source
       is shown instead. The statement is announced to assistive technology, not only coloured.
-- [ ] F3. The parser's own message is available in full, so a reviewer can see which line was
+- [x] F3. The parser's own message is available in full, so a reviewer can see which line was
       refused. It is not paraphrased, truncated or summarized.
-- [ ] F4. A failed diagram leaves nothing behind in `document.body` — specifically no `div#d<id>`
+- [x] F4. A failed diagram leaves nothing behind in `document.body` — specifically no `div#d<id>`
       and no Mermaid error graphic anywhere on the page.
-- [ ] F5. Mermaid failing to load at all — a network or bundle failure, not a bad diagram — lands
+- [x] F5. Mermaid failing to load at all — a network or bundle failure, not a bad diagram — lands
       in the same fallback rather than an empty box or a crashed page.
-- [ ] F6. Before rendering finishes, the labelled source block is what is on the page. There is no
+- [x] F6. Before rendering finishes, the labelled source block is what is on the page. There is no
       moment at which the diagram's content is absent from the document.
 
 ### I — The diagram cannot reach the page
 
-- [ ] I1. Diagram source containing a `<script>` tag produces no `script` element in the host
+- [x] I1. Diagram source containing a `<script>` tag produces no `script` element in the host
       document, and no global it defines is reachable from the host.
-- [ ] I2. Diagram source containing an `onclick` or other `on*` attribute produces no event handler
+- [x] I2. Diagram source containing an `onclick` or other `on*` attribute produces no event handler
       attribute in the host document.
-- [ ] I3. Mermaid initializes with `securityLevel: 'strict'`.
-- [ ] I4. The `srcDoc` document is built from the SVG string and a style block only. It contains no
+- [x] I3. Mermaid initializes with `securityLevel: 'strict'`.
+- [x] I4. The `srcDoc` document is built from the SVG string and a style block only. It contains no
       `script` element of ours.
 
 ### P — The prose stays beside the diagram
 
-- [ ] P1. The element immediately following the diagram in the document is the author's next
+- [x] P1. The element immediately following the diagram in the document is the author's next
       paragraph. On all three lessons that is the paragraph beginning "In words:".
-- [ ] P2. Nothing is inserted between the diagram and the prose that follows it, and the diagram
+- [x] P2. Nothing is inserted between the diagram and the prose that follows it, and the diagram
       does not move from where the author placed it.
-- [ ] P3. The failure path keeps the same adjacency: the prose still follows the fallback block
+- [x] P3. The failure path keeps the same adjacency: the prose still follows the fallback block
       directly.
 
 ### L — Layout
 
-- [ ] L1. The diagram box scrolls horizontally within itself and is reachable by keyboard, the same
+- [x] L1. The diagram box scrolls horizontally within itself and is reachable by keyboard, the same
       treatment `pre` and `table` already get.
-- [ ] L2. On all five lessons at 375, 768 and 1440px, in both colour schemes,
+- [x] L2. On all five lessons at 375, 768 and 1440px, in both colour schemes,
       `document.documentElement.scrollWidth` does not exceed its `clientWidth`. Checked by
       `tools/screenshots.mjs`, which already fails the build on overflow.
-- [ ] L3. The diagram renders legibly in both colour schemes — the theme follows the page, and the
+- [x] L3. The diagram renders legibly in both colour schemes — the theme follows the page, and the
       diagram's background matches the page's paper rather than staying white in dark mode.
-- [ ] L4. The iframe's height fits the diagram, taken from the SVG's `viewBox`. The diagram is not
+- [x] L4. The iframe's height fits the diagram, taken from the SVG's `viewBox`. The diagram is not
       cut off and does not sit in a box of empty space.
 
 ### R — The real release
 
-- [ ] R1. Lesson 1's diagram and Lesson 5's diagram are drawn — an `iframe`, not a `pre` — when the
+- [x] R1. Lesson 1's diagram and Lesson 5's diagram are drawn — an `iframe`, not a `pre` — when the
       built app is loaded in a real browser.
-- [ ] R2. Lesson 2's diagram takes the fallback path, showing its source and naming the parse
+- [x] R2. Lesson 2's diagram takes the fallback path, showing its source and naming the parse
       failure. It does not silently vanish and no substitute picture is invented for it.
-- [ ] R3. Lessons 3 and 4 are unchanged by this slice: no diagram frame, no fallback notice, no
+- [x] R3. Lessons 3 and 4 are unchanged by this slice: no diagram frame, no fallback notice, no
       diagram machinery of any kind on a page whose author drew nothing. Checked in the browser,
       not assumed.
-- [ ] R4. Every criterion in `docs/specs/markdown-rendering.md` still holds. In particular W1: the
+- [x] R4. Every criterion in `docs/specs/markdown-rendering.md` still holds. In particular W1: the
       `http` request block in Lesson 1 keeps its header/body blank line.
 
 ## Out of scope for this slice
@@ -256,3 +256,20 @@ background.
   with the comma the diagram renders at 969.5 × 704. An em dash works equally well if the author
   prefers the stronger break. Accepting this needs a reissued release, because the lesson's SHA-256
   in `content/learning-release.json` would change.
+
+- 2026-09-11. Built and verified. 249 tests across 12 files, 26 of them in
+  `apps/web/src/markdown/MermaidDiagram.test.tsx`, plus `tools/screenshots.mjs` over 6 routes at 3
+  widths in both colour schemes — which is where M5, R1, R2, R3, L2 and L4 are actually decided,
+  since jsdom has no SVG layout and a mocked module cannot tell a lazy import from an eager one.
+  `npm test`, `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm run build` and
+  `npm run screenshots` all pass.
+
+  Two things this slice settled that the spec had left as reasoning rather than fact. `parse()` is
+  called without `suppressErrors`, because the bare `false` it otherwise answers throws away the
+  parser's message — and that message is the whole of F3. And the iframe's height comes from the
+  SVG's `viewBox`, because an iframe has no intrinsic height and a document with no scripts cannot
+  report its own; a drawing without a `viewBox` is treated as undrawable rather than shown in a box
+  of guessed size.
+
+  Unlike the two slices before it, this one has no test-guardian PRE/POST or `/code-review` record.
+  Noted rather than left to inference: the absence of an entry is not evidence a review happened.

@@ -2,25 +2,26 @@
 
 ## Current state
 
-Last updated 2026-09-11. The five lessons import and each one can now be read at its own address,
-`/lessons/<candidate_lesson_id>`. Markdown parses straight to React elements — no HTML string exists
-anywhere in the app — and anything that must not render becomes visible text rather than being
-deleted. Fence text is preserved character for character, which is what keeps Lesson 1's HTTP
-request sample correct. Front matter shows as selected learner-facing facts with the author's own
-status caveat always visible. Schema version 2, unchanged this slice.
+Last updated 2026-09-11. The five lessons import, each one reads at its own address, and the
+authored Mermaid diagrams are drawn. Markdown parses straight to React elements — no HTML string
+exists anywhere in the app — and anything that must not render becomes visible text rather than
+being deleted. A diagram is the one exception to "no markup anywhere", and it is kept honest by
+being a `srcDoc` on an iframe whose `sandbox` grants nothing at all: the drawing never enters this
+document. Lesson 2's diagram does not parse as authored, so it shows its source with the parser's
+own reason; the fix is proposed in the spec and needs a reissued release. Schema version 2,
+unchanged this slice.
 
-`npm test` (219 passing across 11 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. `npm run screenshots` is now a
-real check rather than a capture: it visits all six routes at three widths in both colour schemes
-and exits non-zero if a page scrolls sideways or a code block stops preserving whitespace, neither
-of which the jsdom suite can see. Verified in a browser against the built app, 14 checks over three
-consecutive runs.
+`npm test` (249 passing across 12 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. `npm run screenshots` visits all
+six routes at three widths in both colour schemes and fails the build if a page scrolls sideways, a
+code block stops preserving whitespace, a diagram stops being drawn, or Mermaid lands in the entry
+chunk — none of which the jsdom suite can see.
 
-Not yet readable as intended: the three Mermaid diagrams show as labelled source blocks — that is
-slice 3's text fallback arriving early, not a placeholder. There is no contents list, no
-previous/next and no resume point; slice 4 adds those, and will add heading `id`s with it.
+Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds those,
+and will add heading `id`s with it.
 
-Next action: Milestone 1, slice 3 — Mermaid diagrams.
+Next action: Milestone 1, slice 4 — reader navigation and resume. Interrupted by the visual design
+integration from `engineering-practice-ui-design-v1/`, which is being built as its own slice.
 
 ## Milestone 1 — Read the five lessons faithfully (goal: the owner can read Lessons 1–5 in the app, in the authored wording and order)
 
@@ -34,9 +35,11 @@ Next action: Milestone 1, slice 3 — Mermaid diagrams.
       executed; output sanitized; code blocks and tables scroll inside themselves at 375px;
       whitespace preserved character for character. First H1 is the display title, and the page's
       only `h1`. Criteria and slice log in `docs/specs/markdown-rendering.md`; decisions in ADR 0007.
-- [ ] **Mermaid diagrams.** Safe configuration, authored prose kept adjacent, labelled text fallback
-      when a diagram cannot render. The fallback already ships: a `mermaid` fence renders as a
-      labelled block showing its source.
+- [x] **Mermaid diagrams.** Done 2026-09-11. A diagram that parses is drawn inside an iframe whose
+      `sandbox` is empty, so the SVG never enters this document; the authored source stays reachable
+      below it. One that does not parse keeps the labelled source block it already had and says, in
+      the parser's own words, which line was refused. Lessons with no diagram never load Mermaid.
+      Criteria and slice log in `docs/specs/mermaid-diagrams.md`; decisions in ADR 0008.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
