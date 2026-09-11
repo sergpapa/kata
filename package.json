@@ -26,10 +26,13 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^22.20.2",
     "concurrently": "^10.0.5",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
