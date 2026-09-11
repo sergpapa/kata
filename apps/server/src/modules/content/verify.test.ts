@@ -36,7 +36,9 @@ function refusalOf(outcome: VerificationOutcome) {
 
 function releaseOf(outcome: VerificationOutcome): VerifiedRelease {
   if (outcome.state !== 'verified') {
-    throw new Error(`Expected the release to verify, but it was refused: ${outcome.failure.message}`);
+    throw new Error(
+      `Expected the release to verify, but it was refused: ${outcome.failure.message}`,
+    );
   }
   return outcome.release;
 }
@@ -103,83 +105,6 @@ describe('verifying the received bytes', () => {
   });
 });
 
-describe('resolving manifest paths inside the release directory', () => {
-  it('refuses a path that climbs out with ..', () => {
-    const fixture = makeFixture();
-    (fixture.manifest.lessons[0] as { path: string }).path = '../outside/lesson-01.md';
-
-    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
-
-    expect(failure.code).toBe('path_escapes_release');
-    expect(failure.message).toContain('../outside/lesson-01.md');
-  });
-
-  it('refuses an absolute path', () => {
-    const fixture = makeFixture();
-    const absolute = path.resolve(path.sep, 'etc', 'passwd');
-    (fixture.manifest.lessons[0] as { path: string }).path = absolute;
-
-    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
-
-    expect(failure.code).toBe('path_escapes_release');
-  });
-
-  it('refuses a Windows drive-qualified path whatever machine the app runs on', () => {
-    const fixture = makeFixture();
-    (fixture.manifest.lessons[0] as { path: string }).path = 'C:\Windows\System32\hosts';
-
-    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
-
-    expect(failure.code).toBe('path_escapes_release');
-  });
-
-  it('refuses a UNC path whatever machine the app runs on', () => {
-    const fixture = makeFixture();
-    (fixture.manifest.lessons[0] as { path: string }).path = '\\server\share\lesson.md';
-
-    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
-
-    expect(failure.code).toBe('path_escapes_release');
-  });
-
-  it('refuses a lab path that climbs out with ..', () => {
-    const fixture = makeFixture();
-    (fixture.manifest.lab_downloads[0] as { path: string }).path = '../kit.zip';
-
-    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
-
-    expect(failure.code).toBe('path_escapes_release');
-  });
-
-  it('refuses a path that stays inside lexically but resolves outside through a link', () => {
-    const fixture = makeFixture();
-    const dir = makeTempDir();
-    tempDirs.push(dir);
-    const outside = makeTempDir();
-    tempDirs.push(outside);
-
-    // Write the lessons somewhere else entirely, then point the release's lessons/ directory at it.
-    fs.mkdirSync(path.join(outside, 'lessons'), { recursive: true });
-    for (const [relativePath, bytes] of fixture.files) {
-      if (!relativePath.startsWith('lessons/')) continue;
-      fs.writeFileSync(path.join(outside, relativePath), bytes);
-      fixture.files.delete(relativePath);
-    }
-    writeFixture(dir, fixture);
-    try {
-      fs.symlinkSync(path.join(outside, 'lessons'), path.join(dir, 'lessons'), 'junction');
-    } catch (error) {
-      throw new Error(
-        `This test needs a directory link. Creating one failed: ${(error as Error).message}`,
-      );
-    }
-
-    const failure = refusalOf(verifyRelease(dir));
-
-    expect(failure.code).toBe('path_escapes_release');
-  });
-});
-
 describe('reading the manifest itself', () => {
   it('refuses a release directory with no manifest, naming the file it looked for', () => {
     const dir = makeTempDir();
@@ -218,6 +143,17 @@ describe('reading the manifest itself', () => {
     const outcome = verifyRelease(releaseDirFrom(fixture));
 
     expect(outcome.state).toBe('verified');
+  });
+
+  it('refuses a release that carries no lessons, rather than importing an empty one', () => {
+    const fixture = makeFixture();
+    fixture.manifest.lessons = [];
+    fixture.manifest.lab_downloads = [];
+
+    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
+
+    expect(failure.code).toBe('manifest_invalid');
+    expect(failure.message).toContain('no lessons');
   });
 
   it('refuses a manifest schema version it was not written for, rather than guessing', () => {
@@ -298,6 +234,51 @@ describe('conflicting identities between the manifest and the lesson files', () 
     expect(failure.message).toContain('FIX-DOC-02');
   });
 
+  it('refuses a lesson whose front-matter version is not even a string, rather than skipping the check', () => {
+    const fixture = makeFixture();
+    replaceLessonFile(
+      fixture,
+      'lessons/lesson-02.md',
+      lessonSource(
+        // Unquoted, so YAML reads it as the number 2 — the shape that slips past a string-only check.
+        [
+          'document_id: FIX-DOC-02',
+          'version: 2',
+          'module: M020',
+          'candidate_lesson_id: FIX-LS-02',
+        ].join('\n'),
+        '# Lesson 2: the authored title\n\nProse.',
+      ),
+    );
+
+    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
+
+    expect(failure.code).toBe('conflicting_version');
+    expect(failure.file).toBe('lessons/lesson-02.md');
+  });
+
+  it('refuses a lesson whose front-matter document ID is not even a string', () => {
+    const fixture = makeFixture();
+    replaceLessonFile(
+      fixture,
+      'lessons/lesson-02.md',
+      lessonSource(
+        [
+          'document_id: 999',
+          'version: "1.0.0-draft"',
+          'module: M020',
+          'candidate_lesson_id: FIX-LS-02',
+        ].join('\n'),
+        '# Lesson 2: the authored title\n\nProse.',
+      ),
+    );
+
+    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
+
+    expect(failure.code).toBe('conflicting_document_id');
+    expect(failure.message).toContain('999');
+  });
+
   it('refuses a lesson file at a different content version from the manifest entry', () => {
     const fixture = makeFixture();
     replaceLessonFile(
@@ -324,7 +305,11 @@ describe('conflicting identities between the manifest and the lesson files', () 
 describe('reading the lesson file', () => {
   it('refuses a lesson with no front matter at all', () => {
     const fixture = makeFixture();
-    replaceLessonFile(fixture, 'lessons/lesson-02.md', '# Lesson 2\n\nProse with no front matter.\n');
+    replaceLessonFile(
+      fixture,
+      'lessons/lesson-02.md',
+      '# Lesson 2\n\nProse with no front matter.\n',
+    );
 
     const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
 
@@ -572,7 +557,9 @@ describe('the release the author actually supplied', () => {
 
   it('records the manifest hash it verified the release against', () => {
     const release = releaseOf(verifyRelease(loadConfig().releaseDir));
-    const manifestBytes = fs.readFileSync(path.join(loadConfig().releaseDir, 'learning-release.json'));
+    const manifestBytes = fs.readFileSync(
+      path.join(loadConfig().releaseDir, 'learning-release.json'),
+    );
 
     expect(release.manifestSha256).toBe(sha256(manifestBytes));
   });

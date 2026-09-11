@@ -78,8 +78,25 @@ describe('the page after a verified import', () => {
 
     render(<App />);
 
-    expect(await screen.findByText(/FSSE-HTTP-FIRST-FIVE/)).toBeDefined();
-    expect(await screen.findByText(/1\.0\.0-draft/)).toBeDefined();
+    // Scoped to one element on purpose: '1.0.0-draft' is also Lesson 2's content version, and the
+    // claim here is that the release's own version is stated beside the release it belongs to.
+    const releaseLine = await screen.findByText(/FSSE-HTTP-FIRST-FIVE/);
+    expect(releaseLine.textContent).toContain('1.0.0-draft');
+  });
+
+  it('puts a section heading above the lesson titles, so the outline does not skip a level', async () => {
+    answerWith(importedRelease);
+
+    render(<App />);
+
+    await screen.findAllByRole('heading', { level: 3 });
+    const outline = screen
+      .getAllByRole('heading')
+      .map((heading) => Number(heading.tagName.slice(1)));
+    expect(outline[0]).toBe(1);
+    for (let index = 1; index < outline.length; index += 1) {
+      expect((outline[index] as number) - (outline[index - 1] as number)).toBeLessThanOrEqual(1);
+    }
   });
 
   it('shows each lesson its authored content version, not the release version', async () => {
@@ -108,9 +125,7 @@ describe('the page after a refused release', () => {
 
     render(<App />);
 
-    expect(
-      await screen.findByText(/lessons\/HTTP_Lesson_03_Student_Edition_v1\.md/),
-    ).toBeDefined();
+    expect(await screen.findByText(/lessons\/HTTP_Lesson_03_Student_Edition_v1\.md/)).toBeDefined();
   });
 
   it('lists no lesson at all, rather than the ones that did verify', async () => {

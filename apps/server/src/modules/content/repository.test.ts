@@ -231,7 +231,10 @@ describe('a write that cannot complete', () => {
     const release = verified();
     const broken: VerifiedRelease = {
       ...release,
-      lessons: [release.lessons[0] as (typeof release.lessons)[number], release.lessons[0] as (typeof release.lessons)[number]],
+      lessons: [
+        release.lessons[0] as (typeof release.lessons)[number],
+        release.lessons[0] as (typeof release.lessons)[number],
+      ],
     };
 
     expect(() => saveRelease(db as Db, broken)).toThrow();

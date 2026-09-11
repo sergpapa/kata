@@ -42,7 +42,7 @@ body {
   position: absolute;
   left: -9999px;
   top: 0;
-  padding: 0.5rem 1rem;
+  padding: 0.65rem 1rem;
   background: var(--paper);
   color: var(--accent);
 }
@@ -105,4 +105,61 @@ p {
     animation: none !important;
     transition: none !important;
   }
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.25rem;
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--rule);
+  border-radius: 0 4px 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.notice-bad {
+  border-left-color: #b42318;
+  background: color-mix(in srgb, #b42318 8%, transparent);
+  /* Monospace so the two 64-character hashes in a mismatch line up character by character. In a
+     proportional face, wrapped at arbitrary points, they cannot be compared by eye at all. */
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+}
+
+.release-line {
+  margin-bottom: 0.25rem;
+}
+
+.release-status {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.lesson-list {
+  list-style: none;
+  margin: 1.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lesson-item {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+
+.lesson-title {
+  overflow-wrap: anywhere;
+}
+
+.lesson-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
 }

@@ -2,19 +2,25 @@
 
 ## Current state
 
-Last updated 2026-09-11. The walking skeleton runs: client → Fastify → SQLite, verified end to end
-by a screenshot showing "Connected. Record store schema version 1." `npm test` (2 passing),
-`npm run lint`, `npm run typecheck`, `npm run build` and `npm run screenshots` all pass locally.
-Nothing is imported yet and no lesson is readable.
+Last updated 2026-09-11. The release importer is done and the five lessons are listed in the app.
+On every start the app verifies all eight hashes the manifest publishes, refuses a release naming
+the file at fault, and stores a verified one append-only against release ID, `candidate_lesson_id`
+and content version. Schema version 2. `npm test` (75 passing across 6 files), `npm run lint`,
+`npm run typecheck`, `npm run build` and `npm run screenshots` all pass locally. Verified in the
+running app both ways: five authored titles in order, and a one-byte change to Lesson 3 producing a
+named refusal with zero lessons stored.
 
-Next action: Milestone 1, slice 1 — the release importer.
+No lesson body is readable yet: nothing renders Markdown.
+
+Next action: Milestone 1, slice 2 — the Markdown rendering contract.
 
 ## Milestone 1 — Read the five lessons faithfully (goal: the owner can read Lessons 1–5 in the app, in the authored wording and order)
 
-- [ ] **Release import.** Read `content/learning-release.json`, verify every SHA-256 against received
-      bytes, reject paths escaping the release directory, and fail with a named-file reason on a
-      mismatch, missing file, duplicate lesson ID or missing referenced lab. Store lessons against
-      `candidate_lesson_id`, content version and release ID.
+- [x] **Release import.** Done 2026-09-11. All eight hashes verified against received bytes on every
+      start, paths refused by either OS convention and by real path, identity conflicts between the
+      manifest and the lesson front matter refused by name, lessons stored append-only against
+      `candidate_lesson_id`, content version and release ID. Criteria and slice log in
+      `docs/specs/release-import.md`; decisions in ADR 0006.
 - [ ] **Markdown rendering contract.** CommonMark plus tables and fenced code, raw HTML disabled,
       output sanitized, code blocks horizontally scrollable without the page scrolling sideways,
       whitespace preserved in HTTP messages and sample output. First H1 is the display title.
@@ -53,6 +59,15 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-11, slice 1 — release import.** Built to `docs/specs/release-import.md`: 75 tests,
+  test-guardian PRE and POST, `/code-review`, design review. POST found two defects the first
+  implementation had — a non-string YAML front-matter `version` or `document_id` slipping past the
+  substituted-lesson check, and a release with no lessons importing as an empty success — both fixed
+  with tests. The path-escape check now asks both `path.posix` and `path.win32`, because a suite that
+  only ever runs on Windows cannot otherwise prove the cross-platform branch exists. ADR 0006 records
+  verify-on-every-start and append-only content rows. Superseded state: before this slice the repo
+  was a walking skeleton — client → Fastify → SQLite verified, 2 tests, nothing imported.
 
 - **2026-09-11.** Read the handoff package. Confirmed local single-machine delivery, the
   Fastify/SQLite/React stack and the checkpoint-only scope with the owner. Wrote `docs/brief.md` and

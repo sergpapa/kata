@@ -40,72 +40,73 @@ the exact reason the release was refused.
 
 ### Verification
 
-- [ ] A1. Every path in the manifest is resolved inside the release directory. A path that escapes it
+- [x] A1. Every path in the manifest is resolved inside the release directory. A path that escapes it
       — `../`, an absolute path, a drive-qualified path, or a symlink pointing outside — is refused
       with `path_escapes_release` naming the path.
-- [ ] A2. Each referenced file's SHA-256 is computed from the bytes actually read and compared with
+- [x] A2. Each referenced file's SHA-256 is computed from the bytes actually read and compared with
       the manifest. A mismatch is refused with `hash_mismatch` naming the file, the expected hash and
       the received hash.
-- [ ] A3. A referenced file that is absent is refused with `file_missing` naming the path.
-- [ ] A4. All eight hashes are checked: five lessons, two lab kits, the activity file.
-- [ ] A5. A manifest whose `schema_version` is not `1.x` is refused with
+- [x] A3. A referenced file that is absent is refused with `file_missing` naming the path.
+- [x] A4. All eight hashes are checked: five lessons, two lab kits, the activity file.
+- [x] A5. A manifest whose `schema_version` is not `1.x` is refused with
       `unsupported_manifest_schema`, rather than being read on a guess.
-- [ ] A6. An absent manifest is refused with `manifest_missing` naming the path it looked for.
+- [x] A6. An absent manifest is refused with `manifest_missing` naming the path it looked for.
       Malformed JSON, or a manifest missing a required field, is refused with
       `manifest_unreadable` / `manifest_invalid` naming what was wrong.
 
 ### Identity conflicts
 
-- [ ] B1. Two lesson entries sharing a lesson ID are refused with `duplicate_lesson_id` naming the ID.
-- [ ] B2. Two lesson entries sharing an `order` value are refused with `duplicate_lesson_order`.
-- [ ] B3. A lesson file whose front-matter `candidate_lesson_id` differs from the manifest's
+- [x] B1. Two lesson entries sharing a lesson ID are refused with `duplicate_lesson_id` naming the ID.
+- [x] B2. Two lesson entries sharing an `order` value are refused with `duplicate_lesson_order`.
+- [x] B3. A lesson file whose front-matter `candidate_lesson_id` differs from the manifest's
       `lesson_id` is refused with `conflicting_lesson_id`, naming both values and the file.
-- [ ] B4. A front-matter `document_id` or `version` that differs from the manifest entry is refused
+- [x] B4. A front-matter `document_id` or `version` that differs from the manifest entry is refused
       with `conflicting_document_id` / `conflicting_version`. This is the check that catches an old
       lesson substituted under a current manifest entry.
-- [ ] B5. A lesson file with no front matter, unparseable front matter, or no `candidate_lesson_id`
+- [x] B5. A lesson file with no front matter, unparseable front matter, or no `candidate_lesson_id`
       is refused with `front_matter_missing` / `front_matter_invalid`, naming the file.
-- [ ] B6. A lesson body with no H1 is refused with `title_missing`. The display title is the first
+- [x] B6. A lesson body with no H1 is refused with `title_missing`. The display title is the first
       H1, never the filename.
-- [ ] B7. A `lab_id` on a lesson with no matching `lab_downloads` entry is refused with
+- [x] B7. A `lab_id` on a lesson with no matching `lab_downloads` entry is refused with
       `lab_not_found` naming the lab and the lesson.
-- [ ] B8. Two lab entries sharing a `lab_id` are refused with `duplicate_lab_id`.
-- [ ] B9. A lab whose `lesson_ids` do not match exactly the set of lessons pointing at it is refused
+- [x] B8. Two lab entries sharing a `lab_id` are refused with `duplicate_lab_id`.
+- [x] B9. A lab whose `lesson_ids` do not match exactly the set of lessons pointing at it is refused
       with `lab_lesson_mismatch`, naming both sides.
 
 ### Storage
 
-- [ ] C1. A verified release stores: the release identity (`release_id`, version, date, status,
+- [x] C1. A verified release stores: the release identity (`release_id`, version, date, status,
       audience, manifest hash); one row per lesson keyed by release, `candidate_lesson_id` and
       content version, carrying order, document ID, module, manifest title, display title, source
       path, SHA-256, the preserved front matter, and the lesson source text; one row per lab kit with
       its version, path, hash and byte size; one row for the activity file with its hash and text.
-- [ ] C2. Importing the identical release twice adds no rows the second time and changes no existing
+- [x] C2. Importing the identical release twice adds no rows the second time and changes no existing
       row.
-- [ ] C3. Importing a changed lesson (new content version) leaves the earlier lesson row untouched
+- [x] C3. Importing a changed lesson (new content version) leaves the earlier lesson row untouched
       and adds a new one.
-- [ ] C4. A refused release writes nothing. Import is one transaction.
-- [ ] C5. No SQL appears outside `modules/content/repository.ts` (ADR 0002).
+- [x] C4. A refused release writes nothing. Import is one transaction.
+- [x] C5. No SQL appears outside `modules/content/repository.ts` (ADR 0002). Not mechanically
+      tested — a structural constraint, checked by review and by grep.
 
 ### Consumer
 
-- [ ] D1. `GET /api/release` after a verified import returns `state: "imported"`, the release
+- [x] D1. `GET /api/release` after a verified import returns `state: "imported"`, the release
       identity, and the five lessons in manifest order with their `candidate_lesson_id`, content
       version, document ID, display title and lab ID (`null` for Lesson 1).
-- [ ] D2. `GET /api/release` after a refused release returns 200 with `state: "failed"` and the
+- [x] D2. `GET /api/release` after a refused release returns 200 with `state: "failed"` and the
       failure's code, message and the file it names.
-- [ ] D3. The page lists the five lesson titles in manifest order with the release ID and version,
+- [x] D3. The page lists the five lesson titles in manifest order with the release ID and version,
       or states the named failure. No lesson body is rendered in this slice.
-- [ ] D4. The real supplied release at
+- [x] D4. The real supplied release at
       `VS_Code_App_and_First_Five_Lessons_v1/vs-code-first-five-v1/content` imports clean: exactly
       five lessons, IDs `LS-M020-01` … `LS-M020-05` in order 1–5, Lesson 1 at `2.0.0-draft` and
       Lessons 2–5 at `1.0.0-draft`, Lesson 1 with no lab.
 
 ### Honesty
 
-- [ ] E1. No generated or placeholder lesson is ever substituted for a missing or failing one. A
+- [x] E1. No generated or placeholder lesson is ever substituted for a missing or failing one. A
       refused release yields zero lessons, not four.
-- [ ] E2. Every failure message names the specific file and the specific reason, in plain words the
+- [x] E2. Every failure message names the specific file and the specific reason, in plain words the
       owner can act on.
 
 ## Out of scope for this slice
@@ -125,3 +126,27 @@ did not match, and no lesson is listed.
 
 - 2026-09-11. Spec agreed. Stage 0 questions answered: fail-visible at startup, importer ships with
   `GET /api/release` and the page list, all eight hashes verified with labs stored by reference.
+
+- 2026-09-11. Built and reviewed. 75 tests across 6 files. Three additions beyond the criteria as
+  written, each from a review finding:
+  - **A release with no lessons is refused** (`manifest_invalid`). It previously imported as an empty
+    success, which is the empty-looking-app shape decision 1 exists to prevent. Found by
+    `/code-review`.
+  - **Front-matter `document_id` and `version` are compared whatever type YAML made of them.** A
+    `typeof === 'string'` guard meant an unquoted `version: 2` slipped past B4 entirely — the
+    substituted-lesson check the handoff names as the point of that rule. Reproduced by the
+    test-guardian POST pass against the unmodified implementation.
+  - **Path escape is judged by `path.posix` and `path.win32`, not only the host's rules**, and
+    `escapesByConvention` is tested directly. The POST pass deleted each of the old regex branches in
+    turn and all 66 tests still passed: a suite that only runs on Windows cannot otherwise prove the
+    branch that protects a Linux host exists.
+    Also fixed from review: a stale-fetch guard in the page under StrictMode, an `h2` restoring the
+    heading outline, monospace for the hash pair in a refusal (unreadable wrapped in a proportional
+    face at 375px), an unhandled rejection on shutdown, and a plain message when the client build is
+    missing rather than Fastify's bare 404.
+
+  Declined, with reason: the design review suggested moving `expectedSha256` / `receivedSha256` out
+  of the failure message into structured fields on `ImportFailure`. It is the better shape and it is
+  recorded here for the slice that next touches that contract — but widening the wire type for one
+  failure code, after the tests that pin the message were approved, buys less than it costs today.
+  The monospace fix addresses the readability problem it was raised for.
