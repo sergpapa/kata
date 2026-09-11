@@ -208,6 +208,24 @@ describe('HTML in a lesson stays inert', () => {
     expect(container.textContent).toContain('</div>');
   });
 
+  it('shows a raw HTML block standing on its own as characters', () => {
+    const container = renderMarkdown(
+      md('Before.', '', '<div class="note">A note box</div>', '', 'After.'),
+    );
+
+    expect(container.querySelector('div.note')).toBeNull();
+    expect(container.textContent).toContain('<div class="note">A note box</div>');
+    expect(container.textContent).toContain('Before.');
+    expect(container.textContent).toContain('After.');
+  });
+
+  it('shows a raw HTML block inside a blockquote as characters', () => {
+    const container = renderMarkdown(md('> <div class="note">A quoted note</div>'));
+
+    expect(container.querySelector('div.note')).toBeNull();
+    expect(container.querySelector('blockquote')?.textContent).toContain('<div class="note">');
+  });
+
   it('lets no event handler or inline style attribute reach a rendered element', () => {
     const container = renderMarkdown(
       md('An image: <img src="x" onerror="alert(1)"> and a <p style="color:red">styled</p> one.'),
@@ -249,8 +267,11 @@ describe('links', () => {
 
     // The claim is that the link still works, not that the scheme keeps the author's capitals:
     // a scheme is case-insensitive by definition. An anchor with no href would fail this.
-    const href = container.querySelector('a')?.getAttribute('href') ?? '';
-    expect(new URL(href).href).toBe('https://example.com/page');
+    const anchor = container.querySelector('a');
+    expect(anchor).not.toBeNull();
+    expect(new URL(anchor?.getAttribute('href') ?? '').href).toBe('https://example.com/page');
+    expect(anchor?.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(anchor?.getAttribute('target')).toBe('_blank');
   });
 
   it('makes a bare URL the author did not wrap in brackets usable', () => {
@@ -291,6 +312,53 @@ describe('links', () => {
     const container = renderMarkdown(md('[Read this](java&#9;script:alert(1))'));
 
     expect(container.querySelectorAll('a').length).toBe(0);
+    expect(container.textContent).toContain('Read this');
+    expect(container.textContent).toContain('script:alert(1)');
+  });
+
+  /**
+   * Reference syntax is the other half of the language. `[text][ref]` is a `linkReference` in the
+   * Markdown tree and is not resolved into an anchor until that tree becomes an element tree — so
+   * a guard that only knows about `link` nodes covers the inline spelling and nothing else.
+   */
+  it.each([
+    ['javascript:alert(1)', 'a script URL'],
+    ['mailto:author@example.com', 'a mail address'],
+    ['./HTTP_Lesson_02_Student_Edition_v1.md', 'a relative link'],
+    ['sandbox:/mnt/data/lesson.md', 'a sandbox link'],
+    ['//evil.example/page', 'a protocol-relative target'],
+  ])('refuses %s written as a reference definition (%s)', (target) => {
+    const container = renderMarkdown(md('[Read this][ref]', '', '[ref]: ' + target));
+
+    expect(container.querySelectorAll('a').length).toBe(0);
+    expect(container.textContent).toContain('Read this');
+    expect(container.textContent).toContain(target);
+  });
+
+  it('still makes a safe reference-style link an anchor', () => {
+    const container = renderMarkdown(
+      md('[The manual][curl]', '', '[curl]: https://curl.se/docs/manpage.html'),
+    );
+
+    expect(container.querySelector('a')?.getAttribute('href')).toBe(
+      'https://curl.se/docs/manpage.html',
+    );
+  });
+
+  it('keeps a footnote marker pointing inside the page rather than at a new tab', () => {
+    const container = renderMarkdown(md('Tea is a drink[^1].', '', '[^1]: So is coffee.'));
+
+    const anchor = container.querySelector('a');
+    expect(anchor?.getAttribute('href')?.startsWith('#')).toBe(true);
+    expect(anchor?.getAttribute('target')).toBeNull();
+    expect(container.textContent).toContain('So is coffee.');
+  });
+
+  it('refuses a fragment link to something this lesson does not contain', () => {
+    const container = renderMarkdown(md('[Jump ahead](#a-section-that-is-not-here)'));
+
+    expect(container.querySelectorAll('a').length).toBe(0);
+    expect(container.textContent).toContain('#a-section-that-is-not-here');
   });
 });
 
@@ -308,5 +376,22 @@ describe('images', () => {
 
     expect(container.querySelectorAll('img').length).toBe(0);
     expect(container.textContent).toContain('assets/request.png');
+  });
+
+  it('never loads one written as a reference definition either', () => {
+    const container = renderMarkdown(
+      md('![A cafe menu][pic]', '', '[pic]: https://tracker.example/pixel.png'),
+    );
+
+    expect(container.querySelectorAll('img').length).toBe(0);
+    expect(container.textContent).toContain('A cafe menu');
+    expect(container.textContent).toContain('https://tracker.example/pixel.png');
+  });
+
+  it('never loads one written as a collapsed reference', () => {
+    const container = renderMarkdown(md('![menu]', '', '[menu]: https://tracker.example/p.png'));
+
+    expect(container.querySelectorAll('img').length).toBe(0);
+    expect(container.textContent).toContain('https://tracker.example/p.png');
   });
 });

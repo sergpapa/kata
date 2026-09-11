@@ -2,16 +2,17 @@ import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import type { Element } from 'hast';
-import { remarkInertContent } from './inertNodes.js';
+import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 
 /**
  * Renders an authored lesson body. The contract is docs/specs/markdown-rendering.md.
  *
  * Markdown becomes React elements directly — no HTML string is produced anywhere, so there is no
- * `dangerouslySetInnerHTML` and nothing for a sanitizer allow-list to get wrong. Three layers, in
- * order: `remarkInertContent` turns raw HTML, unsafe link targets and images into visible text;
- * `rehype-sanitize` then meets a tree with nothing dangerous left in it; and the component map
- * below decides how the survivors are presented.
+ * `dangerouslySetInnerHTML` and nothing for a sanitizer allow-list to get wrong. Four layers, in
+ * order: `remarkInertContent` turns raw HTML into visible text; `rehypeInertElements` does the
+ * same for images and unsafe link targets, working on the element tree so that both Markdown
+ * spellings of a link and an image are covered; `rehype-sanitize` then meets a tree with nothing
+ * dangerous left in it; and the component map below decides how the survivors are presented.
  */
 
 /** The fence's info string, read off the `language-*` class mdast puts on the `code` element. */
@@ -30,11 +31,16 @@ function fenceLanguage(node: Element | undefined): string | undefined {
 
 const components: Components = {
   /**
-   * Only `http:` and `https:` targets reach here — anything else was turned into text upstream.
-   * A lesson opens in its own tab, and `noopener` keeps the opened page from reaching back into
-   * this one through `window.opener`.
+   * An authored link is external by the time it gets here — anything that was not `http:` or
+   * `https:` became text upstream. It opens in its own tab, and `noopener` keeps the opened page
+   * from reaching back into this one through `window.opener`.
+   *
+   * Not every anchor here is authored, though: a footnote marker and its back-reference are
+   * generated after the Markdown pass and point within this same page. Sending those to a new tab
+   * would break the one thing a footnote is for.
    */
   a({ href, children }) {
+    if (!isSafeHttpUrl(href)) return <a href={href}>{children}</a>;
     return (
       <a href={href} target="_blank" rel="noopener noreferrer">
         {children}
@@ -87,7 +93,9 @@ export function LessonMarkdown({ markdown }: { readonly markdown: string }) {
     <div className="lesson-body">
       <Markdown
         remarkPlugins={[remarkGfm, remarkInertContent]}
-        rehypePlugins={[rehypeSanitize]}
+        // Order matters: the guard has to run before the sanitizer, or the sanitizer strips an
+        // unsafe href first and the target it names can never be shown to the reader.
+        rehypePlugins={[rehypeInertElements, rehypeSanitize]}
         components={components}
       >
         {markdown}

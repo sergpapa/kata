@@ -216,6 +216,41 @@ describe('moving between the list and one lesson', () => {
     expect(window.location.pathname).toBe('/lessons/LS-M020-01');
   });
 
+  it('moves focus to the new page, so a keyboard reader is not left on the old one', async () => {
+    answerBothEndpoints();
+
+    render(<App />);
+    fireEvent.click(
+      (await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement,
+    );
+
+    await screen.findByText('The opening paragraph of the lesson.');
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+  });
+
+  it('leaves focus alone on first paint, where nothing has changed yet', async () => {
+    answerBothEndpoints();
+
+    render(<App />);
+
+    await screen.findAllByRole('link', { name: /^Lesson \d:/ });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('returns the reader to the top when a lesson is opened', async () => {
+    answerBothEndpoints();
+    const scrollTo = vi.fn();
+    vi.stubGlobal('scrollTo', scrollTo);
+
+    render(<App />);
+    fireEvent.click(
+      (await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement,
+    );
+
+    await screen.findByText('The opening paragraph of the lesson.');
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+  });
+
   it('renders the lesson when the address is opened directly, with no list visited first', async () => {
     window.history.pushState({}, '', '/lessons/LS-M020-01');
     answerBothEndpoints();

@@ -18,7 +18,15 @@ export function parseRoute(pathname: string): Route {
 
   const segments = pathname.split('/').filter((segment) => segment !== '');
   if (segments.length === 2 && segments[0] === 'lessons') {
-    const candidateLessonId = decodeURIComponent(segments[1] as string);
+    // `decodeURIComponent` throws on a malformed escape such as `/lessons/%`. This runs during
+    // render, so an uncaught throw here blanks the whole app instead of showing the address it
+    // could not read.
+    let candidateLessonId: string;
+    try {
+      candidateLessonId = decodeURIComponent(segments[1] as string);
+    } catch {
+      return { kind: 'unknown', path: pathname };
+    }
     if (candidateLessonId !== '') return { kind: 'lesson', candidateLessonId };
   }
 
@@ -39,6 +47,10 @@ const listeners = new Set<() => void>();
 export function navigate(href: string): void {
   if (href === window.location.pathname) return;
   window.history.pushState({}, '', href);
+  // A new page starts at its top. Without this, following a lesson from halfway down the list
+  // opens that lesson already scrolled past its title. Going *back* is left alone on purpose: the
+  // browser restores the previous scroll position itself, which is what a reader expects.
+  window.scrollTo(0, 0);
   for (const listener of [...listeners]) listener();
 }
 
