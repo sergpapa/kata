@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from './App.js';
 
 /** `fetch` is the boundary to the local server — the one thing worth standing in for here. */
@@ -58,6 +58,9 @@ const importedRelease = {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  // Each test starts at the lesson list. jsdom keeps one window across a file, so an address left
+  // behind by a routing test would decide what the next test renders.
+  window.history.pushState({}, '', '/');
 });
 
 describe('the page after a verified import', () => {
@@ -152,5 +155,101 @@ describe('the page when the local app does not answer', () => {
     expect(await screen.findByText(/connection refused/)).toBeDefined();
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/release');
+  });
+});
+
+/** Criteria C1, C2 and C4: a lesson is reached by address, and the address survives a reload. */
+describe('moving between the list and one lesson', () => {
+  const lessonAnswer = {
+    state: 'lesson',
+    release: { releaseId: 'FSSE-HTTP-FIRST-FIVE', version: '1.0.0-draft' },
+    lesson: {
+      order: 1,
+      candidateLessonId: 'LS-M020-01',
+      contentVersion: '2.0.0-draft',
+      documentId: 'FSSE-HTTP-STUDENT-01',
+      module: 'M020',
+      displayTitle: 'Lesson 1: What happens when your browser asks for something?',
+      manifestTitle: 'Lesson 1: What happens when your browser asks for something?',
+      sourcePath: 'lessons/HTTP_Lesson_01_Student_Edition_v2.md',
+      sha256: 'a'.repeat(64),
+      labId: null,
+      facts: [],
+      bodyMarkdown: 'The opening paragraph of the lesson.',
+    },
+  };
+
+  /** Both endpoints answer, so a test can follow a link the way a reader does. */
+  function answerBothEndpoints(): void {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        const body = url.startsWith('/api/lessons/') ? lessonAnswer : importedRelease;
+        return new Response(JSON.stringify(body), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }),
+    );
+  }
+
+  it('gives every lesson in the list a real address, openable in a new tab', async () => {
+    answerBothEndpoints();
+
+    render(<App />);
+
+    const links = await screen.findAllByRole('link', { name: /^Lesson \d:/ });
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/lessons/LS-M020-01',
+      '/lessons/LS-M020-02',
+    ]);
+  });
+
+  it('opens the lesson and puts it in the address bar when a title is followed', async () => {
+    answerBothEndpoints();
+
+    render(<App />);
+    const link = (await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement;
+    fireEvent.click(link);
+
+    await screen.findByText('The opening paragraph of the lesson.');
+    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+  });
+
+  it('renders the lesson when the address is opened directly, with no list visited first', async () => {
+    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    answerBothEndpoints();
+
+    render(<App />);
+
+    const title = await screen.findByRole('heading', { level: 1 });
+    expect(title.textContent).toBe(
+      'Lesson 1: What happens when your browser asks for something?',
+    );
+  });
+
+  it('returns to the list when the browser goes back', async () => {
+    answerBothEndpoints();
+
+    render(<App />);
+    fireEvent.click((await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement);
+    await screen.findByText('The opening paragraph of the lesson.');
+
+    window.history.back();
+
+    await waitFor(() => {
+      expect(screen.queryByText('The opening paragraph of the lesson.')).toBeNull();
+    });
+    expect(window.location.pathname).toBe('/');
+    expect(await screen.findAllByRole('link', { name: /^Lesson \d:/ })).toHaveLength(2);
+  });
+
+  it('says so plainly when the address is one the app does not serve', async () => {
+    window.history.pushState({}, '', '/somewhere-else');
+    answerBothEndpoints();
+
+    render(<App />);
+
+    expect(await screen.findByText(/no page at this address/i)).toBeDefined();
   });
 });

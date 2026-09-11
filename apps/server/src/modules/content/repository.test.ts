@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { loadReleaseSummary, saveRelease } from './repository.js';
+import { loadLesson, loadReleaseSummary, saveRelease } from './repository.js';
 import { verifyRelease } from './verify.js';
 import type { VerifiedRelease } from './types.js';
 import { openDatabase, type Db } from '../lifecycle/database.js';
@@ -244,5 +244,52 @@ describe('a write that cannot complete', () => {
       content_lab_kit: 0,
       content_activity_set: 0,
     });
+  });
+});
+
+describe('loading one lesson for the reader', () => {
+  it('returns the authored source text and the parsed front matter', () => {
+    db = openDatabase(':memory:');
+    const release = verified();
+    const releaseRowId = saveRelease(db, release);
+
+    const lesson = loadLesson(db, releaseRowId, 'FIX-LS-01');
+
+    expect(lesson?.sourceText).toBe(release.lessons[0]?.sourceText);
+    expect(lesson?.frontMatter).toMatchObject({ candidate_lesson_id: 'FIX-LS-01' });
+    expect(lesson?.displayTitle).toBe('Lesson 1: the authored title');
+    expect(lesson?.contentVersion).toBe('1.0.0-draft');
+  });
+
+  it('returns nothing for a lesson ID this release does not carry', () => {
+    db = openDatabase(':memory:');
+    const releaseRowId = saveRelease(db, verified());
+
+    expect(loadLesson(db, releaseRowId, 'FIX-LS-99')).toBeUndefined();
+  });
+
+  it('answers from the release asked for, not from a later one carrying the same lesson ID', () => {
+    db = openDatabase(':memory:');
+    const original = saveRelease(db, verified());
+
+    const revised = makeFixture();
+    replaceLessonFile(
+      revised,
+      'lessons/lesson-01.md',
+      lessonSource(
+        [
+          'document_id: FIX-DOC-01',
+          'version: "2.0.0-draft"',
+          'module: M020',
+          'candidate_lesson_id: FIX-LS-01',
+        ].join('\n'),
+        '# Lesson 1: the authored title\n\nProse the author revised.',
+      ),
+    );
+    (revised.manifest.lessons[0] as { version: string }).version = '2.0.0-draft';
+    const updated = saveRelease(db, verified(revised));
+
+    expect(loadLesson(db, original, 'FIX-LS-01')?.sourceText).toContain('Authored prose for lesson 1.');
+    expect(loadLesson(db, updated, 'FIX-LS-01')?.sourceText).toContain('Prose the author revised.');
   });
 });
