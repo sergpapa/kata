@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, waitFor } from '@testing-library/react';
 import { LessonMarkdown } from './LessonMarkdown.js';
 
 /**
@@ -124,13 +124,26 @@ describe('Lesson 1, whose request example depends on a blank line', () => {
 });
 
 /**
- * Criteria F1, F6, M4 and P1 in docs/specs/mermaid-diagrams.md, against the author's own bytes.
+ * Criteria F6 and P1 in docs/specs/mermaid-diagrams.md, against the author's own bytes.
  *
- * Mermaid is deliberately not mocked here. jsdom has no SVG layout, so the real library either
- * refuses to load or refuses to draw — which is exactly criterion F5's path, exercised for free.
- * Whichever happens, the authored source must be on the page and must still read character for
- * character. That a diagram genuinely becomes a picture is checked by tools/screenshots.mjs in a
- * real browser; jsdom cannot answer that question and this suite does not pretend to.
+ * What this suite can and cannot say, stated precisely, because an earlier version of this comment
+ * claimed more than the tests underneath it proved:
+ *
+ * Mermaid is not mocked here, but the first two tests assert *before* it has done anything —
+ * `import('mermaid')` defers to a microtask, so they read the component's opening state. That is
+ * the point rather than a flaw: they pin F6, that the author's source is on the page from the first
+ * paint and never absent, and P1, that the prose sits directly after the diagram. Both hold against
+ * the real lesson files.
+ *
+ * The third test waits for a terminal state, and it is the only one here that exercises the real
+ * library. jsdom has no SVG layout, so the draw must end in the refusal path — criterion F5. It
+ * asserts that the component actually *reaches* an end rather than sitting in `pending` forever,
+ * which is the failure the earlier version could not have seen: `children` renders in all three
+ * states, so "the source is on the page" was true no matter what the library did, or whether it
+ * ran at all.
+ *
+ * That a diagram genuinely becomes a picture is checked by tools/screenshots.mjs in a real browser.
+ * jsdom cannot answer that question and nothing here pretends to.
  *
  * (Supersedes slice 2's criterion D4, which required all three fences to stay labelled source
  * blocks. Two of the three now become pictures where a browser can draw them.)
@@ -166,12 +179,26 @@ describe('the three Mermaid diagrams', () => {
     expect(diagram?.nextElementSibling?.textContent).toMatch(/^In words:/);
   });
 
-  it('still reaches the source after the draw has been attempted and has failed', async () => {
+  /**
+   * The real library, doing its real thing. The generous budget is the honest cost of importing
+   * Mermaid into jsdom, not cover for a race: there is one draw, nothing competes with it, and the
+   * assertion is on the state it settles into rather than on how long it took to get there.
+   */
+  it('drives the real library to a stated outcome instead of sitting in limbo', async () => {
     const file = 'HTTP_Lesson_01_Student_Edition_v2.md';
     const container = renderLesson(file);
 
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const notice = await waitFor(
+      () => {
+        const status = container.querySelector('[role="status"]');
+        expect(status?.textContent ?? '').toMatch(/could not be drawn/i);
+        return status as HTMLElement;
+      },
+      { timeout: 20_000 },
+    );
+
+    expect(notice).not.toBeNull();
     const blocks = [...container.querySelectorAll('pre')].map((block) => block.textContent ?? '');
     expect(blocks).toContain(mermaidSourceOf(file));
-  });
+  }, 30_000);
 });

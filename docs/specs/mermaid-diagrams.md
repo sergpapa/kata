@@ -271,5 +271,46 @@ background.
   report its own; a drawing without a `viewBox` is treated as undrawable rather than shown in a box
   of guessed size.
 
-  Unlike the two slices before it, this one has no test-guardian PRE/POST or `/code-review` record.
-  Noted rather than left to inference: the absence of an entry is not evidence a review happened.
+- 2026-09-11. Reviewed. test-guardian PRE and POST, `/code-review` at medium effort, and a design
+  review against rendered screenshots. 253 tests now: 128 web across the renderer and reader, 115
+  server, plus the browser checks.
+
+  **PRE failed the first test draft on four findings**, all fixed before any implementation
+  existed. The one that mattered was a disagreement between the spec and the tests about how
+  Mermaid reports a refusal. Measuring settled it, and the spec was the one that was wrong:
+  `parse(text, { suppressErrors: true })` answers a bare `false`, so had the implementation
+  followed the spec as written, Lesson 2 — the only lesson in the release that takes this path —
+  would have had no parser message to show. The other three: the sweep-up of Mermaid's leftover
+  `div#d<id>` was never exercised, because nothing ever made `render` throw; the theme assertion
+  accepted either value, so a hardcoded theme passed it; and M5's "lessons 3 and 4 do not pay for
+  Mermaid" was unfalsifiable, since `vi.mock` intercepts a module whether the import is lazy or
+  eager. That last one is now checked against the built bundle, which is the only place it can be.
+
+  **`/code-review` found the defect that mattered.** The Mermaid render id came from `useId()`,
+  stable for the component's life, while the effect re-runs whenever the source or the colour
+  scheme changes. Mermaid's `render` opens by deleting `#<id>`, `#d<id>` and `#i<id>`
+  (`mermaid.core.mjs:1256`), so two draws sharing an id destroyed each other's working nodes and
+  **both** failed — a flip from light to dark made a perfectly valid diagram report that it could
+  not be drawn. `render` cannot be aborted, so every draw now takes its own id. The overlap test
+  had staged exactly this scenario and passed, because the mock did not model that deletion; it
+  now asserts the ids are distinct. Also found: lessons 3 and 4 each waited 15s for a selector that
+  can never appear, three minutes per run; and the `role="status"` notice was inserted together
+  with its text, which is generally not announced at all — so F2 was met by the eye and not by the
+  ear. The live region is now mounted from the first paint and empty until there is something to
+  say.
+
+  **POST passed**, and found that this file's own `realLessons` block claimed more than it proved:
+  its assertions ran before the real library had done anything, and because the source block
+  renders in all three states, "the source is on the page" was true whether Mermaid succeeded,
+  failed, or never ran. It now waits for a stated outcome, so a component stuck in `pending` fails
+  it.
+
+  **The design review said ship, with four nits, all fixed.** The scroll cue was the real one: a
+  code block paints its shadow gradients as a background, which works because its content is text,
+  but an iframe is opaque and covers anything behind it — so at 375px the diagram was cut off at a
+  plain border with nothing to suggest it continued. The shadows now sit on a wrapper above the
+  frame, and only on the side that still has content out of view, so a diagram that fits shows no
+  cue at all. The frame was also a silent tab stop with no focus ring and a name duplicating its
+  own region's, and is now out of the tab order; the two disclosure summaries were 27px tall
+  against the 44px floor this page sets elsewhere; and the parser's message is now attributed, so
+  it does not read as a second source block.

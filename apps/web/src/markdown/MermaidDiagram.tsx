@@ -95,11 +95,45 @@ export function MermaidDiagram({
   readonly children: ReactNode;
 }) {
   const [drawing, setDrawing] = useState<Drawing>({ state: 'pending' });
+  const refused = drawing.state === 'refused';
+  const drawn = drawing.state === 'drawn';
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [dark, setDark] = useState(prefersDark);
   // Counts draws, not diagrams. `useId` is stable for the component's life, and a draw that is
   // still running when the next one starts must not share its id — see the effect below.
   const draws = useRef(0);
+
+  /**
+   * Which way the diagram still has content the reader cannot see.
+   *
+   * Tracked rather than painted unconditionally, so the hint never claims there is more diagram
+   * when the whole of it already fits — which is the usual state on a desktop column and would
+   * make the cue meaningless where it matters, on a phone.
+   */
+  const scroller = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const node = scroller.current;
+    if (!node) return;
+
+    const update = () => {
+      const hidden = node.scrollWidth - node.clientWidth;
+      setEdges({ left: node.scrollLeft > 1, right: node.scrollLeft < hidden - 1 });
+    };
+    update();
+
+    node.addEventListener('scroll', update, { passive: true });
+    // The frame's width is fixed, but the column's is not: a rotation or a resize can take the
+    // diagram from overflowing to fitting, and the cue has to follow.
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(update) : undefined;
+    observer?.observe(node);
+
+    return () => {
+      node.removeEventListener('scroll', update);
+      observer?.disconnect();
+    };
+  }, [drawn]);
 
   // The reader has no theme control, so the diagram follows the system the page follows. A drawing
   // made for the other scheme is dark on dark, which is the same as no diagram at all.
@@ -178,8 +212,6 @@ export function MermaidDiagram({
     };
   }, [source, dark, id]);
 
-  const refused = drawing.state === 'refused';
-
   /**
    * Mounted in every state, empty until there is something to say.
    *
@@ -211,6 +243,9 @@ export function MermaidDiagram({
         {children}
         <details className="diagram-reason">
           <summary>Why it could not be drawn</summary>
+          {/* Attributed, because the box below uses the same monospace treatment as the source
+              above it and would otherwise read as a second sample rather than an explanation. */}
+          <p className="diagram-reason-lead">Mermaid’s parser said:</p>
           <pre className="code-block-text" tabIndex={0}>
             {drawing.reason}
           </pre>
@@ -222,15 +257,38 @@ export function MermaidDiagram({
   return (
     <div className="diagram">
       {announcement}
-      <div className="diagram-scroll" tabIndex={0} role="region" aria-label={drawing.title}>
-        <iframe
-          title={drawing.title}
-          sandbox=""
-          srcDoc={drawing.document}
-          width={drawing.size.width}
-          height={drawing.size.height}
-          loading="lazy"
-        />
+      {/*
+        The shadows live out here, over the frame rather than behind it. A code block can paint
+        them as its own background because its content is text and lets them through; an iframe is
+        opaque and covers anything behind it, so at 375px the diagram was cut off at a plain border
+        with nothing to say it continued.
+      */}
+      <div
+        className={`diagram-frame${edges.left ? ' has-left' : ''}${edges.right ? ' has-right' : ''}`}
+      >
+        <div
+          className="diagram-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label={drawing.title}
+          ref={scroller}
+        >
+          {/*
+            Out of the tab order on purpose. `sandbox=""` means nothing inside can ever be
+            interactive, so focusing the frame does nothing a reader can see — it has no focus ring
+            of its own — and costs a silent Tab press between the scroll box and the disclosure. Its
+            `title` stays: it names the frame for a screen reader reaching it any other way.
+          */}
+          <iframe
+            title={drawing.title}
+            sandbox=""
+            srcDoc={drawing.document}
+            width={drawing.size.width}
+            height={drawing.size.height}
+            loading="lazy"
+            tabIndex={-1}
+          />
+        </div>
       </div>
       <details className="diagram-source">
         <summary>Show diagram source</summary>
