@@ -1,0 +1,102 @@
+{
+  "package_id": "FSSE-VSCODE-FIRST-FIVE-HANDOFF",
+  "version": "1.0.0-draft",
+  "date": "2026-09-11",
+  "entry_document": "VS_Code_Coder_Handoff_v1.md",
+  "active_learning_release": "content/learning-release.json",
+  "review_template": "Owner_Review_After_Lesson_05.md",
+  "verification": "Verification_and_Known_Limits.md",
+  "content_integrity_check": "passed",
+  "files": [
+    {
+      "path": "Owner_Review_After_Lesson_05.md",
+      "bytes": 3546,
+      "sha256": "537b73c5ad0c1d30c2ead5277da8127cce516a6573b5d98d8b9fd7f421474f65"
+    },
+    {
+      "path": "VS_Code_Coder_Handoff_v1.md",
+      "bytes": 15339,
+      "sha256": "7715afefae3bb805e389eb63e76013ea5c1a33056c6b5c8f51742d5b922b0584"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "bytes": 3572,
+      "sha256": "fa07ffcec46e90563f7781802c3c9d7ebd929b9e38a712deb2f608659f790470"
+    },
+    {
+      "path": "content/labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "bytes": 23056,
+      "sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_03_05_Local_Kit_v1.zip",
+      "bytes": 37426,
+      "sha256": "88287e1169c45ec348104a2a171b6f02fd3123ae0be03c1fcbbabfbad2963534"
+    },
+    {
+      "path": "content/learning-release.json",
+      "bytes": 3292,
+      "sha256": "fe229b52967ea939a3975a28e5534a9bf1c928eadcf5de1e7ea0085b40a8dc33"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_01_Student_Edition_v2.md",
+      "bytes": 23190,
+      "sha256": "4221faed9d16238ffedd04957d4377f18efc0ddd65420e9230462a78f7a55adf"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "bytes": 33361,
+      "sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_03_Student_Edition_v1.md",
+      "bytes": 22200,
+      "sha256": "3a4363e7621142feb1a28cf0bdcbc24cc9e63b607e443097d6860067ed99cb00"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_04_Student_Edition_v1.md",
+      "bytes": 19608,
+      "sha256": "a672ebd956c8e4f1a34048eccbb332cf4272201d21e7f67d922e2738cf984c39"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_05_Student_Edition_v1.md",
+      "bytes": 22597,
+      "sha256": "88183507682391ff5e8a203b3b5d0273e431fa5e546e36ffcbd957251b578080"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "bytes": 25366,
+      "sha256": "00c768f037fc264b01857b7b080bb78db9e1d80e239f17318c49d8ac3f4a0e66"
+    },
+    {
+      "path": "specifications/Application_Requirements_and_UX_Specification_v1.md",
+      "bytes": 108154,
+      "sha256": "fd2102de2e734ce9698f925f8476bf0cdc1fc3a4279fe231fb584bd034fe0764"
+    },
+    {
+      "path": "specifications/Curriculum_Architecture_v1.md",
+      "bytes": 133240,
+      "sha256": "369706fb1fb9bd80de8458e67b0b7a23dd2ec28257796d2ac0c44c206241d85b"
+    },
+    {
+      "path": "specifications/Graduate_Competency_Standard_v1.md",
+      "bytes": 165510,
+      "sha256": "501145c310956a46319d27649840c0e4bdf501e6a2ddd684422da51a335d78ca"
+    },
+    {
+      "path": "specifications/Learning_Design_Review_and_Curriculum_Refinement_v1.md",
+      "bytes": 41914,
+      "sha256": "9fb0d34f125f16ebeceddbaf282a6b4514127b5fd3a5ba2f2ca8d57c071ebcbd"
+    },
+    {
+      "path": "specifications/Representative_Learning_Package_v1.zip",
+      "bytes": 225210,
+      "sha256": "19fbaf9a3c0a16e9dec7c47df88a807438521ee52c98b2aa2aaa0c77cfeb351b"
+    },
+    {
+      "path": "specifications/Technical_Architecture_and_Implementation_Plan_v1.md",
+      "bytes": 62668,
+      "sha256": "5e8a7bcb7983b6ccfef7752d46d863fd629e8afb6eb6b511ba187d4f9a73a38d"
+    }
+  ]
+}

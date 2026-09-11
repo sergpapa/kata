@@ -1,0 +1,29 @@
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Local data — the learner's work lives here; never commit it
+data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test and screenshot output
+test-results/
+playwright-report/
+screenshots/
+
+# Editor and OS artifacts
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

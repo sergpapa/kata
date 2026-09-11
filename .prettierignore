@@ -1,0 +1,8 @@
+dist/
+node_modules/
+coverage/
+screenshots/
+test-results/
+playwright-report/
+package-lock.json
+VS_Code_App_and_First_Five_Lessons_v1/

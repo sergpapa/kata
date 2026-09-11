@@ -1,0 +1,12 @@
+# Our own source keeps LF in the repository and in the working tree, so behavior does not depend on
+# which machine checked it out.
+* text=auto eol=lf
+
+# The supplied content package is byte-addressed: `learning-release.json` carries a SHA-256 for every
+# lesson, lab and the activity file, and the importer verifies them. Any line-ending conversion here
+# changes those bytes and breaks every hash. Leave this directory untouched.
+VS_Code_App_and_First_Five_Lessons_v1/** -text
+
+*.zip binary
+*.png binary
+*.jpg binary

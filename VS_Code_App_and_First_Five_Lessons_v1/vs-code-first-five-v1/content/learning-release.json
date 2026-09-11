@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "FSSE-HTTP-FIRST-FIVE",
+  "version": "1.0.0-draft",
+  "date": "2026-09-11",
+  "status": "owner-review candidate; not approved for public release",
+  "audience": "Introductory HTTP learners following the authored prerequisites; initial trial is the owner rehearsal",
+  "source_of_truth": "The supplied UTF-8 Markdown lesson files",
+  "lesson_key_field": "candidate_lesson_id",
+  "lessons": [
+    {
+      "order": 1,
+      "lesson_id": "LS-M020-01",
+      "document_id": "FSSE-HTTP-STUDENT-01",
+      "version": "2.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 1: What happens when your browser asks for something?",
+      "path": "lessons/HTTP_Lesson_01_Student_Edition_v2.md",
+      "sha256": "4221faed9d16238ffedd04957d4377f18efc0ddd65420e9230462a78f7a55adf",
+      "lab_id": null
+    },
+    {
+      "order": 2,
+      "lesson_id": "LS-M020-02",
+      "document_id": "FSSE-HTTP-STUDENT-02",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 2: Give the browser an address—and something to answer",
+      "path": "lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9",
+      "lab_id": "FSSE-HTTP-LAB-02"
+    },
+    {
+      "order": 3,
+      "lesson_id": "LS-M020-03",
+      "document_id": "FSSE-HTTP-STUDENT-03",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 3: One menu, three ways to carry it",
+      "path": "lessons/HTTP_Lesson_03_Student_Edition_v1.md",
+      "sha256": "3a4363e7621142feb1a28cf0bdcbc24cc9e63b607e443097d6860067ed99cb00",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    },
+    {
+      "order": 4,
+      "lesson_id": "LS-M020-04",
+      "document_id": "FSSE-HTTP-STUDENT-04",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 4: Ask the café directly—and inspect its reply",
+      "path": "lessons/HTTP_Lesson_04_Student_Edition_v1.md",
+      "sha256": "a672ebd956c8e4f1a34048eccbb332cf4272201d21e7f67d922e2738cf984c39",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    },
+    {
+      "order": 5,
+      "lesson_id": "LS-M020-05",
+      "document_id": "FSSE-HTTP-STUDENT-05",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 5: One page can make several requests",
+      "path": "lessons/HTTP_Lesson_05_Student_Edition_v1.md",
+      "sha256": "88183507682391ff5e8a203b3b5d0273e431fa5e546e36ffcbd957251b578080",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    }
+  ],
+  "lab_downloads": [
+    {
+      "lab_id": "FSSE-HTTP-LAB-02",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2",
+      "lesson_ids": [
+        "LS-M020-02"
+      ]
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-03-05",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lessons_03_05_Local_Kit_v1.zip",
+      "sha256": "88287e1169c45ec348104a2a171b6f02fd3123ae0be03c1fcbbabfbad2963534",
+      "lesson_ids": [
+        "LS-M020-03",
+        "LS-M020-04",
+        "LS-M020-05"
+      ]
+    }
+  ],
+  "activities": {
+    "path": "trial-activities.json",
+    "sha256": "00c768f037fc264b01857b7b080bb78db9e1d80e239f17318c49d8ac3f4a0e66"
+  }
+}
