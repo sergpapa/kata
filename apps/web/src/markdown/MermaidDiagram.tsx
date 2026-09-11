@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 /**
  * One authored `mermaid` fence, drawn as a picture when Mermaid can draw it.
@@ -97,6 +97,9 @@ export function MermaidDiagram({
   const [drawing, setDrawing] = useState<Drawing>({ state: 'pending' });
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [dark, setDark] = useState(prefersDark);
+  // Counts draws, not diagrams. `useId` is stable for the component's life, and a draw that is
+  // still running when the next one starts must not share its id — see the effect below.
+  const draws = useRef(0);
 
   // The reader has no theme control, so the diagram follows the system the page follows. A drawing
   // made for the other scheme is dark on dark, which is the same as no diagram at all.
@@ -113,7 +116,15 @@ export function MermaidDiagram({
     // scheme can change while it runs; without this, a superseded drawing overwrites a current one
     // and the page shows a picture of something that is no longer on it.
     let current = true;
-    const frameId = `mermaid-${id}`;
+
+    // A new id for every draw, never one per component. Mermaid's `render` opens by deleting
+    // `#<id>`, `#d<id>` and `#i<id>` (mermaid.core.mjs:1256), so two draws that share an id
+    // destroy each other's working nodes: the first then throws on a node the second removed, and
+    // the second throws on a node the first's cleanup removed. Both fail, and a perfectly valid
+    // diagram reports that it could not be drawn. Cancelling is not available — `render` cannot be
+    // aborted — so the two are kept apart instead.
+    draws.current += 1;
+    const frameId = `mermaid-${id}-${draws.current}`;
 
     const draw = async () => {
       setDrawing({ state: 'pending' });
@@ -151,6 +162,7 @@ export function MermaidDiagram({
       } catch (failure) {
         // The second mechanism, kept because the first is one bug from being no guarantee: if
         // `render` did run and throw, Mermaid has left its measuring div behind in document.body.
+        // Safe to do before the `current` check only because the id belongs to this draw alone.
         document.getElementById(`d${frameId}`)?.remove();
         if (!current) return;
         setDrawing({
@@ -166,14 +178,36 @@ export function MermaidDiagram({
     };
   }, [source, dark, id]);
 
-  if (drawing.state === 'pending') return <div className="diagram">{children}</div>;
+  const refused = drawing.state === 'refused';
+
+  /**
+   * Mounted in every state, empty until there is something to say.
+   *
+   * A live region that arrives already holding its text is generally not announced: screen readers
+   * watch regions that were present when the page settled, and one inserted together with its
+   * content reads as ordinary new markup. Drawing finishes after the first paint, so the region has
+   * to be here from the start for the failure to be heard rather than merely seen. `:empty` in the
+   * stylesheet takes away its box; it is not hidden, because a hidden region is not watched either.
+   */
+  const announcement = (
+    <p role="status" className={refused ? 'notice diagram-notice' : 'diagram-notice'}>
+      {refused ? 'This diagram could not be drawn, so its source is shown below.' : ''}
+    </p>
+  );
+
+  if (drawing.state === 'pending') {
+    return (
+      <div className="diagram">
+        {announcement}
+        {children}
+      </div>
+    );
+  }
 
   if (drawing.state === 'refused') {
     return (
       <div className="diagram">
-        <p role="status" className="notice diagram-notice">
-          This diagram could not be drawn, so its source is shown below.
-        </p>
+        {announcement}
         {children}
         <details className="diagram-reason">
           <summary>Why it could not be drawn</summary>
@@ -187,6 +221,7 @@ export function MermaidDiagram({
 
   return (
     <div className="diagram">
+      {announcement}
       <div className="diagram-scroll" tabIndex={0} role="region" aria-label={drawing.title}>
         <iframe
           title={drawing.title}

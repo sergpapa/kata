@@ -289,6 +289,15 @@ main a:visited {
    than alarms. Deliberately not .notice-bad: that one is red and monospace because it carries the
    two 64-character hashes of a refused import, and neither the colour nor the face suits a
    sentence of prose about a diagram the author mis-typed. */
+/* Empty while the diagram is drawing or drawn. Not `display: none` and not `hidden`: a live region
+   has to stay in the accessibility tree to be watched, and both of those take it out. */
+.diagram-notice:empty {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
 .diagram-notice {
   margin-bottom: 0.5rem;
   border-left-color: #b54708;

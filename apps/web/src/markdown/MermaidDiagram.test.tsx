@@ -89,6 +89,21 @@ function renderMarkdown(source: string): HTMLElement {
   return render(<LessonMarkdown markdown={source} />).container;
 }
 
+/**
+ * Waits for the refusal to be announced.
+ *
+ * Asserts the live region's *text*, not its presence: the region is mounted in every state and
+ * starts empty, because a live region inserted together with its content is generally not
+ * announced at all.
+ */
+function refusal(): Promise<HTMLElement> {
+  return waitFor(() => {
+    const notice = screen.getByRole('status');
+    expect(notice.textContent).toMatch(/could not be drawn/i);
+    return notice;
+  });
+}
+
 /** Waits for the async draw to settle, whichever way it settled. */
 function diagramFrame(container: HTMLElement): Promise<HTMLIFrameElement> {
   return waitFor(() => {
@@ -190,7 +205,7 @@ describe('F — a diagram that cannot be drawn', () => {
     refuseParse();
     const container = renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     const block = container.querySelector('pre');
     expect(block?.textContent).toBe(DIAGRAM_SOURCE);
     expect(container.textContent).toContain('mermaid');
@@ -201,7 +216,7 @@ describe('F — a diagram that cannot be drawn', () => {
     refuseParse();
     renderMarkdown(LESSON);
 
-    const notice = await waitFor(() => screen.getByRole('status'));
+    const notice = await refusal();
     expect(notice.textContent).toMatch(/could not be drawn/i);
   });
 
@@ -209,7 +224,7 @@ describe('F — a diagram that cannot be drawn', () => {
     refuseParse();
     const container = renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     const reason = [...container.querySelectorAll('pre')]
       .map((block) => block.textContent ?? '')
       .find((text) => text.includes('Parse error'));
@@ -220,7 +235,7 @@ describe('F — a diagram that cannot be drawn', () => {
     refuseParse();
     renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     expect(mermaid.render).not.toHaveBeenCalled();
     expect(mermaid.parse).toHaveBeenCalledWith(DIAGRAM_SOURCE);
   });
@@ -243,7 +258,7 @@ describe('F — a diagram that cannot be drawn', () => {
 
     const container = renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     expect(document.querySelectorAll('svg[aria-roledescription="error"]')).toHaveLength(0);
     expect(document.querySelectorAll('body > div[id^="d"]')).toHaveLength(0);
     expect(container.querySelector('pre')?.textContent).toBe(DIAGRAM_SOURCE);
@@ -257,7 +272,7 @@ describe('F — a diagram that cannot be drawn', () => {
     const { LessonMarkdown: Fresh } = await import('./LessonMarkdown.js');
 
     const { container } = render(<Fresh markdown={LESSON} />);
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     expect(container.querySelector('pre')?.textContent).toBe(DIAGRAM_SOURCE);
 
     // Restored, not unmocked: vi.doUnmock('mermaid') removes the file-level vi.mock as well, and
@@ -280,7 +295,7 @@ describe('F — a diagram that cannot be drawn', () => {
     mermaid.render.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg"></svg>' });
     const container = renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     expect(container.querySelector('iframe')).toBeNull();
     expect(container.querySelector('pre')?.textContent).toBe(DIAGRAM_SOURCE);
   });
@@ -339,7 +354,7 @@ describe('P — the prose stays beside the diagram', () => {
     mermaid.parse.mockRejectedValue(new Error('Parse error on line 2'));
     const container = renderMarkdown(LESSON);
 
-    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    await refusal();
     const block = container.querySelector('.diagram');
     expect(block?.nextElementSibling?.textContent).toMatch(/^In words:/);
   });
@@ -428,5 +443,25 @@ describe('a result that arrives too late is not used', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(container.querySelector('iframe')).toBeNull();
+  });
+
+  /**
+   * Mermaid's `render` opens by deleting `#<id>`, `#d<id>` and `#i<id>`, so two draws that share
+   * an id delete each other's working nodes and both throw — reporting "could not be drawn" for a
+   * diagram that is perfectly valid. Overlap is ordinary here: a colour-scheme flip re-runs the
+   * draw while the previous one is still awaiting.
+   */
+  it('gives every draw its own Mermaid id, so two in flight cannot delete each other', async () => {
+    const scheme = stubColourScheme(false);
+    mermaid.render.mockImplementation(() => new Promise<{ svg: string }>(() => {}));
+
+    render(<LessonMarkdown markdown={LESSON} />);
+    await waitFor(() => expect(mermaid.render).toHaveBeenCalledTimes(1));
+
+    scheme.change(true);
+    await waitFor(() => expect(mermaid.render).toHaveBeenCalledTimes(2));
+
+    const ids = mermaid.render.mock.calls.map((call: unknown[]) => call[0]);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });

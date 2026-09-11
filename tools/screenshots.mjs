@@ -140,9 +140,14 @@ try {
         // real browser is the only place that can answer whether a diagram actually became a
         // picture — or whether the one Mermaid refuses fell back to its source with a reason.
         if (route.diagram) {
-          await page
-            .waitForSelector('.diagram iframe, .diagram [role="status"]', { timeout: 15_000 })
-            .catch(() => {});
+          // Only where a diagram is expected. A lesson with none would otherwise spend the whole
+          // timeout waiting for a selector that can never match — 12 route/width/scheme
+          // combinations, three minutes of nothing, on every run.
+          if (route.diagram !== 'none') {
+            await page
+              .waitForSelector('.diagram iframe, .diagram .diagram-reason', { timeout: 15_000 })
+              .catch(() => {});
+          }
           const diagram = await page.evaluate(() => {
             const frames = [...document.querySelectorAll('.diagram-scroll iframe')];
             const notice = document.querySelector('.diagram [role="status"]');
