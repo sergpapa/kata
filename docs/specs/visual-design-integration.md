@@ -21,13 +21,13 @@ instruction. `reference-source/app/globals.css` is 335 lines of which roughly 30
 the rest is three `@import`s, a Tailwind `@theme inline` block, and selectors keyed to `data-slot`
 attributes emitted by shadcn primitives.
 
-| What the reference carries              | What this app has         | Consequence for this slice                     |
-| --------------------------------------- | ------------------------- | ---------------------------------------------- |
-| Tailwind 4, shadcn/ui, Radix, Lucide     | Plain CSS, no UI library  | Port token values and selectors by hand        |
-| `data-slot=` / `data-active=` selectors  | No such attributes        | Rewrite those selectors against our own markup |
-| 8 lessons, `lib/lessons.json`            | 5 lessons from the release | Every count derives from the release           |
-| `localStorage` demo state, `transition()` | No progress store yet     | No progress is displayed at all                |
-| Persona switcher, scenario menu, prototype strip | —                 | Out of scope by the package's own instruction   |
+| What the reference carries                       | What this app has          | Consequence for this slice                     |
+| ------------------------------------------------ | -------------------------- | ---------------------------------------------- |
+| Tailwind 4, shadcn/ui, Radix, Lucide             | Plain CSS, no UI library   | Port token values and selectors by hand        |
+| `data-slot=` / `data-active=` selectors          | No such attributes         | Rewrite those selectors against our own markup |
+| 8 lessons, `lib/lessons.json`                    | 5 lessons from the release | Every count derives from the release           |
+| `localStorage` demo state, `transition()`        | No progress store yet      | No progress is displayed at all                |
+| Persona switcher, scenario menu, prototype strip | —                          | Out of scope by the package's own instruction  |
 
 ## Decisions taken at Stage 0
 
@@ -127,8 +127,13 @@ attributes emitted by shadcn primitives.
 - [ ] C1. Every foreground/background pair the stylesheet actually uses meets WCAG AA — 4.5:1 for
       body text, 3:1 for large text and for the focus ring against both surfaces it can sit on —
       in **both** schemes. Checked by computing the ratios from the token values, not by eye.
-- [ ] C2. The light scheme's tokens equal the package's published values exactly, for every role
-      DESIGN_SPECIFICATION §2 names.
+- [ ] C2. The light scheme's tokens equal the package's published values exactly, for all 18 of the
+      19 roles DESIGN_SPECIFICATION §2 names. The exception is `--input`, and it is an exception for
+      a reason worth recording: the published `#c8d1e4` on `#ffffff` measures **1.53:1**, where WCAG
+      1.4.11 asks 3:1 of a control's visual boundary. This slice has no text input, so the token is
+      not ported rather than being ported broken. Milestone 2 adds the first textarea and will need
+      a darker border: `#767f93` measures 4.02:1 on white and 3.75:1 on the canvas, and `#5c6b94`
+      measures 3.07:1 on the dark card.
 - [ ] C3. The sidebar, the current-lesson card, and the lime action carry the same values in both
       schemes, per decision 4.
 
@@ -143,7 +148,10 @@ attributes emitted by shadcn primitives.
 - [ ] R4. No page scrolls sideways at 375, 768 or 1440px in either scheme — the existing check,
       now also covering the drawer and the three new addresses.
 - [ ] R5. At 200% zoom on a 1440px viewport, lesson prose and the dashboard's primary action are
-      still on screen and the page does not scroll sideways.
+      still on screen and the page does not scroll sideways. Checked as a 720 CSS-pixel viewport,
+      which is what 1440 at 200% is: doubling the zoom halves the CSS pixels the layout sees.
+- [ ] R6. The drawer is checked open, not only closed. At 375px, with the sidebar opened from the
+      top bar, the page still does not scroll sideways and the destinations are on screen.
 
 ## Out of scope for this slice
 

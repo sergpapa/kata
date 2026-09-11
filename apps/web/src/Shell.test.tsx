@@ -1,0 +1,208 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { App } from './App.js';
+import { answerRoutes, importedRelease, lesson, lessonDetail } from './testkit/apiFixture.js';
+
+/**
+ * Criteria S1–S6 and P3 in docs/specs/visual-design-integration.md — the shell every address
+ * shares. These are about landmarks, addresses and focus, not about colour: what the sidebar
+ * looks like is checked by tools/screenshots.mjs, because jsdom applies no stylesheet at all.
+ */
+
+function at(path: string): void {
+  window.history.replaceState({}, '', path);
+}
+
+beforeEach(() => {
+  at('/');
+});
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  at('/');
+});
+
+describe('the shell around every page', () => {
+  it('gives the page a sidebar, a top bar and a main region, and the skip link points at main', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    expect(sidebar).toBeTruthy();
+    expect(screen.getByRole('main').id).toBe('main');
+    expect(screen.getByRole('link', { name: /skip to content/i }).getAttribute('href')).toBe(
+      '#main',
+    );
+  });
+
+  it('lists the four destinations in order, each a real address', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    const destinations = within(sidebar).getAllByRole('link');
+    expect(destinations.map((link) => link.textContent?.trim())).toEqual([
+      'Learn',
+      'Practice',
+      'Reviews',
+      'Progress',
+    ]);
+    expect(destinations.map((link) => link.getAttribute('href'))).toEqual([
+      '/',
+      '/practice',
+      '/reviews',
+      '/progress',
+    ]);
+  });
+
+  it('marks exactly one destination as the current page', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+    at('/reviews');
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    const current = within(sidebar)
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current).toHaveLength(1);
+    expect(current[0]?.textContent?.trim()).toBe('Reviews');
+  });
+
+  it('keeps Learn marked while a lesson is open, because a lesson is where Learn leads', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/lessons/': lessonDetail(1),
+    });
+    at('/lessons/LS-M020-01');
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    const current = within(sidebar)
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page');
+    expect(current.map((link) => link.textContent?.trim())).toEqual(['Learn']);
+  });
+
+  it('ends the top-bar trail in the name of the page being read', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/lessons/': lessonDetail(1),
+    });
+    at('/lessons/LS-M020-01');
+
+    render(<App />);
+
+    const trail = await screen.findByRole('navigation', { name: /breadcrumb/i });
+    // The last crumb, not merely somewhere in the trail: the right name in the middle with
+    // something after it is a different claim about where the reader is.
+    await waitFor(() =>
+      expect(within(trail).getAllByRole('listitem').at(-1)?.textContent?.trim()).toBe(
+        'Lesson 1: What happens when your browser asks for something?',
+      ),
+    );
+  });
+
+  it('names the workspace in the trail on the lesson list', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trail = await screen.findByRole('navigation', { name: /breadcrumb/i });
+    expect(within(trail).getAllByRole('listitem').at(-1)?.textContent?.trim()).toMatch(
+      /learning workspace/i,
+    );
+  });
+
+  it('carries the product name in the sidebar, not in a page header of its own', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    expect(sidebar.textContent).toContain('EduCode');
+    expect(screen.queryByRole('banner')).toBeNull();
+  });
+
+  /** Criterion D2 reaches the shell too: the sidebar describes the release it actually loaded. */
+  it('describes the loaded release in the sidebar, counted from the release itself', async () => {
+    answerRoutes({ '/api/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two')]) });
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    await waitFor(() => expect(sidebar.textContent).toContain('2 lessons'));
+    expect(sidebar.textContent).toContain('Introductory HTTP learners');
+  });
+});
+
+describe('the sidebar as a drawer on a narrow screen', () => {
+  it('is closed to begin with, and the trigger says so', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trigger = await screen.findByRole('button', { name: /navigation/i });
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(trigger.getAttribute('aria-controls')).toBe(
+      (await screen.findByRole('navigation', { name: /sections/i })).id,
+    );
+  });
+
+  it('opens on the trigger and puts focus inside, so the next Tab is in the drawer', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trigger = await screen.findByRole('button', { name: /navigation/i });
+    fireEvent.click(trigger);
+
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    const sidebar = screen.getByRole('navigation', { name: /sections/i });
+    await waitFor(() => expect(sidebar.contains(document.activeElement)).toBe(true));
+  });
+
+  it('closes on Escape and gives focus back to the trigger', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trigger = await screen.findByRole('button', { name: /navigation/i });
+    fireEvent.click(trigger);
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    await waitFor(() => expect(trigger.getAttribute('aria-expanded')).toBe('false'));
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('closes when a destination inside it is followed, rather than covering the page it opened', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trigger = await screen.findByRole('button', { name: /navigation/i });
+    fireEvent.click(trigger);
+    const sidebar = screen.getByRole('navigation', { name: /sections/i });
+    fireEvent.click(within(sidebar).getByRole('link', { name: 'Practice' }));
+
+    await waitFor(() => expect(trigger.getAttribute('aria-expanded')).toBe('false'));
+  });
+});
+
+describe('an address the app does not serve', () => {
+  it('still renders inside the shell, so the reader can navigate away', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+    at('/nowhere');
+
+    render(<App />);
+
+    expect(await screen.findByRole('navigation', { name: /sections/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
+      /no page at this address/i,
+    );
+  });
+});

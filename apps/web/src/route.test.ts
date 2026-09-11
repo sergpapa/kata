@@ -52,3 +52,20 @@ describe('building a lesson address', () => {
     expect(parseRoute(href)).toEqual({ kind: 'lesson', candidateLessonId: 'LS/M020 01' });
   });
 });
+
+/** Criterion P1 in docs/specs/visual-design-integration.md: the sidebar's other three
+ *  destinations are addresses, not labels. */
+describe('the destinations whose work is not built yet', () => {
+  it.each([
+    ['/practice', 'practice'],
+    ['/reviews', 'reviews'],
+    ['/progress', 'progress'],
+  ])('reads %s as the %s section', (path, section) => {
+    expect(parseRoute(path)).toEqual({ kind: 'standby', section });
+  });
+
+  it('does not invent a section for an address that merely starts like one', () => {
+    expect(parseRoute('/practices')).toMatchObject({ kind: 'unknown' });
+    expect(parseRoute('/practice/lab-02')).toMatchObject({ kind: 'unknown' });
+  });
+});

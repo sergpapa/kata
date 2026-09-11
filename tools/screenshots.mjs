@@ -36,6 +36,9 @@ const schemes = ['light', 'dark'];
  */
 const routes = [
   { name: 'home', path: '/' },
+  { name: 'practice', path: '/practice' },
+  { name: 'reviews', path: '/reviews' },
+  { name: 'progress', path: '/progress' },
   { name: 'lesson-01', path: '/lessons/LS-M020-01', diagram: 'drawn' },
   { name: 'lesson-02', path: '/lessons/LS-M020-02', diagram: 'fallback' },
   { name: 'lesson-03', path: '/lessons/LS-M020-03', diagram: 'none' },
@@ -90,6 +93,27 @@ function checkMermaidIsLazy() {
   } else {
     console.log(`  Mermaid is lazy: ${carrying.join(', ')}, not the entry ${entryName}`);
   }
+}
+
+/**
+ * Whether the page scrolls sideways, and what is widest if it does. Naming the culprit points a
+ * failure at the block to fix rather than at the page.
+ */
+async function sidewaysScroll(page) {
+  return page.evaluate(() => {
+    const root = document.documentElement;
+    if (root.scrollWidth <= root.clientWidth) return null;
+    const widest = [...document.querySelectorAll('body *')]
+      .map((element) => ({ element, right: element.getBoundingClientRect().right }))
+      .sort((a, b) => b.right - a.right)[0];
+    return {
+      scrollWidth: root.scrollWidth,
+      clientWidth: root.clientWidth,
+      culprit: widest
+        ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}`
+        : 'unknown',
+    };
+  });
 }
 
 async function waitForHealth(timeoutMs = 20_000) {
@@ -217,21 +241,7 @@ try {
           }
         }
 
-        const overflow = await page.evaluate(() => {
-          const root = document.documentElement;
-          if (root.scrollWidth <= root.clientWidth) return null;
-          // Name the widest element, so a failure points at the block to fix rather than at the page.
-          const widest = [...document.querySelectorAll('body *')]
-            .map((element) => ({ element, right: element.getBoundingClientRect().right }))
-            .sort((a, b) => b.right - a.right)[0];
-          return {
-            scrollWidth: root.scrollWidth,
-            clientWidth: root.clientWidth,
-            culprit: widest
-              ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}`
-              : 'unknown',
-          };
-        });
+        const overflow = await sidewaysScroll(page);
         if (overflow) {
           failures.push(
             `${route.name} (${scheme}) scrolls sideways at ${size.width}px: ${overflow.scrollWidth}px of content ` +
@@ -260,6 +270,92 @@ try {
       }
     }
   }
+
+  /**
+   * Criterion R5 in docs/specs/visual-design-integration.md. Browser zoom does not magnify pixels,
+   * it shrinks the CSS pixel: a 1440px window at 200% lays out as 720 CSS pixels. So the honest
+   * check is a 720-wide viewport, not a `zoom` property, and it is run where the criterion points —
+   * the dashboard's primary action and a lesson's prose.
+   */
+  for (const route of [
+    { name: 'home', path: '/', mustSee: 'a[href="/lessons/LS-M020-01"]' },
+    { name: 'lesson-01', path: '/lessons/LS-M020-01', mustSee: '.lesson-body p' },
+  ]) {
+    const context = await browser.newContext({ viewport: { width: 720, height: 450 } });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
+
+    const overflow = await sidewaysScroll(page);
+    if (overflow) {
+      failures.push(
+        `${route.name} scrolls sideways at 720px — 1440px at 200% zoom: ${overflow.scrollWidth}px ` +
+          `of content in a ${overflow.clientWidth}px page, widest element ${overflow.culprit}`,
+      );
+    }
+
+    // On screen, not merely in the document: a control pushed outside the viewport is unreachable
+    // to the reader who zoomed in order to see it.
+    const visible = await page.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return 'missing';
+      const box = element.getBoundingClientRect();
+      return box.left >= 0 && box.right <= document.documentElement.clientWidth
+        ? 'ok'
+        : 'off-screen';
+    }, route.mustSee);
+    if (visible !== 'ok') {
+      failures.push(`${route.name} at 720px: ${route.mustSee} is ${visible}`);
+    }
+
+    await page.screenshot({
+      path: path.join(outDir, `${route.name}-zoom-720.png`),
+      fullPage: true,
+    });
+    await context.close();
+  }
+
+  /**
+   * Criterion R6. The drawer is the one piece of this layout that has a second state, and a
+   * sidebar that overflows the page only once opened would pass every check above.
+   */
+  for (const scheme of schemes) {
+    const context = await browser.newContext({
+      viewport: { width: 375, height: 812 },
+      colorScheme: scheme,
+    });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: /navigation/i }).click();
+    await page.getByRole('navigation', { name: /sections/i }).waitFor({ state: 'visible' });
+
+    const overflow = await sidewaysScroll(page);
+    if (overflow) {
+      failures.push(
+        `the open drawer (${scheme}) scrolls the page sideways at 375px: ${overflow.scrollWidth}px ` +
+          `of content in a ${overflow.clientWidth}px page, widest element ${overflow.culprit}`,
+      );
+    }
+
+    const reachable = await page.evaluate(() => {
+      const links = [...document.querySelectorAll('#sidebar a')];
+      const width = document.documentElement.clientWidth;
+      return links
+        .filter((link) => {
+          const box = link.getBoundingClientRect();
+          return box.right > width || box.left < 0 || box.width === 0;
+        })
+        .map((link) => link.textContent?.trim());
+    });
+    if (reachable.length > 0) {
+      failures.push(
+        `the open drawer (${scheme}) at 375px puts ${reachable.length} destination(s) out of ` +
+          `reach: ${reachable.join(', ')}`,
+      );
+    }
+
+    await page.screenshot({ path: path.join(outDir, `drawer-mobile-375-${scheme}.png`) });
+    await context.close();
+  }
 } finally {
   await browser?.close();
   child.kill();
@@ -272,4 +368,4 @@ ${failures.length} layout check(s) failed:`);
   process.exit(1);
 }
 console.log(`
-Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes.`);
+Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom) and the open drawer at 375px.`);
