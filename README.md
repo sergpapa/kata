@@ -4,8 +4,9 @@ A local application for reading the authored HTTP lessons and recording your act
 them. It runs on your own computer. There is no account, no server to sign in to, and no copy of
 your work anywhere else.
 
-**Current state:** the supplied release imports and its five lessons are listed. No lesson body is
-readable yet — rendering is the next slice. See [docs/roadmap.md](docs/roadmap.md).
+**Current state:** the supplied release imports, its five lessons are listed, and each one can be
+read at its own address. Diagrams show as their labelled source until the next slice renders them;
+there is no contents list or resume point yet. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
 
@@ -42,6 +43,23 @@ imported — not even the ones that verified — and nothing is ever filled in w
 The release directory defaults to the supplied package. Point `EDUCODE_RELEASE_DIR` elsewhere to
 read a different one; it is only ever read, never written to.
 
+## Reading a lesson
+
+Each lesson has its own address — `/lessons/LS-M020-03` — so it can be linked, bookmarked, and
+reached with the back button.
+
+Lesson text is data, never markup that runs. Markdown becomes React elements directly; no HTML
+string exists anywhere in the application. Anything that must not render is turned into visible
+text rather than deleted: raw HTML shows as the characters the author typed, a link whose target is
+not `http:` or `https:` shows its label and its target, and an image shows its alt text and source
+instead of loading. You can always see what was written and why it did not render. The reasoning is
+in [docs/adr/0007](docs/adr/0007-markdown-renders-to-react-elements-and-nothing-is-deleted-silently.md).
+
+Code blocks keep the author's whitespace exactly, including the blank line that separates headers
+from body in an HTTP message, and carry their language as a label so a command you type is not
+mistaken for output you should see. A block wider than the column scrolls inside itself; the page
+never scrolls sideways.
+
 For the built application:
 
 ```sh
@@ -51,13 +69,13 @@ npm start        # serves the built client and the API from http://127.0.0.1:431
 
 ## Checking it
 
-| Command               | What it proves                                                                                                                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test`            | Unit and HTTP-level tests (Vitest)                                                                                                                                                                   |
-| `npm run typecheck`   | Types across server and client                                                                                                                                                                       |
-| `npm run lint`        | ESLint across the workspace                                                                                                                                                                          |
-| `npm run build`       | Both apps compile                                                                                                                                                                                    |
-| `npm run screenshots` | Boots the built app and captures `/` at 375px, 768px and 1440px into `screenshots/`, warning on any horizontal page overflow. Run `npm run build` first, and `npx playwright install chromium` once. |
+| Command               | What it proves                                                                                                                                                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`            | Unit and HTTP-level tests (Vitest)                                                                                                                                                                                                                                                                                                                            |
+| `npm run typecheck`   | Types across server and client                                                                                                                                                                                                                                                                                                                                |
+| `npm run lint`        | ESLint across the workspace                                                                                                                                                                                                                                                                                                                                   |
+| `npm run build`       | Both apps compile                                                                                                                                                                                                                                                                                                                                             |
+| `npm run screenshots` | Boots the built app and captures the home page and all five lessons at 375px, 768px and 1440px, light and dark, into `screenshots/`. **Fails** if a page scrolls sideways or a code block stops preserving whitespace — neither is visible to the test suite, which has no stylesheet. Run `npm run build` first, and `npx playwright install chromium` once. |
 
 Everything runs locally and costs nothing. There is no CI pipeline in this repository, deliberately.
 
@@ -68,6 +86,7 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | `apps/server`                            | Fastify application, domain modules under `src/modules/<area>/`, SQLite access |
 | `apps/server/src/modules/content/`       | Release import: manifest, hashes, path safety, and the content repository      |
 | `apps/web`                               | React client (Vite)                                                            |
+| `apps/web/src/markdown/`                 | The lesson renderer and the guards that keep lesson content inert              |
 | `tools/`                                 | Local development tooling, including the screenshot capture                    |
 | `docs/brief.md`                          | What the first checkpoint delivers, and its hard constraints                   |
 | `docs/roadmap.md`                        | Current state and the remaining slices — read this first in a new session      |
@@ -79,7 +98,8 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 ## Pinned versions
 
 Node 22.13.0 · TypeScript 6.0.3 · Fastify 5.12.4 · better-sqlite3 12.11.1 · React 19.3.0 ·
-Vite 8.3.0 · Vitest 5.0.0 · ESLint 10.10.0 · Playwright 1.63.0 · yaml 2.9.0.
+Vite 8.3.0 · Vitest 5.0.0 · ESLint 10.10.0 · Playwright 1.63.0 · yaml 2.9.0 ·
+react-markdown 10.1.0 · remark-gfm 4.0.1 · rehype-sanitize 6.0.0.
 
 `better-sqlite3` is held at 12.x on purpose: 13.0.3's Windows prebuild crashes on this Node version
 (see [docs/adr/0002](docs/adr/0002-sqlite-behind-a-repository-boundary.md)). Exact resolved versions

@@ -23,6 +23,10 @@ const widths = [
   { name: 'desktop-1440', width: 1440, height: 900 },
 ];
 
+/** Both schemes are captured: the palette is token-based and a reviewer cannot check dark without
+ *  a dark capture. The layout checks below run in both, since only light was ever exercised. */
+const schemes = ['light', 'dark'];
+
 /**
  * Pages to capture. Add a route here when a slice adds one.
  *
@@ -80,57 +84,63 @@ const failures = [];
 let browser;
 try {
   await waitForHealth();
+  // Wiped, not merged: a capture from a route that no longer exists is worse than no capture, and
+  // a reviewer has no way to tell a stale file from a current one.
+  fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
   browser = await chromium.launch();
 
   for (const route of routes) {
     for (const size of widths) {
-      const context = await browser.newContext({
-        viewport: { width: size.width, height: size.height },
-      });
-      const page = await context.newPage();
-      await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
+      for (const scheme of schemes) {
+        const context = await browser.newContext({
+          viewport: { width: size.width, height: size.height },
+          colorScheme: scheme,
+        });
+        const page = await context.newPage();
+        await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
 
-      const overflow = await page.evaluate(() => {
-        const root = document.documentElement;
-        if (root.scrollWidth <= root.clientWidth) return null;
-        // Name the widest element, so a failure points at the block to fix rather than at the page.
-        const widest = [...document.querySelectorAll('body *')]
-          .map((element) => ({ element, right: element.getBoundingClientRect().right }))
-          .sort((a, b) => b.right - a.right)[0];
-        return {
-          scrollWidth: root.scrollWidth,
-          clientWidth: root.clientWidth,
-          culprit: widest
-            ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}`
-            : 'unknown',
-        };
-      });
-      if (overflow) {
-        failures.push(
-          `${route.name} scrolls sideways at ${size.width}px: ${overflow.scrollWidth}px of content ` +
-            `in a ${overflow.clientWidth}px page, widest element ${overflow.culprit}`,
+        const overflow = await page.evaluate(() => {
+          const root = document.documentElement;
+          if (root.scrollWidth <= root.clientWidth) return null;
+          // Name the widest element, so a failure points at the block to fix rather than at the page.
+          const widest = [...document.querySelectorAll('body *')]
+            .map((element) => ({ element, right: element.getBoundingClientRect().right }))
+            .sort((a, b) => b.right - a.right)[0];
+          return {
+            scrollWidth: root.scrollWidth,
+            clientWidth: root.clientWidth,
+            culprit: widest
+              ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}`
+              : 'unknown',
+          };
+        });
+        if (overflow) {
+          failures.push(
+            `${route.name} (${scheme}) scrolls sideways at ${size.width}px: ${overflow.scrollWidth}px of content ` +
+              `in a ${overflow.clientWidth}px page, widest element ${overflow.culprit}`,
+          );
+        }
+
+        // Whitespace inside a code block is load-bearing in HTTP samples, and only a real stylesheet
+        // can break it. jsdom cannot see this at all.
+        const wrapping = await page.evaluate(() =>
+          [...document.querySelectorAll('pre')]
+            .map((block) => getComputedStyle(block).whiteSpace)
+            .filter((value) => value !== 'pre'),
         );
-      }
+        if (wrapping.length > 0) {
+          failures.push(
+            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.length} code block(s) not set to ` +
+              `white-space: pre (found ${[...new Set(wrapping)].join(', ')})`,
+          );
+        }
 
-      // Whitespace inside a code block is load-bearing in HTTP samples, and only a real stylesheet
-      // can break it. jsdom cannot see this at all.
-      const wrapping = await page.evaluate(() =>
-        [...document.querySelectorAll('pre')]
-          .map((block) => getComputedStyle(block).whiteSpace)
-          .filter((value) => value !== 'pre'),
-      );
-      if (wrapping.length > 0) {
-        failures.push(
-          `${route.name} at ${size.width}px has ${wrapping.length} code block(s) not set to ` +
-            `white-space: pre (found ${[...new Set(wrapping)].join(', ')})`,
-        );
+        const file = path.join(outDir, `${route.name}-${size.name}-${scheme}.png`);
+        await page.screenshot({ path: file, fullPage: true });
+        console.log(`  ${path.relative(repoRoot, file)}`);
+        await context.close();
       }
-
-      const file = path.join(outDir, `${route.name}-${size.name}.png`);
-      await page.screenshot({ path: file, fullPage: true });
-      console.log(`  ${path.relative(repoRoot, file)}`);
-      await context.close();
     }
   }
 } finally {
@@ -145,4 +155,4 @@ ${failures.length} layout check(s) failed:`);
   process.exit(1);
 }
 console.log(`
-Layout checks passed on ${routes.length} routes at ${widths.length} widths.`);
+Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes.`);

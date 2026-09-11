@@ -2,17 +2,25 @@
 
 ## Current state
 
-Last updated 2026-09-11. The release importer is done and the five lessons are listed in the app.
-On every start the app verifies all eight hashes the manifest publishes, refuses a release naming
-the file at fault, and stores a verified one append-only against release ID, `candidate_lesson_id`
-and content version. Schema version 2. `npm test` (75 passing across 6 files), `npm run lint`,
-`npm run typecheck`, `npm run build` and `npm run screenshots` all pass locally. Verified in the
-running app both ways: five authored titles in order, and a one-byte change to Lesson 3 producing a
-named refusal with zero lessons stored.
+Last updated 2026-09-11. The five lessons import and each one can now be read at its own address,
+`/lessons/<candidate_lesson_id>`. Markdown parses straight to React elements — no HTML string exists
+anywhere in the app — and anything that must not render becomes visible text rather than being
+deleted. Fence text is preserved character for character, which is what keeps Lesson 1's HTTP
+request sample correct. Front matter shows as selected learner-facing facts with the author's own
+status caveat always visible. Schema version 2, unchanged this slice.
 
-No lesson body is readable yet: nothing renders Markdown.
+`npm test` (219 passing across 11 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. `npm run screenshots` is now a
+real check rather than a capture: it visits all six routes at three widths in both colour schemes
+and exits non-zero if a page scrolls sideways or a code block stops preserving whitespace, neither
+of which the jsdom suite can see. Verified in a browser against the built app, 14 checks over three
+consecutive runs.
 
-Next action: Milestone 1, slice 2 — the Markdown rendering contract.
+Not yet readable as intended: the three Mermaid diagrams show as labelled source blocks — that is
+slice 3's text fallback arriving early, not a placeholder. There is no contents list, no
+previous/next and no resume point; slice 4 adds those, and will add heading `id`s with it.
+
+Next action: Milestone 1, slice 3 — Mermaid diagrams.
 
 ## Milestone 1 — Read the five lessons faithfully (goal: the owner can read Lessons 1–5 in the app, in the authored wording and order)
 
@@ -21,11 +29,14 @@ Next action: Milestone 1, slice 2 — the Markdown rendering contract.
       manifest and the lesson front matter refused by name, lessons stored append-only against
       `candidate_lesson_id`, content version and release ID. Criteria and slice log in
       `docs/specs/release-import.md`; decisions in ADR 0006.
-- [ ] **Markdown rendering contract.** CommonMark plus tables and fenced code, raw HTML disabled,
-      output sanitized, code blocks horizontally scrollable without the page scrolling sideways,
-      whitespace preserved in HTTP messages and sample output. First H1 is the display title.
+- [x] **Markdown rendering contract.** Done 2026-09-11. CommonMark plus GFM tables and fenced code;
+      raw HTML, unsafe link targets and images rendered as visible text rather than deleted or
+      executed; output sanitized; code blocks and tables scroll inside themselves at 375px;
+      whitespace preserved character for character. First H1 is the display title, and the page's
+      only `h1`. Criteria and slice log in `docs/specs/markdown-rendering.md`; decisions in ADR 0007.
 - [ ] **Mermaid diagrams.** Safe configuration, authored prose kept adjacent, labelled text fallback
-      when a diagram cannot render.
+      when a diagram cannot render. The fallback already ships: a `mermaid` fence renders as a
+      labelled block showing its source.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
@@ -59,6 +70,35 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-11, slice 2 — Markdown rendering contract.** Built to
+  `docs/specs/markdown-rendering.md`: 219 tests, test-guardian PRE and POST, `/code-review`, design
+  review, `/hygiene`.
+
+  PRE failed the first test draft on four findings, all fixed before any implementation existed —
+  most importantly that the five real lesson files never passed through the server's own body
+  extraction, and that `tools/screenshots.mjs` enforced nothing because it visited only the home
+  page and downgraded overflow to a warning.
+
+  POST found the defect that mattered. Reference-style links and images — `[text][ref]`,
+  `![alt][ref]` — bypassed the guard entirely, because those are `linkReference` and
+  `imageReference` nodes that are not resolved into anchors and images until mdast becomes hast,
+  after every remark plugin has run. A lesson containing `![menu][c]` with
+  `[c]: https://tracker.example/pixel.png` rendered a live `img` and loaded it. Every hostile target
+  in the suite had been driven through the inline spelling only. Links and images are now guarded on
+  the element tree, where both spellings have converged.
+
+  `/code-review` found that `/lessons/%` crashed the whole app, that generated footnote anchors were
+  being sent to a new tab, and that navigation reset neither scroll nor focus. The design review
+  found that inline code in table cells was breaking mid-token — `127.0.0.1` rendering as `127.` /
+  `0.0.` / `1` in 12 cells at 375px, which teaches the wrong string — and that the facts panel
+  pushed the first sentence of Lesson 2 1,420px down a phone; it now starts at 518px, with the
+  author's status caveat promoted out of the disclosure so it is never hidden.
+
+  Two test assertions changed after PRE approval, both declared in `docs/specs/markdown-rendering.md`
+  with reasons. Three findings declined, also recorded there with reasons: `mailto:` stays text, the
+  front-matter fallback stays as it is because the importer already refuses by name, and heading
+  `id`s wait for slice 4 where they have a consumer.
 
 - **2026-09-11, slice 1 — release import.** Built to `docs/specs/release-import.md`: 75 tests,
   test-guardian PRE and POST, `/code-review`, design review. POST found two defects the first

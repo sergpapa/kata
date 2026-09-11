@@ -107,9 +107,16 @@ p {
   }
 }
 
-h3 {
+.lesson-title {
   font-size: 1.05rem;
   margin: 0 0 0.25rem;
+}
+
+/* Monospace belongs to every code span on every page, not only inside a lesson body. */
+code,
+kbd,
+samp {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 }
 
 .notice {
@@ -162,163 +169,4 @@ h3 {
   margin: 0;
   color: var(--ink-muted);
   font-size: 0.85rem;
-}
-
-/* ---------------------------------------------------------------------------
-   Reading one lesson. The rule that governs everything below: a code block or a
-   table may be wider than the column, but the page itself must never scroll
-   sideways at 375px. Each wide thing scrolls inside its own box instead.
-   --------------------------------------------------------------------------- */
-
-.lesson-back {
-  margin: 0 0 1.25rem;
-  font-size: 0.9rem;
-}
-
-.lesson-provenance {
-  margin: -0.5rem 0 1.5rem;
-  color: var(--ink-muted);
-  font-size: 0.85rem;
-  overflow-wrap: anywhere;
-}
-
-.lesson-facts-panel {
-  margin: 0 0 2rem;
-  padding: 0.25rem 1rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--ink) 3%, transparent);
-}
-
-.lesson-facts-panel h2 {
-  font-size: 1rem;
-  margin: 1rem 0 0.75rem;
-}
-
-.lesson-facts-panel dl {
-  margin: 0;
-}
-
-.lesson-fact + .lesson-fact {
-  margin-top: 0.75rem;
-}
-
-.lesson-fact dt {
-  font-weight: 650;
-  font-size: 0.9rem;
-}
-
-.lesson-fact dd {
-  margin: 0.15rem 0 0;
-  color: var(--ink-muted);
-  font-size: 0.9rem;
-}
-
-.lesson-fact dd ul {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-/* Authored prose can carry a long URL or an unbroken identifier; without this it is the one thing
-   that pushes the page wider than the viewport at 375px. */
-.lesson-body p,
-.lesson-body li,
-.lesson-body h2,
-.lesson-body h3,
-.lesson-body h4 {
-  overflow-wrap: anywhere;
-}
-
-.lesson-body blockquote {
-  margin: 1rem 0;
-  padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--rule);
-  color: var(--ink-muted);
-}
-
-.lesson-body hr {
-  margin: 2rem 0;
-  border: 0;
-  border-top: 1px solid var(--rule);
-}
-
-.lesson-body code {
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.9em;
-  overflow-wrap: anywhere;
-}
-
-.code-block {
-  margin: 1rem 0;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.code-block-language {
-  margin: 0;
-  padding: 0.3rem 0.75rem;
-  border-bottom: 1px solid var(--rule);
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink-muted);
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-}
-
-/* `pre`, not `pre-wrap`: an HTTP sample's line breaks and runs of spaces are the lesson. A wrapped
-   request line teaches the wrong shape. The block scrolls instead, and `tabindex` on it in the
-   renderer is what lets a keyboard reach that scroll. */
-.code-block-text {
-  margin: 0;
-  padding: 0.75rem;
-  overflow-x: auto;
-  white-space: pre;
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  tab-size: 2;
-}
-
-.code-block-text code {
-  font-size: inherit;
-  overflow-wrap: normal;
-}
-
-.table-scroll {
-  margin: 1rem 0;
-  overflow-x: auto;
-}
-
-.table-scroll table {
-  border-collapse: collapse;
-  min-width: 100%;
-  font-size: 0.9rem;
-}
-
-.table-scroll th,
-.table-scroll td {
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--rule);
-  text-align: left;
-  vertical-align: top;
-}
-
-.table-scroll th {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-}
-
-/* Links carry the accent in both themes. Visited is deliberately not distinguished: these are
-   reference links out to MDN and the RFCs, and a purple one reads as broken rather than as read. */
-main a {
-  color: var(--accent);
-  text-underline-offset: 0.15em;
-}
-
-main a:visited {
-  color: var(--accent);
-}
-
-.lesson-title a {
-  text-decoration-thickness: 1px;
 }

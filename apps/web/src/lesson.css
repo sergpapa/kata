@@ -1,0 +1,239 @@
+/* Reading one lesson: the page a lesson body renders into, and the blocks inside it.
+   Split from styles.css, which holds the palette, the shell and the lesson list.
+
+   The rule that governs everything here: a code block or a table may be wider than the reading
+   column, but the page itself must never scroll sideways at 375px. Each wide thing scrolls inside
+   its own box instead. tools/screenshots.mjs fails the build if that stops being true. */
+
+.lesson-back {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.lesson-back a {
+  display: inline-block;
+  padding: 0.6rem 0;
+  min-height: 44px;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+h1 + .lesson-provenance {
+  margin-top: 0;
+}
+
+.lesson-provenance {
+  margin: 0 0 1.5rem;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+/* The author's own caveat about this lesson. Full ink, never muted, never collapsible: it is the
+   one thing on the page the brief's no-overstated-claims rule will not let a reader miss. */
+.lesson-status {
+  margin: 0 0 1.5rem;
+  padding: 0.5rem 0 0.5rem 0.85rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.lesson-status-label {
+  font-weight: 650;
+}
+
+.lesson-facts-panel {
+  margin: 0 0 2rem;
+  padding: 0 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+.lesson-facts-panel summary {
+  margin: 0 -1rem;
+  padding: 0.75rem 1rem;
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.lesson-facts-panel[open] summary {
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 0.75rem;
+}
+
+.lesson-facts-panel dl {
+  margin: 0 0 1rem;
+}
+
+.lesson-fact + .lesson-fact {
+  margin-top: 0.75rem;
+}
+
+.lesson-fact dt {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.lesson-fact dd {
+  margin: 0.15rem 0 0;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.lesson-fact dd ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.lesson-body h2 {
+  font-size: 1.4rem;
+  margin: 2.5rem 0 0.75rem;
+}
+
+.lesson-body h3 {
+  font-size: 1.1rem;
+  margin: 1.75rem 0 0.4rem;
+}
+
+.lesson-body h4 {
+  font-size: 1rem;
+  margin: 1.25rem 0 0.3rem;
+}
+
+/* Authored prose can carry a long URL or an unbroken identifier; without this it is the one thing
+   that pushes the page wider than the viewport at 375px. */
+.lesson-body p,
+.lesson-body li,
+.lesson-body h2,
+.lesson-body h3,
+.lesson-body h4 {
+  overflow-wrap: anywhere;
+}
+
+.lesson-body blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 3px solid var(--rule);
+  color: var(--ink-muted);
+}
+
+.lesson-body hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.lesson-body code {
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+/* Except in a table cell, where the code span is the exact thing the row exists to teach — a host,
+   a path, a filename. Breaking it mid-token teaches the wrong string; the table scrolls instead. */
+.lesson-body td code,
+.lesson-body th code {
+  overflow-wrap: normal;
+}
+
+.code-block {
+  margin: 1rem 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.code-block-language {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink-muted);
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* `pre`, not `pre-wrap`: an HTTP sample's line breaks and runs of spaces are the lesson. A wrapped
+   request line teaches the wrong shape. The block scrolls instead, and `tabindex` on it in the
+   renderer is what lets a keyboard reach that scroll. */
+.code-block-text {
+  margin: 0;
+  padding: 0.75rem;
+  overflow-x: auto;
+  white-space: pre;
+  /* Two pairs. The `local` covers scroll with the text and hide the `scroll` shadows while an edge
+     is reached, so a shadow appears only on the side that still has content out of view. */
+  background:
+    linear-gradient(to right, var(--paper) 60%, transparent) left / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--paper) 60%, transparent) right / 28px 100% no-repeat local,
+    radial-gradient(
+        farthest-side at 0 50%,
+        color-mix(in srgb, var(--ink) 22%, transparent),
+        transparent
+      )
+      left / 10px 100% no-repeat scroll,
+    radial-gradient(
+        farthest-side at 100% 50%,
+        color-mix(in srgb, var(--ink) 22%, transparent),
+        transparent
+      )
+      right / 10px 100% no-repeat scroll;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+/* Drawn inside the block: the wrapper clips an outward ring, and this is the one indicator a
+   keyboard user has that they have reached a scrollable sample. */
+.code-block-text:focus-visible {
+  outline-offset: -2px;
+}
+
+.code-block-text code {
+  font-size: inherit;
+  overflow-wrap: normal;
+}
+
+.table-scroll {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.table-scroll table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 0.9rem;
+}
+
+.table-scroll th,
+.table-scroll td {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table-scroll th {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+/* Links carry the accent in both themes. Visited is deliberately not distinguished: these are
+   reference links out to MDN and the RFCs, and a purple one reads as broken rather than as read. */
+main a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+main a:visited {
+  color: var(--accent);
+}
+
+.lesson-title a {
+  text-decoration-thickness: 1px;
+}

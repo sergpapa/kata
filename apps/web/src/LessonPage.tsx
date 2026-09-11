@@ -57,31 +57,52 @@ function BackToLessons() {
   );
 }
 
+/**
+ * The author's own `status` caveat is lifted out and always visible. On Lesson 1 it reads "not yet
+ * learner-tested", and the brief's no-overstated-claims rule makes that the one fact here that
+ * cannot be behind a disclosure.
+ *
+ * The rest — audience, prerequisites, outcomes, scope — is useful but is not the lesson. Left
+ * expanded it pushed the first sentence of Lesson 2 more than a screen and a half down a phone,
+ * so the reader tapped a title and saw no lesson at all.
+ */
 function FactList({ facts }: { readonly facts: readonly LessonFact[] }) {
-  if (facts.length === 0) return null;
+  const status = facts.find((fact) => fact.key === 'status');
+  const rest = facts.filter((fact) => fact.key !== 'status');
 
   return (
-    <div className="lesson-facts-panel">
-      <h2>About this lesson</h2>
-      <dl>
-        {facts.map((fact) => (
-          <div key={fact.key} className="lesson-fact">
-            <dt>{fact.label}</dt>
-            <dd>
-              {fact.kind === 'list' ? (
-                <ul>
-                  {(fact.items ?? []).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              ) : (
-                fact.text
-              )}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </div>
+    <>
+      {status?.text && (
+        <p className="lesson-status">
+          <span className="lesson-status-label">Status</span>{' '}
+          <span className="lesson-status-text">{status.text}</span>
+        </p>
+      )}
+
+      {rest.length > 0 && (
+        <details className="lesson-facts-panel">
+          <summary>About this lesson</summary>
+          <dl>
+            {rest.map((fact) => (
+              <div key={fact.key} className="lesson-fact">
+                <dt>{fact.label}</dt>
+                <dd>
+                  {fact.kind === 'list' ? (
+                    <ul>
+                      {(fact.items ?? []).map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    fact.text
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      )}
+    </>
   );
 }
 
@@ -137,7 +158,10 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
       <h1>{lesson.displayTitle}</h1>
       <p className="lesson-provenance">
         Lesson {lesson.order} · {lesson.candidateLessonId} · content version {lesson.contentVersion}{' '}
-        · release {release.releaseId} {release.version}
+        ·{' '}
+        <span className="no-wrap">
+          release {release.releaseId} {release.version}
+        </span>
       </p>
       <FactList facts={lesson.facts} />
       <LessonMarkdown markdown={lesson.bodyMarkdown} />
