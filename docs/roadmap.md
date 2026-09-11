@@ -39,7 +39,10 @@ integration from `engineering-practice-ui-design-v1/`, which is being built as i
       `sandbox` is empty, so the SVG never enters this document; the authored source stays reachable
       below it. One that does not parse keeps the labelled source block it already had and says, in
       the parser's own words, which line was refused. Lessons with no diagram never load Mermaid.
-      Criteria and slice log in `docs/specs/mermaid-diagrams.md`; decisions in ADR 0008.
+      test-guardian PRE and POST, `/code-review` and a design review; the defect that mattered was
+      two draws sharing one Mermaid id, which made a light-to-dark switch report that a valid
+      diagram could not be drawn. Criteria and slice log in `docs/specs/mermaid-diagrams.md`;
+      decisions in ADR 0008.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
