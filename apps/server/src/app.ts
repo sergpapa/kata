@@ -3,7 +3,8 @@ import fastifyStatic from '@fastify/static';
 import fs from 'node:fs';
 import type { Db } from './modules/lifecycle/database.js';
 import { readSchemaVersion } from './modules/lifecycle/database.js';
-import { loadReleaseSummary } from './modules/content/repository.js';
+import { loadLesson, loadReleaseSummary } from './modules/content/repository.js';
+import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
 import type { ReleaseState } from './modules/content/types.js';
 
 export interface AppDeps {
@@ -44,6 +45,46 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const { lessons, ...release } = summary;
     return { state: 'imported', release, lessons };
   });
+
+  /**
+   * One lesson to read. The body is derived on the way out — the stored Markdown stays canonical,
+   * so changing how a lesson is presented never requires re-importing it (ADR 0005).
+   */
+  app.get<{ Params: { candidateLessonId: string } }>(
+    '/api/lessons/:candidateLessonId',
+    async (request, reply) => {
+      if (deps.release.state === 'failed') {
+        return { state: 'failed', failure: deps.release.failure };
+      }
+
+      const { candidateLessonId } = request.params;
+      const stored = loadLesson(deps.db, deps.release.releaseRowId, candidateLessonId);
+      if (!stored) {
+        return reply.code(404).send({
+          error: 'lesson_not_found',
+          message: `This release has no lesson ${candidateLessonId}.`,
+        });
+      }
+
+      const summary = loadReleaseSummary(deps.db, deps.release.releaseRowId);
+      if (!summary) {
+        throw new Error(
+          `The import reported release row ${deps.release.releaseRowId}, and the record store has no such row.`,
+        );
+      }
+
+      const { frontMatter, sourceText, ...identity } = stored;
+      return {
+        state: 'lesson',
+        release: { releaseId: summary.releaseId, version: summary.version },
+        lesson: {
+          ...identity,
+          facts: learnerFacingFacts(frontMatter),
+          bodyMarkdown: lessonBodyBelowTitle(sourceText),
+        },
+      };
+    },
+  );
 
   if (deps.webDistDir && fs.existsSync(deps.webDistDir)) {
     void app.register(fastifyStatic, { root: deps.webDistDir });

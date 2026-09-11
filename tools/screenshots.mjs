@@ -101,7 +101,9 @@ try {
         return {
           scrollWidth: root.scrollWidth,
           clientWidth: root.clientWidth,
-          culprit: widest ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}` : 'unknown',
+          culprit: widest
+            ? `${widest.element.tagName.toLowerCase()}.${widest.element.className}`
+            : 'unknown',
         };
       });
       if (overflow) {

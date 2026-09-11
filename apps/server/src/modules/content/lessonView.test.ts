@@ -54,9 +54,16 @@ describe('the body a reader is given', () => {
   it('does not mistake a # inside a fenced block for the title', () => {
     const source = lessonSource(
       'candidate_lesson_id: FIX-LS-01',
-      ['```sh', '# a shell comment, not a heading', 'node server.mjs', '```', '', '# The real title', '', 'Prose.'].join(
-        '\n',
-      ),
+      [
+        '```sh',
+        '# a shell comment, not a heading',
+        'node server.mjs',
+        '```',
+        '',
+        '# The real title',
+        '',
+        'Prose.',
+      ].join('\n'),
     );
 
     const body = lessonBodyBelowTitle(source);
@@ -243,9 +250,11 @@ describe('the five authored lessons, read from the release directory', () => {
     const titleIndex = lines.findIndex((line) => line.startsWith('# '));
     const firstProse = lines.slice(titleIndex + 1).find((line) => line.trim() !== '') as string;
 
-    expect(lessonBodyBelowTitle(source).split('\n').find((line) => line.trim() !== '')).toBe(
-      firstProse,
-    );
+    expect(
+      lessonBodyBelowTitle(source)
+        .split('\n')
+        .find((line) => line.trim() !== ''),
+    ).toBe(firstProse);
   });
 
   it('keeps the blank line inside Lesson 1\u2019s request sample, up against the closing fence', () => {

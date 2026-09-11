@@ -1,5 +1,10 @@
 import type { Db } from '../lifecycle/database.js';
-import type { StoredLessonSummary, StoredReleaseSummary, VerifiedRelease } from './types.js';
+import type {
+  StoredLessonDetail,
+  StoredLessonSummary,
+  StoredReleaseSummary,
+  VerifiedRelease,
+} from './types.js';
 
 /** The only module that may speak SQL about imported content (ADR 0002). */
 
@@ -12,6 +17,11 @@ interface ReleaseRow {
   audience: string | null;
   manifest_sha256: string;
   imported_at: string;
+}
+
+interface LessonDetailRow extends LessonRow {
+  front_matter_json: string;
+  source_text: string;
 }
 
 interface LessonRow {
@@ -163,5 +173,44 @@ export function loadReleaseSummary(db: Db, releaseRowId: number): StoredReleaseS
     manifestSha256: release.manifest_sha256,
     importedAt: release.imported_at,
     lessons: summaries,
+  };
+}
+
+/**
+ * One lesson of one release, with the authored text and front matter the reader needs.
+ *
+ * Scoped to `releaseRowId` rather than looked up by lesson ID alone: a revised lesson is a new row
+ * beside the old one, and a query that ignored the release would answer with whichever the database
+ * happened to return first.
+ */
+export function loadLesson(
+  db: Db,
+  releaseRowId: number,
+  candidateLessonId: string,
+): StoredLessonDetail | undefined {
+  const row = db
+    .prepare(
+      `SELECT display_order, candidate_lesson_id, content_version, document_id, module,
+              display_title, manifest_title, source_path, sha256, lab_id, front_matter_json,
+              source_text
+         FROM content_lesson
+        WHERE release_row_id = ? AND candidate_lesson_id = ?`,
+    )
+    .get(releaseRowId, candidateLessonId) as LessonDetailRow | undefined;
+  if (!row) return undefined;
+
+  return {
+    order: row.display_order,
+    candidateLessonId: row.candidate_lesson_id,
+    contentVersion: row.content_version,
+    documentId: row.document_id,
+    module: row.module,
+    displayTitle: row.display_title,
+    manifestTitle: row.manifest_title,
+    sourcePath: row.source_path,
+    sha256: row.sha256,
+    labId: row.lab_id,
+    frontMatter: JSON.parse(row.front_matter_json) as Record<string, unknown>,
+    sourceText: row.source_text,
   };
 }

@@ -100,7 +100,9 @@ describe('a lesson the release carries', () => {
     await screen.findByRole('heading', { level: 1 });
 
     expect(screen.getByText('The opening paragraph of the lesson.')).toBeDefined();
-    expect(screen.getByRole('heading', { level: 2, name: '1. Start with a familiar situation' })).toBeDefined();
+    expect(
+      screen.getByRole('heading', { level: 2, name: '1. Start with a familiar situation' }),
+    ).toBeDefined();
     expect(container.querySelector('table')).not.toBeNull();
     expect(container.querySelector('pre')?.textContent).toContain('Host: cafe.example');
   });
@@ -158,7 +160,10 @@ describe('a lesson the release carries', () => {
 
 describe('a lesson the release does not carry', () => {
   it('says so, names the key asked for, and renders no lesson', async () => {
-    answerWith({ error: 'lesson_not_found', message: 'This release has no lesson LS-M020-09.' }, 404);
+    answerWith(
+      { error: 'lesson_not_found', message: 'This release has no lesson LS-M020-09.' },
+      404,
+    );
     const { container } = render(<LessonPage candidateLessonId="LS-M020-09" />);
 
     expect(await screen.findByText(/LS-M020-09/)).toBeDefined();

@@ -49,7 +49,9 @@ describe('block constructs render as themselves', () => {
   });
 
   it('renders a thematic break', () => {
-    expect(renderMarkdown(md('Above.', '', '---', '', 'Below.')).querySelector('hr')).not.toBeNull();
+    expect(
+      renderMarkdown(md('Above.', '', '---', '', 'Below.')).querySelector('hr'),
+    ).not.toBeNull();
   });
 
   it('renders a GFM pipe table as a table with real header cells', () => {
@@ -140,7 +142,9 @@ describe('whitespace inside a fence', () => {
   });
 
   it('keeps runs of spaces used to line sample output up', () => {
-    const container = renderMarkdown(md('```text', 'GET  /menu    200', 'GET  /missing 404', '```'));
+    const container = renderMarkdown(
+      md('```text', 'GET  /menu    200', 'GET  /missing 404', '```'),
+    );
 
     expect(container.querySelector('pre')?.textContent).toContain('GET  /menu    200');
   });
@@ -243,7 +247,10 @@ describe('links', () => {
   it('judges the scheme case-insensitively, as a browser does', () => {
     const container = renderMarkdown(md('[Shouting](HTTPS://example.com/page)'));
 
-    expect(container.querySelector('a')?.getAttribute('href')).toBe('HTTPS://example.com/page');
+    // The claim is that the link still works, not that the scheme keeps the author's capitals:
+    // a scheme is case-insensitive by definition. An anchor with no href would fail this.
+    const href = container.querySelector('a')?.getAttribute('href') ?? '';
+    expect(new URL(href).href).toBe('https://example.com/page');
   });
 
   it('makes a bare URL the author did not wrap in brackets usable', () => {

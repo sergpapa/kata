@@ -12,19 +12,19 @@ blocks and HTTP messages intact — and nothing in a lesson file can become a ru
 Measured across the five lesson files, because the contract has to cover what is there rather than
 what a renderer usually meets:
 
-| Construct               | Count | Note                                                          |
-| ----------------------- | ----- | ------------------------------------------------------------- |
-| Table rows              | 79    | GFM pipe tables; two cells in Lesson 3 hold HTML in backticks |
-| Fenced blocks           | 63    | `text` 22, `sh` 19, `http` 11, `json` 4, `mermaid` 3, `powershell` 2, `html` 2 |
-| Blockquotes             | 14    | Lesson 1 quotes café dialogue                                  |
-| H1 / H2 / H3            | 5 / 53 / 57 | One H1 per file — the display title                      |
-| Links                   | 25    | Every one an absolute `https:` URL (MDN, RFC Editor, curl, Node) |
-| Images                  | 0     |                                                                |
-| Relative links          | 0     |                                                                |
-| Raw HTML outside fences | 0     | Every `<tag>` outside a fence sits inside an inline code span  |
+| Construct               | Count       | Note                                                                           |
+| ----------------------- | ----------- | ------------------------------------------------------------------------------ |
+| Table rows              | 79          | GFM pipe tables; two cells in Lesson 3 hold HTML in backticks                  |
+| Fenced blocks           | 63          | `text` 22, `sh` 19, `http` 11, `json` 4, `mermaid` 3, `powershell` 2, `html` 2 |
+| Blockquotes             | 14          | Lesson 1 quotes café dialogue                                                  |
+| H1 / H2 / H3            | 5 / 53 / 57 | One H1 per file — the display title                                            |
+| Links                   | 25          | Every one an absolute `https:` URL (MDN, RFC Editor, curl, Node)               |
+| Images                  | 0           |                                                                                |
+| Relative links          | 0           |                                                                                |
+| Raw HTML outside fences | 0           | Every `<tag>` outside a fence sits inside an inline code span                  |
 
 Nothing in the release exercises the raw-HTML, image, or unsafe-URL branches. They are specified
-and tested anyway: they are the branches that protect the owner from the *next* release, and a
+and tested anyway: they are the branches that protect the owner from the _next_ release, and a
 branch with no test is a branch that does not exist.
 
 ## Decisions taken at Stage 0
@@ -40,9 +40,9 @@ branch with no test is a branch that does not exist.
    shape of failure the release importer refuses. `react-markdown` 10 already escapes raw HTML on
    its own, but adding `rehype-sanitize` (decision 1) strips those raw nodes instead. A small
    remark plugin rewrites them into text nodes first, so the two decisions do not cancel each
-   other out. *(Corrected 2026-09-11: the Stage 0 wording said the library drops raw HTML by
+   other out. _(Corrected 2026-09-11: the Stage 0 wording said the library drops raw HTML by
    default. It does not — it escapes it. The plugin is needed because of the sanitizer, not
-   because of the parser.)*
+   because of the parser.)_
 3. **A lesson has a real URL: `/lessons/<candidate_lesson_id>`.** Driven by a small history hook,
    not a router dependency. Slice 4's resume point needs a URL to return to, the home list needs
    real anchors to be keyboard-operable, and the screenshot tool can only measure overflow on a
@@ -85,7 +85,7 @@ branch with no test is a branch that does not exist.
       an invented one.
 - [ ] R4. The lesson title is the page's only `h1`. A body `##` becomes `h2` and a `###` becomes
       `h3`, so the heading outline never skips a level. A heading the body still carries at level 1
-      — a second `#`, which the importer keeps because only the *first* H1 is the title — renders
+      — a second `#`, which the importer keeps because only the _first_ H1 is the title — renders
       as `h2` rather than putting a second `h1` on the page.
 
 ### S — Lesson content is inert

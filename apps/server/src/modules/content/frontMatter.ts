@@ -59,12 +59,22 @@ export function splitFrontMatter(
   return { ok: true, value: { frontMatter: parsed as Record<string, unknown>, body } };
 }
 
+/** Where the title heading sits, so a caller can read it or cut it out without scanning twice. */
+export interface HeadingOneLocation {
+  readonly text: string;
+  /** Index into `body.split('\n')`. */
+  readonly startLine: number;
+  /** 1 for `# Title`, 2 for a title underlined with `===`. */
+  readonly lineCount: 1 | 2;
+}
+
 /**
- * The display title is the first level-one heading of the lesson body, never the filename
- * (handoff §4). Setext headings count: an underlined first line is still an H1.
+ * Locates the first level-one heading of the lesson body — the display title, never the filename
+ * (handoff §4). Setext headings count: an underlined first line is still an H1. A `#` inside a
+ * fenced block is a comment in someone's shell script, not a heading.
  */
-export function firstHeadingOneText(body: string): string | undefined {
-  const lines = body.split(/\r?\n/);
+export function findFirstHeadingOne(body: string): HeadingOneLocation | undefined {
+  const lines = body.split('\n');
   let inFence = false;
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index] as string;
@@ -75,12 +85,17 @@ export function firstHeadingOneText(body: string): string | undefined {
     if (inFence) continue;
 
     const atx = /^\s{0,3}#\s+(.+?)\s*#*\s*$/.exec(line);
-    if (atx?.[1]) return atx[1].trim();
+    if (atx?.[1]) return { text: atx[1].trim(), startLine: index, lineCount: 1 };
 
     const next = lines[index + 1];
     if (line.trim() !== '' && next !== undefined && /^\s{0,3}=+\s*$/.test(next)) {
-      return line.trim();
+      return { text: line.trim(), startLine: index, lineCount: 2 };
     }
   }
   return undefined;
+}
+
+/** The display title itself, for the importer, which stores it beside the lesson. */
+export function firstHeadingOneText(body: string): string | undefined {
+  return findFirstHeadingOne(body)?.text;
 }

@@ -223,16 +223,16 @@ describe('moving between the list and one lesson', () => {
     render(<App />);
 
     const title = await screen.findByRole('heading', { level: 1 });
-    expect(title.textContent).toBe(
-      'Lesson 1: What happens when your browser asks for something?',
-    );
+    expect(title.textContent).toBe('Lesson 1: What happens when your browser asks for something?');
   });
 
   it('returns to the list when the browser goes back', async () => {
     answerBothEndpoints();
 
     render(<App />);
-    fireEvent.click((await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement);
+    fireEvent.click(
+      (await screen.findAllByRole('link', { name: /^Lesson \d:/ }))[0] as HTMLElement,
+    );
     await screen.findByText('The opening paragraph of the lesson.');
 
     window.history.back();

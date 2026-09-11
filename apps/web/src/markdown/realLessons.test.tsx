@@ -119,7 +119,7 @@ describe('Lesson 1, whose request example depends on a blank line', () => {
       .map((block) => block.textContent ?? '')
       .find((text) => text.startsWith('GET /menu HTTP/1.1'));
 
-    expect(request?.split('\n')).toEqual(['GET /menu HTTP/1.1', 'Host: cafe.example', '']);
+    expect(request).toBe('GET /menu HTTP/1.1\nHost: cafe.example\n\n');
   });
 });
 

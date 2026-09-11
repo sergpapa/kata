@@ -98,6 +98,15 @@ export interface StoredLessonSummary {
   readonly labId: string | null;
 }
 
+/**
+ * One stored lesson in full: the summary plus the two columns the reader needs and the list does
+ * not — the authored file's own bytes and its parsed front matter.
+ */
+export interface StoredLessonDetail extends StoredLessonSummary {
+  readonly frontMatter: Readonly<Record<string, unknown>>;
+  readonly sourceText: string;
+}
+
 export interface StoredReleaseSummary {
   readonly releaseId: string;
   readonly version: string;

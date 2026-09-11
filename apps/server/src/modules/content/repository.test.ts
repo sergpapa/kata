@@ -289,7 +289,9 @@ describe('loading one lesson for the reader', () => {
     (revised.manifest.lessons[0] as { version: string }).version = '2.0.0-draft';
     const updated = saveRelease(db, verified(revised));
 
-    expect(loadLesson(db, original, 'FIX-LS-01')?.sourceText).toContain('Authored prose for lesson 1.');
+    expect(loadLesson(db, original, 'FIX-LS-01')?.sourceText).toContain(
+      'Authored prose for lesson 1.',
+    );
     expect(loadLesson(db, updated, 'FIX-LS-01')?.sourceText).toContain('Prose the author revised.');
   });
 });
