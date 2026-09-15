@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from './App.js';
 
 /** `fetch` is the boundary to the local server — the one thing worth standing in for here. */
@@ -107,7 +107,9 @@ describe('the page after a verified import', () => {
 
     render(<App />);
 
-    const first = (await screen.findAllByRole('listitem'))[0];
+    // Scoped to `main` since the visual-design slice: the sidebar's four destinations and the
+    // breadcrumb trail are list items too, and they come first in document order.
+    const first = (await within(screen.getByRole('main')).findAllByRole('listitem'))[0];
     expect(first?.textContent).toContain('2.0.0-draft');
   });
 });
@@ -137,7 +139,9 @@ describe('the page after a refused release', () => {
     render(<App />);
 
     await screen.findByText(/does not match the hash/);
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    // Scoped to `main` since the visual-design slice; see the note above. The claim is unchanged:
+    // no lesson is listed on the page.
+    expect(within(screen.getByRole('main')).queryAllByRole('listitem')).toHaveLength(0);
   });
 });
 
@@ -153,7 +157,7 @@ describe('the page when the local app does not answer', () => {
     render(<App />);
 
     expect(await screen.findByText(/connection refused/)).toBeDefined();
-    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+    expect(within(screen.getByRole('main')).queryAllByRole('listitem')).toHaveLength(0);
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/release');
   });
 });

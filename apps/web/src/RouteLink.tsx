@@ -13,10 +13,15 @@ export function RouteLink({
   href,
   className,
   children,
+  onNavigate,
+  'aria-current': ariaCurrent,
 }: {
   readonly href: string;
   readonly className?: string;
   readonly children: ReactNode;
+  /** Runs when this link handled the click itself — not when the browser took it for a new tab. */
+  readonly onNavigate?: () => void;
+  readonly 'aria-current'?: 'page' | undefined;
 }) {
   function handleClick(event: MouseEvent<HTMLAnchorElement>): void {
     if (
@@ -31,10 +36,11 @@ export function RouteLink({
     }
     event.preventDefault();
     navigate(href);
+    onNavigate?.();
   }
 
   return (
-    <a href={href} className={className} onClick={handleClick}>
+    <a href={href} className={className} onClick={handleClick} aria-current={ariaCurrent}>
       {children}
     </a>
   );

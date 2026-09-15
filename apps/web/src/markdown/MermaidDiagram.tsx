@@ -65,7 +65,7 @@ function frameTitle(svg: string): string {
 function frameDocument(svg: string, size: { width: number; height: number }): string {
   return [
     '<!doctype html><meta charset="utf-8"><style>',
-    `html,body{margin:0;padding:0;background:${pageColour('--paper', 'transparent')};`,
+    `html,body{margin:0;padding:0;background:${pageColour('--card', 'transparent')};`,
     'overflow:hidden;}',
     `svg{display:block;width:${size.width}px;height:${size.height}px;max-width:none;}`,
     '</style>',

@@ -98,6 +98,31 @@ describe.each([
   });
 });
 
+/**
+ * Surfaces, not text.
+ *
+ * AA contrast says nothing about whether a panel inside a card still looks like a panel, and the
+ * first dark palette written for this slice measured 1.03:1 between the code block and the card it
+ * sits in — one flat navy field, with every text pair passing AA throughout. A panel is separated
+ * either by its fill or by its edge, so this asserts that at least one of the two does the work.
+ */
+const surfaces = [
+  ['the code panel inside a card', '--code-bg', '--panel-edge', '--card'],
+  ['a blockquote inside a card', '--quote-bg', '--quote-rule', '--card'],
+  ['a card on the workspace', '--card', '--border', '--background'],
+  ['the sidebar beside the workspace', '--sidebar', '--sidebar', '--background'],
+] as const;
+
+describe.each([
+  ['light', light],
+  ['dark', dark],
+] as const)('surfaces in the %s scheme', (name, scheme) => {
+  it.each(surfaces)('separates %s, by fill or by edge', (what, fill, edge, on) => {
+    const separation = Math.max(contrast(scheme, fill, on), contrast(scheme, edge, on));
+    expect(separation).toBeGreaterThanOrEqual(1.15);
+  });
+});
+
 /** The package's DESIGN_SPECIFICATION §2 table, role by role. */
 const published: Readonly<Record<string, string>> = {
   '--background': '#f5f7fc',

@@ -1,0 +1,295 @@
+/* The frame: navy course sidebar, white top bar, pale workspace.
+
+   Ported by hand from engineering-practice-ui-design-v1/reference-source/app/globals.css. The
+   original drives these surfaces through Tailwind utilities and shadcn `data-slot` attributes;
+   this application has neither, so the selectors are rewritten against its own markup while the
+   values — 15.5rem sidebar, 4.45rem top bar, 1500px container, 3rem nav rows — are the reference's.
+
+   The one structural difference: below 768px the original uses a Radix dialog for the drawer.
+   Here it is the same `nav` element moved off-canvas, which keeps one set of destinations in the
+   document at every width rather than two that can disagree. */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- The sidebar ------------------------------------------------------------------------- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 15.5rem;
+  width: 15.5rem;
+  background: var(--sidebar);
+  color: var(--sidebar-foreground);
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 1.7rem 1.5rem 2.25rem;
+  font-size: 1.2rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 7px;
+  background: var(--sidebar-accent);
+  color: var(--lime);
+}
+
+.brand-mark svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.brand-name span {
+  display: block;
+  color: var(--sidebar-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.sidebar-group-label {
+  margin: 0.25rem 1.4rem 0.6rem;
+  color: var(--sidebar-muted);
+}
+
+.nav-list {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0 0.9rem;
+  list-style: none;
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 3rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-control);
+  color: var(--nav-ink);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.nav-button:visited {
+  color: var(--nav-ink);
+}
+
+.nav-button:hover {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-foreground);
+}
+
+/* The lime marker is inset rather than a border so the row does not shift by 3px when it becomes
+   current. `aria-current` is the selector on purpose: the styling cannot drift from what is
+   announced, because they are the same fact. */
+.nav-button[aria-current='page'] {
+  background: var(--sidebar-accent);
+  box-shadow: inset 3px 0 var(--sidebar-marker);
+  color: var(--sidebar-foreground);
+}
+
+.nav-button svg {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.sidebar-course {
+  margin: 2.5rem 1.6rem 2rem;
+  color: var(--nav-ink);
+  font-size: 0.875rem;
+}
+
+.sidebar-course .eyebrow {
+  margin-bottom: 0.5rem;
+  color: var(--sidebar-muted);
+}
+
+.sidebar-course p {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-course .fine {
+  color: var(--sidebar-muted);
+}
+
+/* --- The workspace ----------------------------------------------------------------------- */
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  background: var(--background);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.45rem;
+  padding: 0.8rem 2.1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+/* 2.75rem, not the reference's 2.65rem control height: this is the only way to reach navigation
+   on a phone, and 44px is the target size the lesson page already holds itself to. */
+.sidebar-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.sidebar-trigger svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.breadcrumbs svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+}
+
+.breadcrumbs .crumb-here {
+  color: var(--foreground);
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+
+.page-content {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 2.45rem 2.5rem 3rem;
+  flex: 1;
+}
+
+.page-content:focus {
+  outline: none;
+}
+
+.drawer-scrim {
+  display: none;
+}
+
+/* --- Narrower ---------------------------------------------------------------------------- */
+
+@media (max-width: 1150px) {
+  .page-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .topbar {
+    padding: 0.75rem 1.3rem;
+  }
+}
+
+/* Below the reference's own breakpoint the sidebar leaves the flow entirely. `position: fixed`
+   keeps it out of the document's width, so an open drawer cannot make the page scroll sideways —
+   which tools/screenshots.mjs checks with the drawer open, not only closed. */
+@media (max-width: 767px) {
+  /* `visibility: hidden`, not merely off-canvas. A translated element keeps its place in the tab
+     order and in the accessibility tree, so a closed drawer would give a phone reader four
+     invisible tab stops to a sidebar they cannot see. The delay on the way out lets the slide
+     finish before the drawer stops being visible; on the way in it must not delay at all, because
+     the open effect focuses the first destination immediately. */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    flex: none;
+    width: 18rem;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.2s ease,
+      visibility 0s linear 0.2s;
+  }
+
+  .sidebar[data-open='true'] {
+    transform: none;
+    visibility: visible;
+    transition:
+      transform 0.2s ease,
+      visibility 0s;
+  }
+
+  .sidebar-trigger {
+    display: inline-flex;
+  }
+
+  .shell[data-drawer='open'] .drawer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgb(8 12 22 / 55%);
+  }
+
+  .topbar {
+    padding: 0.65rem 1rem;
+  }
+
+  .page-content {
+    padding: 1.6rem 1rem 2.2rem;
+  }
+
+  /* Only the page's own name survives at this width. The trail above it is context the reader
+     already has — they are looking at the page. */
+  .breadcrumbs li:not(:last-child) {
+    display: none;
+  }
+
+  .breadcrumbs li svg {
+    display: none;
+  }
+}

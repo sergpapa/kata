@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -62,40 +63,6 @@ for (const [file, what] of [
 const failures = [];
 
 /**
- * Criterion M5 in docs/specs/mermaid-diagrams.md: a lesson with no diagram must not pay for
- * Mermaid. No test in jsdom can prove this — `vi.mock('mermaid')` intercepts the module whether
- * the import is lazy or eager — so the built bundle is the only place the claim can be checked.
- * Mermaid must live in a chunk of its own that the entry does not pull in.
- */
-function checkMermaidIsLazy() {
-  const assetsDir = path.join(repoRoot, 'apps', 'web', 'dist', 'assets');
-  const html = fs.readFileSync(webIndex, 'utf8');
-  const entryName = /<script[^>]+src="[^"]*\/assets\/([^"]+\.js)"/.exec(html)?.[1];
-  if (!entryName) {
-    failures.push('could not find the entry script in apps/web/dist/index.html');
-    return;
-  }
-
-  // A string from Mermaid's own grammar, which none of this application's source contains.
-  const marker = 'sequenceDiagram';
-  const carrying = fs
-    .readdirSync(assetsDir)
-    .filter((name) => name.endsWith('.js'))
-    .filter((name) => fs.readFileSync(path.join(assetsDir, name), 'utf8').includes(marker));
-
-  if (carrying.includes(entryName)) {
-    failures.push(
-      `Mermaid is bundled into the entry chunk (${entryName}), so lessons 3 and 4 pay for a ` +
-        `diagram library they do not use. It must be reached by a dynamic import().`,
-    );
-  } else if (carrying.length === 0) {
-    failures.push(`no built chunk contains Mermaid — the diagram code did not reach the bundle`);
-  } else {
-    console.log(`  Mermaid is lazy: ${carrying.join(', ')}, not the entry ${entryName}`);
-  }
-}
-
-/**
  * Whether the page scrolls sideways, and what is widest if it does. Naming the culprit points a
  * failure at the block to fix rather than at the page.
  */
@@ -130,7 +97,7 @@ async function waitForHealth(timeoutMs = 20_000) {
   throw new Error(`The app did not answer at ${baseUrl} within ${timeoutMs}ms`);
 }
 
-checkMermaidIsLazy();
+checkMermaidIsLazy(repoRoot, webIndex, failures);
 
 const child = spawn(process.execPath, [serverEntry], {
   env: {
@@ -160,86 +127,7 @@ try {
         const page = await context.newPage();
         await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
 
-        // Criteria R1, R2 and L4 in docs/specs/mermaid-diagrams.md. jsdom has no SVG layout, so a
-        // real browser is the only place that can answer whether a diagram actually became a
-        // picture — or whether the one Mermaid refuses fell back to its source with a reason.
-        if (route.diagram) {
-          // Only where a diagram is expected. A lesson with none would otherwise spend the whole
-          // timeout waiting for a selector that can never match — 12 route/width/scheme
-          // combinations, three minutes of nothing, on every run.
-          if (route.diagram !== 'none') {
-            await page
-              .waitForSelector('.diagram iframe, .diagram .diagram-reason', { timeout: 15_000 })
-              .catch(() => {});
-          }
-          const diagram = await page.evaluate(() => {
-            const frames = [...document.querySelectorAll('.diagram-scroll iframe')];
-            const notice = document.querySelector('.diagram [role="status"]');
-            const source = [...document.querySelectorAll('.diagram pre')].some((block) =>
-              (block.textContent ?? '').includes('sequenceDiagram'),
-            );
-            return {
-              frames: frames.length,
-              sandbox: frames.map((frame) => frame.getAttribute('sandbox')),
-              sizes: frames.map((frame) => {
-                const box = frame.getBoundingClientRect();
-                return { w: Math.round(box.width), h: Math.round(box.height) };
-              }),
-              notice: notice?.textContent ?? null,
-              source,
-            };
-          });
-
-          if (route.diagram === 'drawn') {
-            if (diagram.frames !== 1) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px drew ${diagram.frames} diagram(s), expected 1` +
-                  (diagram.notice ? ` — the page says: ${diagram.notice.trim()}` : ''),
-              );
-            }
-            if (diagram.sandbox.some((value) => value !== '')) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px has a diagram frame whose sandbox is ` +
-                  `${JSON.stringify(diagram.sandbox)}, expected "" (no allowance at all)`,
-              );
-            }
-            for (const box of diagram.sizes) {
-              if (box.w < 100 || box.h < 100) {
-                failures.push(
-                  `${route.name} (${scheme}) at ${size.width}px has a diagram frame of ${box.w}x${box.h}px, ` +
-                    `which is too small to be the drawing`,
-                );
-              }
-            }
-          } else if (route.diagram === 'none') {
-            // Criterion R3: these two lessons have no diagram at all, and this slice must not have
-            // grown them one. An unchecked route cannot report a regression.
-            if (diagram.frames !== 0 || diagram.notice !== null) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px has diagram machinery on a lesson that has no ` +
-                  `diagram: ${diagram.frames} frame(s), notice ${JSON.stringify(diagram.notice)}`,
-              );
-            }
-          } else {
-            if (diagram.frames !== 0) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px drew ${diagram.frames} diagram(s); this lesson's ` +
-                  `diagram does not parse and must fall back to its source`,
-              );
-            }
-            if (!/could not be drawn/i.test(diagram.notice ?? '')) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px does not say the diagram could not be drawn ` +
-                  `(found ${JSON.stringify(diagram.notice)})`,
-              );
-            }
-            if (!diagram.source) {
-              failures.push(
-                `${route.name} (${scheme}) at ${size.width}px lost the diagram source it was supposed to fall back to`,
-              );
-            }
-          }
-        }
+        const drewDiagram = await checkDiagram(page, route, size, scheme, failures);
 
         const overflow = await sidewaysScroll(page);
         if (overflow) {
@@ -266,6 +154,18 @@ try {
         const file = path.join(outDir, `${route.name}-${size.name}-${scheme}.png`);
         await page.screenshot({ path: file, fullPage: true });
         console.log(`  ${path.relative(repoRoot, file)}`);
+
+        // The drawing on its own, as well as inside the page. A blank frame is invisible in a
+        // 12,000px full-page PNG — the review that found this one had to crop it out to see it.
+        //
+        // Gated on a drawing having been found rather than on the route asking for one: a lesson
+        // that lost its diagram is already reported above, and a locator that waits 30s for an
+        // element which is never coming would throw away every other failure in the run.
+        if (drewDiagram) {
+          const diagramFile = path.join(outDir, `${route.name}-${size.name}-${scheme}-diagram.png`);
+          await page.locator('.diagram-scroll').first().screenshot({ path: diagramFile });
+          console.log(`  ${path.relative(repoRoot, diagramFile)}`);
+        }
         await context.close();
       }
     }
@@ -326,7 +226,13 @@ try {
     const page = await context.newPage();
     await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: /navigation/i }).click();
-    await page.getByRole('navigation', { name: /sections/i }).waitFor({ state: 'visible' });
+    // Settled, not merely present. The drawer slides in over 0.2s, and both the measurement and
+    // the capture below would otherwise read a position it is only passing through — which is how
+    // the first version of this check photographed an empty scrim and called it a pass.
+    await page.waitForFunction(() => {
+      const nav = document.querySelector('nav.sidebar');
+      return nav !== null && getComputedStyle(nav).transform === 'none';
+    });
 
     const overflow = await sidewaysScroll(page);
     if (overflow) {
@@ -337,7 +243,10 @@ try {
     }
 
     const reachable = await page.evaluate(() => {
-      const links = [...document.querySelectorAll('#sidebar a')];
+      // By class, not by id: the sidebar's id comes from React's useId and is not a name this
+      // script can know. Querying `#sidebar` matched nothing and passed every time.
+      const links = [...document.querySelectorAll('nav.sidebar a')];
+      if (links.length === 0) return ['no destinations found in the drawer at all'];
       const width = document.documentElement.clientWidth;
       return links
         .filter((link) => {
@@ -350,6 +259,21 @@ try {
       failures.push(
         `the open drawer (${scheme}) at 375px puts ${reachable.length} destination(s) out of ` +
           `reach: ${reachable.join(', ')}`,
+      );
+    }
+
+    // The jsdom suite proves the open drawer takes focus, but jsdom applies no stylesheet — and
+    // the closed drawer is hidden with `visibility: hidden`, which in a real browser refuses focus
+    // outright. Only here can the two facts be checked against each other.
+    const focused = await page.evaluate(() =>
+      document.querySelector('nav.sidebar')?.contains(document.activeElement) === true
+        ? 'inside'
+        : (document.activeElement?.className ?? document.activeElement?.tagName ?? 'nothing'),
+    );
+    if (focused !== 'inside') {
+      failures.push(
+        `the open drawer (${scheme}) at 375px did not take focus — it is on ${focused}, so the ` +
+          `next Tab is behind the scrim`,
       );
     }
 
@@ -367,5 +291,7 @@ ${failures.length} layout check(s) failed:`);
   for (const failure of failures) console.error(`  ! ${failure}`);
   process.exit(1);
 }
+const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
-Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom) and the open drawer at 375px.`);
+Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom) and the open drawer at 375px.
+${drawn} diagram(s) were opened and read inside their frames at every width and scheme.`);

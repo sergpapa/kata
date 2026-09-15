@@ -108,7 +108,7 @@ describe('the list of lessons', () => {
 
     render(<App />);
 
-    const rows = await screen.findAllByRole('listitem');
+    const rows = await within(screen.getByRole('main')).findAllByRole('listitem');
     expect(rows).toHaveLength(5);
 
     // Every row, not just the ends: a sort that scrambles the middle three is the likely bug, and
@@ -126,7 +126,7 @@ describe('the list of lessons', () => {
 
     render(<App />);
 
-    const rows = await screen.findAllByRole('listitem');
+    const rows = await within(screen.getByRole('main')).findAllByRole('listitem');
     for (const row of rows) {
       const text = row.textContent ?? '';
       expect(text).not.toContain('FSSE-HTTP-FIRST-FIVE');
@@ -140,10 +140,14 @@ describe('the list of lessons', () => {
 
     render(<App />);
 
-    const details = await screen.findByRole('group', { name: /release details/i });
-    expect(details.hasAttribute('open')).toBe(false);
-    expect(details.textContent).toContain('FSSE-HTTP-FIRST-FIVE');
-    expect(details.textContent).toContain('FSSE-HTTP-LAB-03-05');
+    // Reached through its summary rather than by role. `details` does map to `group`, but `group`
+    // takes its accessible name from the author only — it does not read the `summary` — so
+    // getByRole('group', { name }) can never match this element however it is written. The claim
+    // is unchanged: a disclosure, closed, still holding the facts.
+    const details = (await screen.findByText(/release details/i)).closest('details');
+    expect(details?.hasAttribute('open')).toBe(false);
+    expect(details?.textContent).toContain('FSSE-HTTP-FIRST-FIVE');
+    expect(details?.textContent).toContain('FSSE-HTTP-LAB-03-05');
   });
 });
 

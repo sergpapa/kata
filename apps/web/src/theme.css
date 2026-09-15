@@ -1,0 +1,252 @@
+/* The palette and the base elements everything else is drawn on.
+
+   The light scheme is the Engineering Practice design, value for value — see
+   DESIGN_SPECIFICATION.md §2 in engineering-practice-ui-design-v1/. Do not adjust one of these to
+   taste: apps/web/src/theme.test.ts compares them against the published table and will say so.
+
+   The dark scheme is derived here, because the package ships none (decision 4 in
+   docs/specs/visual-design-integration.md). The rule, applied without exception: hue families are
+   held fixed, only lightness is re-mapped, and any surface that is already dark in the reference —
+   the sidebar, the current-lesson card, the lime action, the code panel — keeps its exact value.
+   Every pair either scheme puts on top of another is measured in theme.test.ts, not judged by eye. */
+
+:root {
+  color-scheme: light dark;
+
+  /* The workspace */
+  --background: #f5f7fc;
+  --foreground: #19233e;
+  --card: #ffffff;
+  --muted-foreground: #57627c;
+  --eyebrow: #5d6883;
+  --border: #dde3ef;
+  --row-hover: #f0f3fc;
+
+  /* Actions */
+  --primary: #3349b3;
+  --primary-foreground: #ffffff;
+  --ring: #546acc;
+
+  /* The sidebar, dark in both schemes */
+  --sidebar: #17233f;
+  --sidebar-foreground: #f2f5ff;
+  --sidebar-muted: #a4b2d0;
+  --sidebar-accent: #2a3a60;
+  --sidebar-marker: #d7ef81;
+  --nav-ink: #c7d2e9;
+
+  /* The current-lesson card and its lime action, dark in both schemes */
+  --continue-card: #23335a;
+  --continue-foreground: #f9fbff;
+  --continue-muted: #c5d1e9;
+  --lime: #d7ef81;
+  --lime-ink: #25370f;
+  --lime-hover: #e3f8a1;
+
+  /* Lesson content */
+  --code-bg: #17233c;
+  --code-ink: #d7e4f7;
+  --inline-code-bg: #edf1f9;
+  --inline-code-ink: #344d91;
+  --quote-bg: #f2f5fc;
+  --quote-rule: #b9c7e8;
+
+  /* The edge of a panel that sits inside a card. In light it is the panel's own fill, because a
+     #17233c slab on white needs no outline; in dark the fill alone is 1.03:1 against the card,
+     which is no separation at all, so the edge is what carries it. */
+  --panel-edge: #17233c;
+
+  --radius-card: 9px;
+  --radius-control: 6px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d1423;
+    --foreground: #e9edf8;
+    --card: #172038;
+    --muted-foreground: #9dabc7;
+    --eyebrow: #9aa8c6;
+    --border: #27324f;
+    --row-hover: #1c2740;
+
+    --primary: #8aa0ee;
+    --primary-foreground: #0e1732;
+    --ring: #93a6f2;
+
+    --inline-code-bg: #1e2942;
+    --inline-code-ink: #a9bdf0;
+    --quote-bg: #101a2e;
+    --quote-rule: #5568a0;
+    --panel-edge: #35446e;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+summary {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: clamp(1.8rem, 2.5vw, 2.65rem);
+  font-weight: 650;
+  margin-bottom: 0.6rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+  font-weight: 650;
+  margin-bottom: 0.9rem;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  margin: 1.3rem 0 0.65rem;
+}
+
+p {
+  margin-bottom: 1rem;
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* Links carry the accent in both schemes. Visited is deliberately not distinguished: these are
+   reference links out to MDN and the RFCs, and a purple one reads as broken rather than as read. */
+a {
+  color: var(--primary);
+  text-underline-offset: 0.15em;
+}
+
+a:visited {
+  color: var(--primary);
+}
+
+/* Off screen until focused, then the first thing a keyboard reader meets. */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -5rem;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--foreground);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* The reference's disclosure marker. `list-item` is removed first, or Safari keeps its triangle
+   alongside this one. */
+summary {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  list-style: none;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::before {
+  content: '+';
+  font-family: var(--font-mono);
+}
+
+details[open] > summary::before {
+  content: '−';
+}
+
+.eyebrow {
+  margin-bottom: 0.65rem;
+  color: var(--eyebrow);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.115em;
+}
+
+.fine {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--border);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  overflow-wrap: anywhere;
+}
+
+.notice-bad {
+  border-left-color: #b42318;
+  background: color-mix(in srgb, #b42318 8%, transparent);
+  /* Monospace so the two 64-character hashes in a mismatch line up character by character. In a
+     proportional face, wrapped at arbitrary points, they cannot be compared by eye at all. */
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

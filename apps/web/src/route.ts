@@ -8,15 +8,26 @@ import { useSyncExternalStore } from 'react';
  * Hand-rolled rather than a router dependency: this app has two addresses.
  */
 
+/** The three destinations the sidebar names whose work is not built yet. */
+export const standbySections = ['practice', 'reviews', 'progress'] as const;
+export type StandbySection = (typeof standbySections)[number];
+
 export type Route =
   | { readonly kind: 'home' }
   | { readonly kind: 'lesson'; readonly candidateLessonId: string }
+  | { readonly kind: 'standby'; readonly section: StandbySection }
   | { readonly kind: 'unknown'; readonly path: string };
 
 export function parseRoute(pathname: string): Route {
   if (pathname === '/') return { kind: 'home' };
 
   const segments = pathname.split('/').filter((segment) => segment !== '');
+
+  if (segments.length === 1) {
+    const section = standbySections.find((name) => name === segments[0]);
+    if (section) return { kind: 'standby', section };
+  }
+
   if (segments.length === 2 && segments[0] === 'lessons') {
     // `decodeURIComponent` throws on a malformed escape such as `/lessons/%`. This runs during
     // render, so an uncaught throw here blanks the whole app instead of showing the address it

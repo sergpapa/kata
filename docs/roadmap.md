@@ -2,26 +2,39 @@
 
 ## Current state
 
-Last updated 2026-09-11. The five lessons import, each one reads at its own address, and the
-authored Mermaid diagrams are drawn. Markdown parses straight to React elements — no HTML string
-exists anywhere in the app — and anything that must not render becomes visible text rather than
-being deleted. A diagram is the one exception to "no markup anywhere", and it is kept honest by
-being a `srcDoc` on an iframe whose `sandbox` grants nothing at all: the drawing never enters this
-document. Lesson 2's diagram does not parse as authored, so it shows its source with the parser's
-own reason; the fix is proposed in the spec and needs a reissued release. Schema version 2,
-unchanged this slice.
+Last updated 2026-09-15. The five lessons import, each reads at its own address, the authored
+Mermaid diagrams are drawn, and all of it now sits inside the Engineering Practice design: a navy
+course sidebar beside a pale workspace, a white top bar carrying the trail, and a card on the
+dashboard saying which lesson to start. Below 768px the sidebar becomes a drawer. Nothing on any
+page claims progress — no ratio, no bar, no "studied" — because nothing records what has been read;
+that is Milestone 2, and the dashboard says so in words. Practice, Reviews and Progress are real
+addresses with honest pages naming the milestone that builds each one.
 
-`npm test` (249 passing across 12 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. `npm run screenshots` visits all
-six routes at three widths in both colour schemes and fails the build if a page scrolls sideways, a
-code block stops preserving whitespace, a diagram stops being drawn, or Mermaid lands in the entry
-chunk — none of which the jsdom suite can see.
+Markdown still parses straight to React elements — no HTML string exists anywhere in the app — and
+anything that must not render becomes visible text rather than being deleted. A diagram is the one
+exception to "no markup anywhere", kept honest by being a `srcDoc` on an iframe whose `sandbox`
+grants nothing at all. Lesson 2's diagram does not parse as authored, so it shows its source with
+the parser's own reason; the fix is proposed in the spec and needs a reissued release. Schema
+version 2, unchanged this slice.
+
+`npm test` (364 passing across 16 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate now visits
+nine routes at three widths in both schemes, plus a 720px pass (1440 at 200% zoom) and the drawer
+checked open at 375px. It fails the build if a page scrolls sideways, a code block stops preserving
+whitespace, Mermaid lands in the entry chunk, or a diagram stops being a drawing — that last one
+read from inside the frame's own document, after the review found the old check passing on blank
+frames.
+
+Two things are known and not fixed. The design package's published `--input` border measures 1.53:1
+on white where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2
+adds the first textarea and `docs/specs/visual-design-integration.md` C2 names darker values that
+pass. And `engineering-practice-ui-design-v1/`, which that spec cites as its source, is committed
+here for the first time so the spec does not point at a directory a clone would not have.
 
 Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds those,
 and will add heading `id`s with it.
 
-Next action: Milestone 1, slice 4 — reader navigation and resume. Interrupted by the visual design
-integration from `engineering-practice-ui-design-v1/`, which is being built as its own slice.
+Next action: Milestone 1, slice 4 — reader navigation and resume, which lands inside this shell.
 
 ## Milestone 1 — Read the five lessons faithfully (goal: the owner can read Lessons 1–5 in the app, in the authored wording and order)
 
@@ -43,6 +56,16 @@ integration from `engineering-practice-ui-design-v1/`, which is being built as i
       two draws sharing one Mermaid id, which made a light-to-dark switch report that a valid
       diagram could not be drawn. Criteria and slice log in `docs/specs/mermaid-diagrams.md`;
       decisions in ADR 0008.
+- [x] **Engineering Practice visual design.** Done 2026-09-15, taken out of order because slice 4
+      adds surfaces to the lesson page and adding them to the plain layout means designing them
+      twice. The package's light palette is ported value for value; the dark variant is derived
+      here and every pair in both schemes is checked numerically in `apps/web/src/theme.test.ts`
+      rather than by eye. No Tailwind, Radix, shadcn or Lucide was added — the reference is 90%
+      plain CSS and its own integration guide says the manifests are not a requirement. Reviewed by
+      test-guardian PRE and POST, `/code-review` (three confirmed defects, all in drawer focus
+      handling) and a design review, whose finding that mattered was a screenshot check passing on
+      blank diagram frames. Criteria, the two knowing deviations and the slice log are in
+      `docs/specs/visual-design-integration.md`.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 

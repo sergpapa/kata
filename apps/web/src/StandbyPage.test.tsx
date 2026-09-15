@@ -19,9 +19,15 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
+/**
+ * Corrected 2026-09-11, before any page existed: `/reviews` was written here as Milestone 2. The
+ * roadmap has no review item in Milestone 2 at all — that milestone is saving. What carries the
+ * owner's work back to the content author is "Export", Milestone 3. The test asserted a fact about
+ * the roadmap and had it wrong; the page was not bent to fit it.
+ */
 const pages = [
   { path: '/practice', heading: /practice/i, milestone: '3' },
-  { path: '/reviews', heading: /reviews/i, milestone: '2' },
+  { path: '/reviews', heading: /reviews/i, milestone: '3' },
   { path: '/progress', heading: /progress/i, milestone: '2' },
 ] as const;
 

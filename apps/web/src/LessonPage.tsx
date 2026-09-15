@@ -1,6 +1,7 @@
 import { useApi, type ApiResult } from './api.js';
 import { LessonMarkdown } from './markdown/LessonMarkdown.js';
 import { RouteLink } from './RouteLink.js';
+import { useReportPageName } from './Shell.js';
 import type { ImportFailure, LessonSummary } from './releaseTypes.js';
 
 /** One lesson to read: the authored title, the facts a learner is shown, and the body. */
@@ -112,6 +113,10 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
     candidateLessonId,
   );
 
+  // The top bar's trail ends in this page's name, and the authored title is content only this
+  // request has seen. Reported before any early return, because a hook cannot be conditional.
+  useReportPageName(view.state === 'lesson' ? view.lesson.displayTitle : null);
+
   if (view.state === 'reading') return <p role="status">Reading the lesson…</p>;
 
   if (view.state === 'unavailable') {
@@ -153,7 +158,7 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
 
   const { lesson, release } = view;
   return (
-    <article className="lesson">
+    <article className="card lesson-reader">
       <BackToLessons />
       <h1>{lesson.displayTitle}</h1>
       <p className="lesson-provenance">

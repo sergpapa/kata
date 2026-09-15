@@ -1,9 +1,23 @@
 /* Reading one lesson: the page a lesson body renders into, and the blocks inside it.
-   Split from styles.css, which holds the palette, the shell and the lesson list.
+   The palette is in theme.css, the frame in shell.css, the learning plan in dashboard.css,
+   and a drawn `mermaid` fence in diagram.css.
 
    The rule that governs everything here: a code block or a table may be wider than the reading
    column, but the page itself must never scroll sideways at 375px. Each wide thing scrolls inside
    its own box instead. tools/screenshots.mjs fails the build if that stops being true. */
+
+/* The reading card. `.card` supplies the surface; these are the reading measures the design sets.
+   The width cap stands in for the reference's `.reader-grid`, whose aside is Milestone 2 work: the
+   1500px container would otherwise give a line nobody can track back to the start of. */
+.lesson-reader {
+  max-width: 58rem;
+  padding: 2rem;
+}
+
+.lesson-body {
+  font-size: 1rem;
+  line-height: 1.85;
+}
 
 .lesson-back {
   margin: 0 0 1rem;
@@ -16,17 +30,13 @@
   min-height: 44px;
 }
 
-.no-wrap {
-  white-space: nowrap;
-}
-
 h1 + .lesson-provenance {
   margin-top: 0;
 }
 
 .lesson-provenance {
   margin: 0 0 1.5rem;
-  color: var(--ink-muted);
+  color: var(--muted-foreground);
   font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
@@ -36,8 +46,8 @@ h1 + .lesson-provenance {
 .lesson-status {
   margin: 0 0 1.5rem;
   padding: 0.5rem 0 0.5rem 0.85rem;
-  border-left: 3px solid var(--rule);
-  color: var(--ink);
+  border-left: 3px solid var(--border);
+  color: var(--foreground);
   font-size: 0.95rem;
 }
 
@@ -48,9 +58,9 @@ h1 + .lesson-provenance {
 .lesson-facts-panel {
   margin: 0 0 2rem;
   padding: 0 1rem;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
 }
 
 .lesson-facts-panel summary {
@@ -62,7 +72,7 @@ h1 + .lesson-provenance {
 }
 
 .lesson-facts-panel[open] summary {
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 0.75rem;
 }
 
@@ -81,7 +91,7 @@ h1 + .lesson-provenance {
 
 .lesson-fact dd {
   margin: 0.15rem 0 0;
-  color: var(--ink-muted);
+  color: var(--muted-foreground);
   font-size: 0.9rem;
 }
 
@@ -117,15 +127,18 @@ h1 + .lesson-provenance {
 
 .lesson-body blockquote {
   margin: 1rem 0;
-  padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--rule);
-  color: var(--ink-muted);
+  padding: 0.5rem 0.85rem;
+  border-left: 3px solid var(--quote-rule);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--quote-bg);
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
 }
 
 .lesson-body hr {
   margin: 2rem 0;
   border: 0;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid var(--border);
 }
 
 .lesson-body code {
@@ -140,22 +153,24 @@ h1 + .lesson-provenance {
   overflow-wrap: normal;
 }
 
+/* The dark code panel of the design package, in both schemes: `pre` is `#17233c` there and it is
+   already a dark surface, so a light-mode variant would be a colour the package never specified. */
 .code-block {
-  margin: 1rem 0;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
+  margin: 1.2rem 0;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius-control);
+  background: var(--code-bg);
   overflow: hidden;
 }
 
 .code-block-language {
   margin: 0;
-  padding: 0.3rem 0.75rem;
-  border-bottom: 1px solid var(--rule);
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
-  color: var(--ink-muted);
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  padding: 0.45rem 1.2rem;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  color: var(--continue-muted);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.07em;
 }
 
 /* `pre`, not `pre-wrap`: an HTTP sample's line breaks and runs of spaces are the lesson. A wrapped
@@ -163,12 +178,13 @@ h1 + .lesson-provenance {
    renderer is what lets a keyboard reach that scroll. */
 .code-block-text {
   margin: 0;
-  padding: 0.75rem;
+  padding: 1.2rem;
   overflow-x: auto;
   white-space: pre;
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  color: var(--code-ink);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.8;
   tab-size: 2;
 }
 
@@ -186,24 +202,19 @@ h1 + .lesson-provenance {
 /* Two pairs, on every box that scrolls sideways. The `local` covers scroll with the content and
    hide the `scroll` shadows once an edge is reached, so a shadow appears only on the side that
    still has something out of view. Without this a reader at 375px sees a diagram cut off at a
-   plain border and has no reason to think there is more of it. */
+   plain border and has no reason to think there is more of it.
+
+   The second box is the diagram's refusal panel, which diagram.css otherwise owns. One treatment,
+   one rule: splitting it would mean two copies of this gradient stack drifting apart. */
 .code-block-text,
 .diagram-reason pre {
   background:
-    linear-gradient(to right, var(--paper) 60%, transparent) left / 28px 100% no-repeat local,
-    linear-gradient(to left, var(--paper) 60%, transparent) right / 28px 100% no-repeat local,
-    radial-gradient(
-        farthest-side at 0 50%,
-        color-mix(in srgb, var(--ink) 22%, transparent),
-        transparent
-      )
-      left / 10px 100% no-repeat scroll,
-    radial-gradient(
-        farthest-side at 100% 50%,
-        color-mix(in srgb, var(--ink) 22%, transparent),
-        transparent
-      )
-      right / 10px 100% no-repeat scroll;
+    linear-gradient(to right, var(--code-bg) 60%, transparent) left / 28px 100% no-repeat local,
+    linear-gradient(to left, var(--code-bg) 60%, transparent) right / 28px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 45%), transparent) left / 10px 100%
+      no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 45%), transparent) right / 10px 100%
+      no-repeat scroll;
 }
 
 .table-scroll {
@@ -220,163 +231,25 @@ h1 + .lesson-provenance {
 .table-scroll th,
 .table-scroll td {
   padding: 0.4rem 0.7rem;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
 }
 
 .table-scroll th {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-weight: 600;
 }
 
-/* Links carry the accent in both themes. Visited is deliberately not distinguished: these are
-   reference links out to MDN and the RFCs, and a purple one reads as broken rather than as read. */
-main a {
-  color: var(--accent);
-  text-underline-offset: 0.15em;
-}
-
-main a:visited {
-  color: var(--accent);
-}
-
-.lesson-title a {
-  text-decoration-thickness: 1px;
-}
-
-/* A diagram sits where the author put it, with their prose directly after. Nothing is inserted
-   between the two, which is what "keep the prose equivalent beside each diagram" asks for. */
-.diagram {
-  margin: 1rem 0;
-}
-
-/* The frame keeps the drawing's natural size and the box scrolls, rather than the drawing being
-   scaled to fit. Lesson 5's diagram is 687px wide; squeezed into a 343px phone column its
-   participant labels land at about 5px, which is a shape rather than words. Same treatment, and
-   the same reason, as .code-block-text and .table-scroll. */
-/* The shadows sit on this wrapper, above the frame. The scroller cannot paint them itself: an
-   iframe is opaque and covers its container's background, which is why the code-block treatment
-   does not transfer. `has-left`/`has-right` are set from the scroll position, so a diagram that
-   already fits shows no cue at all. */
-.diagram-frame {
-  position: relative;
-}
-
-.diagram-frame::before,
-.diagram-frame::after {
-  content: '';
-  position: absolute;
-  top: 1px;
-  bottom: 1px;
-  width: 24px;
-  opacity: 0;
-  transition: opacity 120ms ease;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .diagram-frame::before,
-  .diagram-frame::after {
-    transition: none;
-  }
-}
-
-.diagram-frame::before {
-  left: 1px;
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--ink) 20%, transparent),
-    transparent
-  );
-}
-
-.diagram-frame::after {
-  right: 1px;
-  background: linear-gradient(
-    to left,
-    color-mix(in srgb, var(--ink) 20%, transparent),
-    transparent
-  );
-}
-
-.diagram-frame.has-left::before,
-.diagram-frame.has-right::after {
-  opacity: 1;
-}
-
-.diagram-scroll {
-  overflow-x: auto;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-}
-
-.diagram-scroll:focus-visible {
-  outline-offset: -2px;
-}
-
-/* `block` because an iframe is inline by default, and the line box under it would otherwise leave
-   a few pixels of gap that read as a misaligned border. */
-.diagram-scroll iframe {
-  display: block;
-  border: 0;
-  max-width: none;
-}
-
-.diagram-source,
-.diagram-reason {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-}
-
-/* 44px minimum, the floor .lesson-back a already sets and .lesson-facts-panel summary already
-   clears. At 0.15rem these were 27px tall on a phone — a tap target under half the size of the
-   disclosure directly above them on the same page. */
-.diagram-source summary,
-.diagram-reason summary {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0.5rem 0;
-}
-
-.diagram-source summary:focus-visible,
-.diagram-reason summary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* The diagram this lesson could not draw is still the author's work, so the notice explains rather
-   than alarms. Deliberately not .notice-bad: that one is red and monospace because it carries the
-   two 64-character hashes of a refused import, and neither the colour nor the face suits a
-   sentence of prose about a diagram the author mis-typed. */
-/* Empty while the diagram is drawing or drawn. Not `display: none` and not `hidden`: a live region
-   has to stay in the accessibility tree to be watched, and both of those take it out. */
-.diagram-notice:empty {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-}
-
-.diagram-notice {
-  margin-bottom: 0.5rem;
-  border-left-color: #b54708;
-  background: color-mix(in srgb, #b54708 8%, transparent);
-  font-size: 0.9rem;
-}
-
-.diagram-reason-lead {
-  margin: 0 0 0.25rem;
-}
-
-.diagram-reason pre {
-  margin: 0;
-  padding: 0.6rem;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  overflow-x: auto;
-  white-space: pre;
-  font-size: 0.8rem;
+/* An inline code span in prose is a host, a header name or a path — a thing, not a block. The
+   reference tints it rather than boxing it, which keeps the line's rhythm. */
+.lesson-body p code,
+.lesson-body li code,
+.lesson-body td code,
+.lesson-body th code {
+  padding: 0.08rem 0.25rem;
+  border-radius: 3px;
+  background: var(--inline-code-bg);
+  color: var(--inline-code-ink);
 }

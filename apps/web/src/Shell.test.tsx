@@ -125,7 +125,11 @@ describe('the shell around every page', () => {
 
     const sidebar = await screen.findByRole('navigation', { name: /sections/i });
     expect(sidebar.textContent).toContain('EduCode');
-    expect(screen.queryByRole('banner')).toBeNull();
+    // Corrected 2026-09-11: this asserted `queryByRole('banner')` was null, which is wrong twice
+    // over — a `header` inside `main` is not a banner in the HTML-AAM mapping, and this testing
+    // library does not apply that scoping anyway, so it matched the dashboard's own page title.
+    // The claim S6 actually makes is that the brand is not repeated in the page body.
+    expect(screen.getByRole('main').textContent).not.toContain('EduCode');
   });
 
   /** Criterion D2 reaches the shell too: the sidebar describes the release it actually loaded. */
@@ -204,5 +208,68 @@ describe('an address the app does not serve', () => {
     expect(screen.getByRole('heading', { level: 1 }).textContent).toMatch(
       /no page at this address/i,
     );
+  });
+});
+
+/**
+ * Three defects `/code-review` found in the first implementation of this shell, each fixed and
+ * pinned here. All three are about where focus lands, which is invisible in a screenshot and
+ * silent in every other test — a keyboard reader is the only person who would have reported them.
+ */
+describe('where focus lands when the page changes', () => {
+  it('leaves focus on the new page when a destination is followed from the open drawer', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    const trigger = await screen.findByRole('button', { name: /navigation/i });
+    fireEvent.click(trigger);
+    const sidebar = screen.getByRole('navigation', { name: /sections/i });
+    fireEvent.click(within(sidebar).getByRole('link', { name: 'Practice' }));
+
+    // The drawer's own focus restore used to run after the route's, putting the reader back on
+    // the navigation they had just left, one commit after arriving.
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Practice'),
+    );
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+  });
+
+  it('moves focus between two sections that differ only by name', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+    at('/practice');
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    const reviews = within(sidebar).getByRole('link', { name: 'Reviews' });
+    reviews.focus();
+    fireEvent.click(reviews);
+
+    // Both addresses are `kind: 'standby'`. Keyed on the kind alone, the whole page swapped and
+    // focus stayed on the link that swapped it.
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reviews'),
+    );
+    expect(document.activeElement).toBe(screen.getByRole('main'));
+  });
+
+  it('keeps Tab inside the open drawer, which covers the page behind it', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /navigation/i }));
+    const sidebar = screen.getByRole('navigation', { name: /sections/i });
+    const destinations = within(sidebar).getAllByRole('link');
+    const first = destinations[0] as HTMLElement;
+    const last = destinations.at(-1) as HTMLElement;
+
+    last.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(document.activeElement).toBe(first);
+
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
   });
 });

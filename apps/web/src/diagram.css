@@ -1,0 +1,144 @@
+/* One authored `mermaid` fence: the frame that holds the picture, the box that scrolls it, and
+   what the page says when Mermaid refuses to draw. The contract is docs/specs/mermaid-diagrams.md
+   and the reasoning is ADR 0008; the reading page around all of this is lesson.css.
+
+   The drawing itself is styled by Mermaid, inside a sandboxed document no rule in this file can
+   reach — which is why tools/screenshots.mjs opens that document rather than measuring the frame
+   and calling it a diagram. */
+
+/* A diagram sits where the author put it, with their prose directly after. Nothing is inserted
+   between the two, which is what "keep the prose equivalent beside each diagram" asks for. */
+.diagram {
+  margin: 1rem 0;
+}
+
+/* The frame keeps the drawing's natural size and the box scrolls, rather than the drawing being
+   scaled to fit. Lesson 5's diagram is 687px wide; squeezed into a 343px phone column its
+   participant labels land at about 5px, which is a shape rather than words. Same treatment, and
+   the same reason, as .code-block-text and .table-scroll. */
+/* The shadows sit on this wrapper, above the frame. The scroller cannot paint them itself: an
+   iframe is opaque and covers its container's background, which is why the code-block treatment
+   does not transfer. `has-left`/`has-right` are set from the scroll position, so a diagram that
+   already fits shows no cue at all. */
+.diagram-frame {
+  position: relative;
+}
+
+.diagram-frame::before,
+.diagram-frame::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 24px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram-frame::before,
+  .diagram-frame::after {
+    transition: none;
+  }
+}
+
+.diagram-frame::before {
+  left: 1px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--foreground) 20%, transparent),
+    transparent
+  );
+}
+
+.diagram-frame::after {
+  right: 1px;
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--foreground) 20%, transparent),
+    transparent
+  );
+}
+
+.diagram-frame.has-left::before,
+.diagram-frame.has-right::after {
+  opacity: 1;
+}
+
+.diagram-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.diagram-scroll:focus-visible {
+  outline-offset: -2px;
+}
+
+/* `block` because an iframe is inline by default, and the line box under it would otherwise leave
+   a few pixels of gap that read as a misaligned border. */
+.diagram-scroll iframe {
+  display: block;
+  border: 0;
+  max-width: none;
+}
+
+.diagram-source,
+.diagram-reason {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+/* 44px minimum, the floor .lesson-back a already sets and .lesson-facts-panel summary already
+   clears. At 0.15rem these were 27px tall on a phone — a tap target under half the size of the
+   disclosure directly above them on the same page. */
+.diagram-source summary,
+.diagram-reason summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.5rem 0;
+}
+
+.diagram-source summary:focus-visible,
+.diagram-reason summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* The diagram this lesson could not draw is still the author's work, so the notice explains rather
+   than alarms. Deliberately not .notice-bad: that one is red and monospace because it carries the
+   two 64-character hashes of a refused import, and neither the colour nor the face suits a
+   sentence of prose about a diagram the author mis-typed. */
+/* Empty while the diagram is drawing or drawn. Not `display: none` and not `hidden`: a live region
+   has to stay in the accessibility tree to be watched, and both of those take it out. */
+.diagram-notice:empty {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.diagram-notice {
+  margin-bottom: 0.5rem;
+  border-left-color: #b54708;
+  background: color-mix(in srgb, #b54708 8%, transparent);
+  font-size: 0.9rem;
+}
+
+.diagram-reason-lead {
+  margin: 0 0 0.25rem;
+}
+
+.diagram-reason pre {
+  margin: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.8rem;
+}
