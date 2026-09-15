@@ -157,6 +157,9 @@ attributes emitted by shadcn primitives.
       which is what 1440 at 200% is: doubling the zoom halves the CSS pixels the layout sees.
 - [x] R6. The drawer is checked open, not only closed. At 375px, with the sidebar opened from the
       top bar, the page still does not scroll sideways and the destinations are on screen.
+- [x] R7. Navigation does not scroll away with the page. Three thousand pixels down a lesson, the
+      sidebar's destinations and the top bar are still on screen at 1440px, and at 375px so is the
+      trigger that opens the drawer — which is the only way to reach navigation at that width.
 
 ## Out of scope for this slice
 
@@ -228,6 +231,14 @@ dark: the same design, legible, with the sidebar and the lime button unchanged.
   that probe found: the scroll is load-bearing for the picture but not for the check (delete it and
   the checks stay green while the captures go blank), and a `drawn` route that lost its diagram made
   the element capture throw after 30s and take every other failure in the run with it — now guarded.
+
+  Owner change after the slice landed: the sidebar and the top bar are pinned to the viewport
+  rather than to the top of the document. Both were ordinary flow elements, so on a lesson that is
+  12,000px tall at 1440px and 24,000px at 375px, navigation was reachable only by scrolling back to
+  the top — and at 375px the trigger that opens the drawer went with it, leaving no way to reach
+  navigation at all. `position: sticky` rather than `fixed`, so the 15.5rem column still occupies
+  its place in the flex row and the workspace needs no offset to match it. Criterion R7 was written
+  first and seen to fail by 2,860px, 3,000px and 2,987px on the three pinned elements.
 
   `apps/web/src/lesson.css` reached 392 lines and was split: the diagram's frame, scroll box and
   refusal panel moved to `apps/web/src/diagram.css` (144 lines), leaving lesson.css at 252. One

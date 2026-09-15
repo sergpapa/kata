@@ -16,11 +16,20 @@
 
 /* --- The sidebar ------------------------------------------------------------------------- */
 
+/* Pinned to the viewport, not to the top of a 12,000px lesson. `sticky` rather than `fixed` so the
+   column still occupies its 15.5rem in the flex row and the workspace needs no offset to match it;
+   `height: 100vh` because a stretched flex item is already as tall as the page it would stick
+   inside, and an item that tall has nothing to stick to. It scrolls within itself if it ever
+   outgrows the viewport. */
 .sidebar {
   display: flex;
   flex-direction: column;
   flex: 0 0 15.5rem;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
   width: 15.5rem;
+  height: 100vh;
   background: var(--sidebar);
   color: var(--sidebar-foreground);
   overflow-y: auto;
@@ -141,10 +150,17 @@
   background: var(--background);
 }
 
+/* Sticky at every width, and below 768px that is the whole point: the trigger in here is the only
+   way to reach navigation on a phone, so a top bar that scrolls away takes the sidebar with it.
+   Below the drawer and its scrim in the stack, so an open drawer covers it rather than fighting
+   it. */
 .topbar {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   min-height: 4.45rem;
   padding: 0.8rem 2.1rem;
   background: var(--card);
@@ -248,6 +264,9 @@
     flex: none;
     width: 18rem;
     max-width: 85vw;
+    /* `top` and `bottom` govern here, not the 100vh above: on a phone 100vh is the height the
+       viewport has with the browser's toolbars hidden, which is taller than what is on screen. */
+    height: auto;
     transform: translateX(-100%);
     visibility: hidden;
     transition:

@@ -280,6 +280,51 @@ try {
     await page.screenshot({ path: path.join(outDir, `drawer-mobile-375-${scheme}.png`) });
     await context.close();
   }
+
+  /**
+   * Criterion R7. Navigation stays where the reader left it.
+   *
+   * A lesson is 12,000px tall at 1440px and 24,000px at 375px. A sidebar that scrolls away with
+   * the page is reachable only by scrolling back to the top of a lesson the reader is in the
+   * middle of — and on a phone the control that opens the drawer goes with it, which leaves no
+   * way to reach navigation at all. Checked 3,000px down a real lesson, because at the top of the
+   * page a sidebar that scrolls and one that does not look exactly alike.
+   */
+  for (const pinned of [
+    { width: 1440, height: 900, selectors: ['nav.sidebar a', '.topbar'] },
+    { width: 375, height: 812, selectors: ['.sidebar-trigger'] },
+  ]) {
+    const context = await browser.newContext({
+      viewport: { width: pinned.width, height: pinned.height },
+    });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}/lessons/LS-M020-01`, { waitUntil: 'networkidle' });
+    await page.evaluate(() => window.scrollTo(0, 3000));
+    await page.waitForFunction(() => window.scrollY > 2500);
+
+    for (const selector of pinned.selectors) {
+      const state = await page.evaluate((query) => {
+        const element = document.querySelector(query);
+        if (!element) return 'not on the page';
+        const box = element.getBoundingClientRect();
+        if (box.width === 0 || box.height === 0) return 'collapsed to nothing';
+        return box.top >= 0 && box.bottom <= window.innerHeight
+          ? 'on screen'
+          : `off screen — its top is at ${Math.round(box.top)}px`;
+      }, selector);
+      if (state !== 'on screen') {
+        failures.push(
+          `at ${pinned.width}px, 3000px down a lesson, ${selector} is ${state}: navigation must ` +
+            `stay in view rather than scrolling away with the page`,
+        );
+      }
+    }
+
+    await page.screenshot({
+      path: path.join(outDir, `pinned-nav-${pinned.width}.png`),
+    });
+    await context.close();
+  }
 } finally {
   await browser?.close();
   child.kill();
@@ -293,5 +338,5 @@ ${failures.length} layout check(s) failed:`);
 }
 const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
-Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom) and the open drawer at 375px.
+Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
 ${drawn} diagram(s) were opened and read inside their frames at every width and scheme.`);

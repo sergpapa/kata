@@ -5,7 +5,9 @@
 Last updated 2026-09-15. The five lessons import, each reads at its own address, the authored
 Mermaid diagrams are drawn, and all of it now sits inside the Engineering Practice design: a navy
 course sidebar beside a pale workspace, a white top bar carrying the trail, and a card on the
-dashboard saying which lesson to start. Below 768px the sidebar becomes a drawer. Nothing on any
+dashboard saying which lesson to start. The sidebar and the top bar stay pinned to the viewport,
+so navigation is reachable from anywhere in a 12,000px lesson. Below 768px the sidebar becomes a
+drawer, reached from a trigger in the top bar that stays on screen with it. Nothing on any
 page claims progress — no ratio, no bar, no "studied" — because nothing records what has been read;
 that is Milestone 2, and the dashboard says so in words. Practice, Reviews and Progress are real
 addresses with honest pages naming the milestone that builds each one.
@@ -19,8 +21,8 @@ version 2, unchanged this slice.
 
 `npm test` (364 passing across 16 files), `npm run lint`, `npm run typecheck`, `npm run build`,
 `npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate now visits
-nine routes at three widths in both schemes, plus a 720px pass (1440 at 200% zoom) and the drawer
-checked open at 375px. It fails the build if a page scrolls sideways, a code block stops preserving
+nine routes at three widths in both schemes, plus a 720px pass (1440 at 200% zoom), the drawer
+checked open at 375px, and navigation checked still in view 3,000px down a lesson. It fails the build if a page scrolls sideways, a code block stops preserving
 whitespace, Mermaid lands in the entry chunk, or a diagram stops being a drawing — that last one
 read from inside the frame's own document, after the review found the old check passing on blank
 frames.
