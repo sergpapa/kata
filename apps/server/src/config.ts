@@ -25,15 +25,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const dataDir = env.EDUCODE_DATA_DIR ?? path.join(repoRoot, 'data');
   return {
     host: '127.0.0.1',
-    port: Number(env.EDUCODE_PORT ?? 4317),
+    // 8317, not 4317: the author's lab kits climb 4315, 4317, 4319–4320, and lessons 6–8 tell the
+    // learner to run their kit's server on 4317 while reading the lesson in this app.
+    port: Number(env.EDUCODE_PORT ?? 8317),
     dataDir,
     databaseFile: path.join(dataDir, 'educode.sqlite'),
     releaseDir:
       env.EDUCODE_RELEASE_DIR ??
       path.join(
         repoRoot,
-        'VS_Code_App_and_First_Five_Lessons_v1',
-        'vs-code-first-five-v1',
+        'HTTP_Caching_Lessons_09_13_v1',
+        'http-lessons-09-13-release-v1',
         'content',
       ),
     webDistDir: path.join(repoRoot, 'apps', 'web', 'dist'),

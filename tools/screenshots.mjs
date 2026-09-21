@@ -15,7 +15,10 @@ import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
-const port = Number(process.env.EDUCODE_SCREENSHOT_PORT ?? 4318);
+// 8318, beside the app's 8317: the author's lab kits own 4315–4320, including 4318 as the 6–8
+// kit's stated alternate, and a screenshot run must not squat on a port a lesson tells the
+// learner to use.
+const port = Number(process.env.EDUCODE_SCREENSHOT_PORT ?? 8318);
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const widths = [
@@ -31,9 +34,13 @@ const schemes = ['light', 'dark'];
 /**
  * Pages to capture. Add a route here when a slice adds one.
  *
- * The five lesson pages are here because criteria W2 and W3 in docs/specs/markdown-rendering.md
+ * The thirteen lesson pages are here because criteria W2 and W3 in docs/specs/markdown-rendering.md
  * cannot be checked anywhere else: jsdom applies no stylesheet, so horizontal overflow and
  * `white-space` are invisible to the vitest suite. These are real checks, not just captures.
+ *
+ * The diagram expectations are criterion C6 in docs/specs/content-release-first-thirteen.md:
+ * lessons 1, 5, 6 and 11 draw, lesson 2 keeps its honest fallback until CF-001 is accepted in a
+ * reissued release, and every other lesson must load no Mermaid at all.
  */
 const routes = [
   { name: 'home', path: '/' },
@@ -45,6 +52,14 @@ const routes = [
   { name: 'lesson-03', path: '/lessons/LS-M020-03', diagram: 'none' },
   { name: 'lesson-04', path: '/lessons/LS-M020-04', diagram: 'none' },
   { name: 'lesson-05', path: '/lessons/LS-M020-05', diagram: 'drawn' },
+  { name: 'lesson-06', path: '/lessons/LS-M020-06', diagram: 'drawn' },
+  { name: 'lesson-07', path: '/lessons/LS-M020-07', diagram: 'none' },
+  { name: 'lesson-08', path: '/lessons/LS-M020-08', diagram: 'none' },
+  { name: 'lesson-09', path: '/lessons/LS-M021-01', diagram: 'none' },
+  { name: 'lesson-10', path: '/lessons/LS-M021-02', diagram: 'none' },
+  { name: 'lesson-11', path: '/lessons/LS-M021-03', diagram: 'drawn' },
+  { name: 'lesson-12', path: '/lessons/LS-M021-04', diagram: 'none' },
+  { name: 'lesson-13', path: '/lessons/LS-M021-05', diagram: 'none' },
 ];
 
 const serverEntry = path.join(repoRoot, 'apps', 'server', 'dist', 'index.js');

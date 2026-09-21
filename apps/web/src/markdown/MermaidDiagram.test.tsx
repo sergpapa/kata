@@ -10,8 +10,8 @@ import { LessonMarkdown } from './LessonMarkdown.js';
  * black box: Markdown goes in, the document is inspected.
  *
  * Mermaid itself is mocked here because jsdom has no SVG layout and cannot draw a diagram at all.
- * That the three authored diagrams genuinely appear is checked by tools/screenshots.mjs in real
- * Chromium — the same split slice 2 used for criteria W2 and W3.
+ * That the four drawable authored diagrams genuinely appear is checked by tools/screenshots.mjs in
+ * real Chromium — the same split slice 2 used for criteria W2 and W3.
  */
 
 const mermaid = vi.hoisted(() => ({

@@ -24,8 +24,7 @@ export function lesson(order: number, title: string) {
   // Course order 1–8 is module M020; 9–13 restart the lesson number inside M021, exactly as the
   // thirteen-release's manifest keys them. Position and identity must not be conflated — that is
   // the bug the handoff warns about ("do not make lesson 1 of M021 replace the first course lesson").
-  const id =
-    order <= 8 ? `LS-M020-0${order}` : `LS-M021-0${order - 8}`;
+  const id = order <= 8 ? `LS-M020-0${order}` : `LS-M021-0${order - 8}`;
   return {
     order,
     candidateLessonId: id,

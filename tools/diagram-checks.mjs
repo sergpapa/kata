@@ -102,19 +102,28 @@ async function readDrawing(page) {
   const drawing = await frame.evaluate(() => {
     const svg = document.querySelector('svg');
     const box = svg.getBoundingClientRect();
-    const labels = [...document.querySelectorAll('svg text')]
+    // Two grammars, two label mechanisms: sequence diagrams write SVG `<text>`, flowcharts write
+    // HTML inside `<foreignObject>` (Lesson 6 renders 0 texts and 11 foreignObjects). A reader
+    // that only counts `<text>` reports a fully drawn flowchart as blank.
+    const labels = [...document.querySelectorAll('svg text, svg foreignObject')]
       .map((node) => (node.textContent ?? '').trim())
       .filter((text) => text !== '');
-    // `.messageText` is the one Mermaid class whose own `fill` is the colour its glyphs are
-    // painted in. On `.actor` the fill belongs to the box behind the label rather than to the
+    // `.messageText` is the one sequence-diagram class whose own `fill` is the colour its glyphs
+    // are painted in. On `.actor` the fill belongs to the box behind the label rather than to the
     // label, so reading that one would report a colour nobody sees and fail for the wrong reason.
+    // A flowchart's labels are HTML spans (`.nodeLabel`), painted by CSS `color`, not `fill`.
     const message = document.querySelector('svg text.messageText');
+    const nodeLabel = document.querySelector('svg foreignObject .nodeLabel');
     return {
       width: Math.round(box.width),
       height: Math.round(box.height),
       labels,
       strokes: document.querySelectorAll('svg path, svg line, svg rect').length,
-      ink: message ? getComputedStyle(message).fill : null,
+      ink: message
+        ? getComputedStyle(message).fill
+        : nodeLabel
+          ? getComputedStyle(nodeLabel).color
+          : null,
       paper: getComputedStyle(document.body).backgroundColor,
     };
   });
@@ -236,9 +245,10 @@ export async function checkDiagram(page, route, size, scheme, failures) {
         `to be the diagram`,
     );
   }
-  // Five labels and ten shapes: the two authored diagrams carry twelve and twenty labels,
-  // thirty-one and thirty-five shapes. The floor is low enough to survive a Mermaid version that
-  // rearranges its output, high enough that an empty or half-drawn frame cannot clear it.
+  // Five labels and ten shapes: the authored sequence diagrams carry twelve to twenty labels and
+  // thirty-odd shapes; the Lesson 6 flowchart carries eleven labels and twenty-seven shapes. The
+  // floor is low enough to survive a Mermaid version that rearranges its output, high enough that
+  // an empty or half-drawn frame cannot clear it.
   if (drawing.labels.length < 5 || drawing.strokes < 10) {
     failures.push(
       `${where} holds ${drawing.labels.length} label(s) and ${drawing.strokes} shape(s) — too ` +

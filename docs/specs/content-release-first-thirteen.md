@@ -87,7 +87,7 @@ Checked 2026-09-21 against the received bytes, before any code moved:
 - **No module grouping or "planned curriculum" surfaces.** The 6–8 handoff asks for planned-work
   visibility only "if the app has that feature"; it does not, and this slice does not add it.
 - **No content edits.** The release is content-addressed input. CF-001 stays open — lesson 2's
-  bytes are unchanged in the thirteen-release, so the proposed fix now needs the *next* reissue.
+  bytes are unchanged in the thirteen-release, so the proposed fix now needs the _next_ reissue.
 
 ## Done means
 

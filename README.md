@@ -4,9 +4,9 @@ A local application for reading the authored HTTP lessons and recording your act
 them. It runs on your own computer. There is no account, no server to sign in to, and no copy of
 your work anywhere else.
 
-**Current state:** the supplied release imports, its five lessons are listed, and each one can be
-read at its own address. Diagrams show as their labelled source until the next slice renders them;
-there is no contents list or resume point yet. See [docs/roadmap.md](docs/roadmap.md).
+**Current state:** the thirteen-lesson release imports, every lesson is listed and reads at its own
+address inside the Engineering Practice design, and diagrams that parse are drawn. There is no
+contents list or resume point yet. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
 
@@ -27,14 +27,17 @@ npm install
 npm run dev
 ```
 
-`npm run dev` starts the server on <http://127.0.0.1:4317> and the client dev server on
+`npm run dev` starts the server on <http://127.0.0.1:8317> and the client dev server on
 <http://127.0.0.1:5317>. Open the second one.
+
+The app deliberately stays off ports 4315–4320: the lessons' downloadable lab kits run their own
+local servers there, and lessons 6–8 tell you to start one on 4317 while you read.
 
 ## The content release
 
-On every start, the app reads `learning-release.json` from the release directory, hashes all eight
-files it names — five lessons, two lab kits, the activity file — and compares each against the hash
-the release publishes. It also cross-checks the identities: a lesson file whose `candidate_lesson_id`,
+On every start, the app reads `learning-release.json` from the release directory, hashes all
+eighteen files it names — thirteen lessons, four lab kits, the activity file — and compares each
+against the hash the release publishes. It also cross-checks the identities: a lesson file whose `candidate_lesson_id`,
 `document_id` or `version` disagrees with the manifest entry is a conflict, not a preference.
 
 If anything fails, the app still starts and the page states which file failed and why. No lesson is
@@ -64,36 +67,41 @@ For the built application:
 
 ```sh
 npm run build
-npm start        # serves the built client and the API from http://127.0.0.1:4317
+npm start        # serves the built client and the API from http://127.0.0.1:8317
 ```
 
 ## Checking it
 
-| Command               | What it proves                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm test`            | Unit and HTTP-level tests (Vitest)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `npm run typecheck`   | Types across server and client                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `npm run lint`        | ESLint across the workspace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `npm run build`       | Both apps compile                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `npm run screenshots` | Boots the built app and captures all nine routes at 375px, 768px and 1440px, light and dark, into `screenshots/`, plus a 720px pass (1440 at 200% zoom), the mobile drawer opened, and navigation checked still in view 3,000px down a lesson. **Fails** if a page scrolls sideways, a code block stops preserving whitespace, Mermaid reaches the entry chunk, or a diagram stops being a drawing — none of which is visible to the test suite, which has no stylesheet and no SVG layout. Run `npm run build` first, and `npx playwright install chromium` once. |
+| Command               | What it proves                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`            | Unit and HTTP-level tests (Vitest)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `npm run typecheck`   | Types across server and client                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `npm run lint`        | ESLint across the workspace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `npm run build`       | Both apps compile                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `npm run screenshots` | Boots the built app and captures all seventeen routes at 375px, 768px and 1440px, light and dark, into `screenshots/`, plus a 720px pass (1440 at 200% zoom), the mobile drawer opened, and navigation checked still in view 3,000px down a lesson. **Fails** if a page scrolls sideways, a code block stops preserving whitespace, Mermaid reaches the entry chunk, or a diagram stops being a drawing — none of which is visible to the test suite, which has no stylesheet and no SVG layout. Run `npm run build` first, and `npx playwright install chromium` once. |
 
 Everything runs locally and costs nothing. There is no CI pipeline in this repository, deliberately.
 
 ## Where things are
 
-| Path                                     | What lives there                                                               |
-| ---------------------------------------- | ------------------------------------------------------------------------------ |
-| `apps/server`                            | Fastify application, domain modules under `src/modules/<area>/`, SQLite access |
-| `apps/server/src/modules/content/`       | Release import: manifest, hashes, path safety, and the content repository      |
-| `apps/web`                               | React client (Vite)                                                            |
-| `apps/web/src/markdown/`                 | The lesson renderer and the guards that keep lesson content inert              |
-| `tools/`                                 | Local development tooling, including the screenshot capture                    |
-| `docs/brief.md`                          | What the first checkpoint delivers, and its hard constraints                   |
-| `docs/roadmap.md`                        | Current state and the remaining slices — read this first in a new session      |
-| `docs/specs/`                            | The agreed acceptance criteria for each slice, and its slice log               |
-| `docs/adr/`                              | Why the stack and the data rules are what they are                             |
-| `data/`                                  | Your work. Not committed. Delete the directory to start clean.                 |
-| `VS_Code_App_and_First_Five_Lessons_v1/` | The supplied content package. An input, kept byte-for-byte; never edit it.     |
+| Path                                          | What lives there                                                                    |
+| --------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `apps/server`                                 | Fastify application, domain modules under `src/modules/<area>/`, SQLite access      |
+| `apps/server/src/modules/content/`            | Release import: manifest, hashes, path safety, and the content repository           |
+| `apps/web`                                    | React client (Vite)                                                                 |
+| `apps/web/src/markdown/`                      | The lesson renderer and the guards that keep lesson content inert                   |
+| `tools/`                                      | Local development tooling, including the screenshot capture                         |
+| `docs/brief.md`                               | What the first checkpoint delivers, and its hard constraints                        |
+| `docs/roadmap.md`                             | Current state and the remaining slices — read this first in a new session           |
+| `docs/specs/`                                 | The agreed acceptance criteria for each slice, and its slice log                    |
+| `docs/adr/`                                   | Why the stack and the data rules are what they are                                  |
+| `data/`                                       | Your work. Not committed. Delete the directory to start clean.                      |
+| `HTTP_Caching_Lessons_09_13_v1/`              | The current content package (lessons 1–13); the app imports from it by default      |
+| `HTTP_Curriculum_Depth_and_Lessons_06_08_v1/` | The lessons 6–8 package: superseded content, current curriculum specifications      |
+| `VS_Code_App_and_First_Five_Lessons_v1/`      | The first content package, and the app/architecture handoff that governs this build |
+
+The content packages are inputs, kept byte-for-byte; never edit them. Proposed changes to their
+content go to [docs/content-feedback.md](docs/content-feedback.md) for the owner instead.
 
 ## Pinned versions
 
