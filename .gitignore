@@ -27,3 +27,6 @@ screenshots/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Graphify knowledge graph — derived from the repo, rebuilt by its post-checkout hook
+graphify-out/

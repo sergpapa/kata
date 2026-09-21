@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-18",
+  "result": "passed",
+  "lesson_count": 13,
+  "new_lessons": [
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "activity_count": 39,
+  "lab_download_count": 4,
+  "new_lab_file_count": 27,
+  "unchanged_first_eight_lessons": true,
+  "unchanged_previous_lab_archives": true,
+  "unchanged_prior_activity_records": true,
+  "unchanged_background_specifications": 6,
+  "source_and_archive_hashes": "verified",
+  "lesson_and_feedback_headings": "verified",
+  "new_activity_excerpts_match_canonical_sections": true,
+  "front_matter_ids_versions_titles": "verified",
+  "markdown_code_fences": "balanced",
+  "browser_rehearsal": "not performed; exact limitation in Verification_and_Known_Limits.md",
+  "app_integration": "not performed; separate coder acceptance required"
+}

@@ -1,0 +1,109 @@
+{
+  "package_id": "FSSE-HTTP-DEPTH-AND-06-08",
+  "version": "1.0.0-draft",
+  "date": "2026-09-18",
+  "read_first": "START_HERE.md",
+  "release_manifest": "content/learning-release.json",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "81e44662a103656e38a07c1b6316d54b95e9e7461538e1bec55177ae6a3c167a"
+    },
+    {
+      "path": "Owner_Review_After_Lesson_08.md",
+      "sha256": "9a5c114960660c137db2e94b61617f362720ecd93d19a8448d280a15c3089a61"
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "46cd49344abd16e8a141d1de2c63b7485a8b8466c00fde6b56eccac1e19ba688"
+    },
+    {
+      "path": "VS_Code_Coder_Handoff_Lessons_06_08_v1.md",
+      "sha256": "e5bb5e9ce442d88f836e72094d0430cf1cc85dd8545ec6852b50593c3cdbf51f"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "sha256": "a03586f909417aa81076c4956d342222254bef690c1cd1e212d328ab36608a8b"
+    },
+    {
+      "path": "content/labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_03_05_Local_Kit_v1.zip",
+      "sha256": "88287e1169c45ec348104a2a171b6f02fd3123ae0be03c1fcbbabfbad2963534"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_06_08_Local_Kit_v1.zip",
+      "sha256": "1c1798641c6474675db618e1aa0f9c86eb25d5bfadeaaf66a1530f7b3627e998"
+    },
+    {
+      "path": "content/learning-release.json",
+      "sha256": "7f12f3ab37d9aa3fd9900fd939f96b409add255c6ff29b90f02adff4d7cde0dd"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_01_Student_Edition_v2.md",
+      "sha256": "4221faed9d16238ffedd04957d4377f18efc0ddd65420e9230462a78f7a55adf"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_03_Student_Edition_v1.md",
+      "sha256": "3a4363e7621142feb1a28cf0bdcbc24cc9e63b607e443097d6860067ed99cb00"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_04_Student_Edition_v1.md",
+      "sha256": "a672ebd956c8e4f1a34048eccbb332cf4272201d21e7f67d922e2738cf984c39"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_05_Student_Edition_v1.md",
+      "sha256": "88183507682391ff5e8a203b3b5d0273e431fa5e546e36ffcbd957251b578080"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_06_Student_Edition_v1.md",
+      "sha256": "9b490d7434b11de54448ac22279b863cf75edbff2c19a5bbcbb8633bbc5cb88d"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_07_Student_Edition_v1.md",
+      "sha256": "82124ef56ef9c7176fc2121c4102198be932088c3ca21c6c22c681cafd70fe55"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_08_Student_Edition_v1.md",
+      "sha256": "536cf779243a7059d3ed16460349f947c9746f49583ca01e13fc45459afebf4b"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "sha256": "f3c7e7d3d84f27d211b2ff39cd85dc769cfa4eff7a90d49fabc0e9933a7b411f"
+    },
+    {
+      "path": "package-verification.json",
+      "sha256": "9632135d0372a0892aa78a2dc6af24fb8ab04a4ab2d3e09abce3b70534889a44"
+    },
+    {
+      "path": "specifications/Curriculum_Architecture_v1_1.md",
+      "sha256": "66cd10a18566bd635423cc2beacd41bcc19cb3af313b414a898d8db737f712cd"
+    },
+    {
+      "path": "specifications/Curriculum_Depth_and_Progression_Map_v1.md",
+      "sha256": "447ad38e20bb0330adcdabb5821f53cf9ce49901ad00706b8659470fb00fe494"
+    },
+    {
+      "path": "specifications/Graduate_Competency_Standard_v1.md",
+      "sha256": "501145c310956a46319d27649840c0e4bdf501e6a2ddd684422da51a335d78ca"
+    },
+    {
+      "path": "specifications/HTTP_Deep_Investigation_Design_v1.md",
+      "sha256": "4dd605d55f7ee9e761c734a60d5f18cf8c30d058ea6d117149bf09305efa6be1"
+    },
+    {
+      "path": "specifications/Learning_Design_Review_and_Curriculum_Refinement_v1_1.md",
+      "sha256": "1502852bd5e9f5bbc4aa99bf26d0932b8296e68ee64df1eb5f0a88c61f2b7025"
+    },
+    {
+      "path": "specifications/Lesson_Authoring_Standard_v1.md",
+      "sha256": "29166d8e9a64dc035f0ef48b3123e9a1f4a72937c78874b6630f7bb0a9be9058"
+    }
+  ]
+}
