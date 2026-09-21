@@ -4,7 +4,7 @@ A local application for reading the authored HTTP lessons and recording your act
 them. It runs on your own computer. There is no account, no server to sign in to, and no copy of
 your work anywhere else.
 
-**Current state:** the thirteen-lesson release imports, every lesson is listed and reads at its own
+**Current state:** the fifteen-lesson release imports, every lesson is listed and reads at its own
 address inside the Engineering Practice design, and diagrams that parse are drawn. There is no
 contents list or resume point yet. See [docs/roadmap.md](docs/roadmap.md).
 
@@ -30,13 +30,14 @@ npm run dev
 `npm run dev` starts the server on <http://127.0.0.1:8317> and the client dev server on
 <http://127.0.0.1:5317>. Open the second one.
 
-The app deliberately stays off ports 4315–4320: the lessons' downloadable lab kits run their own
-local servers there, and lessons 6–8 tell you to start one on 4317 while you read.
+The app deliberately stays off ports 4315–4323: the lessons' downloadable lab kits run their own
+local servers there — lessons 6–8 tell you to start one on 4317 while you read, and the lessons
+14–15 investigation kit uses 4321 and 4323.
 
 ## The content release
 
 On every start, the app reads `learning-release.json` from the release directory, hashes all
-eighteen files it names — thirteen lessons, four lab kits, the activity file — and compares each
+twenty-one files it names — fifteen lessons, five lab kits, the activity file — and compares each
 against the hash the release publishes. It also cross-checks the identities: a lesson file whose `candidate_lesson_id`,
 `document_id` or `version` disagrees with the manifest entry is a conflict, not a preference.
 
@@ -97,7 +98,8 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | `docs/adr/`                                         | Why the stack and the data rules are what they are                                         |
 | `data/`                                             | Your work. Not committed. Delete the directory to start clean.                             |
 | `content/releases/`                                 | Every received content package, byte-for-byte; `content/RELEASES.md` names the current one |
-| `content/releases/http-lessons-09-13-release-v1/`   | The current package (lessons 1–13); the app imports from it by default                     |
+| `content/releases/http-lessons-14-15-release-v1/`   | The current package (lessons 1–15); the app imports from it by default                     |
+| `content/releases/http-lessons-09-13-release-v1/`   | The lessons 9–13 package: superseded content, kept as a verified baseline                  |
 | `content/releases/http-depth-and-lessons-06-08-v1/` | The lessons 6–8 package: superseded content, current curriculum specifications             |
 | `content/releases/vs-code-first-five-v1/`           | The first content package, and the app/architecture handoff that governs this build        |
 

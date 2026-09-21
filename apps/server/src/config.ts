@@ -32,7 +32,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     databaseFile: path.join(dataDir, 'educode.sqlite'),
     releaseDir:
       env.EDUCODE_RELEASE_DIR ??
-      path.join(repoRoot, 'content', 'releases', 'http-lessons-09-13-release-v1', 'content'),
+      path.join(repoRoot, 'content', 'releases', 'http-lessons-14-15-release-v1', 'content'),
     webDistDir: path.join(repoRoot, 'apps', 'web', 'dist'),
   };
 }
