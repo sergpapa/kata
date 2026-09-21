@@ -38,10 +38,9 @@ const schemes = ['light', 'dark'];
  * cannot be checked anywhere else: jsdom applies no stylesheet, so horizontal overflow and
  * `white-space` are invisible to the vitest suite. These are real checks, not just captures.
  *
- * The diagram expectations are criterion C5 in docs/specs/content-release-first-fifteen.md:
- * lessons 1, 5, 6 and 11 draw, lesson 2 keeps its honest fallback until CF-001 is accepted in a
- * reissued release, and every other lesson — 14 and 15 carry no fence — must load no Mermaid at
- * all.
+ * The diagram expectations are criterion C4 in docs/specs/content-release-corrections-101.md:
+ * lessons 1, 2, 5, 6 and 11 all draw — lesson 2 joined the others when the 1.0.1 reissue accepted
+ * CF-001 — and every other lesson (14 and 15 carry no fence) must load no Mermaid at all.
  */
 const routes = [
   { name: 'home', path: '/' },
@@ -49,7 +48,7 @@ const routes = [
   { name: 'reviews', path: '/reviews' },
   { name: 'progress', path: '/progress' },
   { name: 'lesson-01', path: '/lessons/LS-M020-01', diagram: 'drawn' },
-  { name: 'lesson-02', path: '/lessons/LS-M020-02', diagram: 'fallback' },
+  { name: 'lesson-02', path: '/lessons/LS-M020-02', diagram: 'drawn' },
   { name: 'lesson-03', path: '/lessons/LS-M020-03', diagram: 'none' },
   { name: 'lesson-04', path: '/lessons/LS-M020-04', diagram: 'none' },
   { name: 'lesson-05', path: '/lessons/LS-M020-05', diagram: 'drawn' },

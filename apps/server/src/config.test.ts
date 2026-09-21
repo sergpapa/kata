@@ -23,11 +23,11 @@ describe('the default configuration', () => {
     expect(loadConfig({ EDUCODE_PORT: '5000' }).port).toBe(5000);
   });
 
-  it('points at the fifteen-lesson release, and that directory really holds a manifest', () => {
+  it('points at the corrected fifteen-lesson release, and that directory really holds a manifest', () => {
     const releaseDir = loadConfig({}).releaseDir;
 
     expect(releaseDir.split(path.sep).join('/')).toContain(
-      'content/releases/http-lessons-14-15-release-v1/content',
+      'content/releases/http-first-fifteen-v1_0_1/content',
     );
     expect(fs.existsSync(path.join(releaseDir, 'learning-release.json'))).toBe(true);
   });

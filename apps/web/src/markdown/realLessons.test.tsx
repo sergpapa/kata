@@ -16,7 +16,7 @@ import { LessonMarkdown } from './LessonMarkdown.js';
  */
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const releaseDir = path.join(repoRoot, 'content/releases/http-lessons-14-15-release-v1/content');
+const releaseDir = path.join(repoRoot, 'content/releases/http-first-fifteen-v1_0_1/content');
 const lessonsDir = path.join(releaseDir, 'lessons');
 
 const lessonFiles = (
@@ -147,8 +147,8 @@ describe('Lesson 1, whose request example depends on a blank line', () => {
  * jsdom cannot answer that question and nothing here pretends to.
  *
  * (Supersedes slice 2's criterion D4, which required every fence to stay a labelled source
- * block. Four of the five now become pictures where a browser can draw them; Lesson 2's keeps
- * its honest fallback until CF-001 is accepted in a reissued release.)
+ * block. All five now become pictures where a browser can draw them — Lesson 2's joined the
+ * other four when CF-001's correction arrived in the 1.0.1-draft reissue.)
  */
 /**
  * The five lessons that carry a Mermaid fence, and where each one's equivalent textual account

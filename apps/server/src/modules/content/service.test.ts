@@ -76,55 +76,45 @@ describe('importing a release into the record store', () => {
   });
 
   /**
-   * Criterion C3 in docs/specs/content-release-first-fifteen.md, with the three real releases: the
-   * record store of an owner who followed the whole chain — first-five, then thirteen — is the one
-   * the fifteen-release lands beside.
+   * Criterion C3 in docs/specs/content-release-corrections-101.md, with the four real releases:
+   * the record store of an owner who followed the whole chain — first-five, thirteen, fifteen
+   * 1.0.0 — is the one the corrected reissue lands beside. Old rows keep old versions; that is how
+   * a historical attempt retains the provenance it recorded.
    */
-  it('imports the fifteen-release beside the two already-imported releases, touching nothing', () => {
+  it('imports the 1.0.1 correction beside the three already-imported releases, touching nothing', () => {
     db = openDatabase(':memory:');
-    const firstFiveDir = path.join(
-      repoRoot,
-      'content',
-      'releases',
-      'vs-code-first-five-v1',
-      'content',
-    );
-    const thirteenDir = path.join(
-      repoRoot,
-      'content',
-      'releases',
-      'http-lessons-09-13-release-v1',
-      'content',
-    );
+    const chain = [
+      ['vs-code-first-five-v1', 'FSSE-HTTP-FIRST-FIVE', 5],
+      ['http-lessons-09-13-release-v1', 'FSSE-HTTP-FIRST-THIRTEEN', 13],
+      ['http-lessons-14-15-release-v1', 'FSSE-HTTP-FIRST-FIFTEEN', 15],
+    ] as const;
 
-    const firstFive = importRelease(db, firstFiveDir);
-    expect(firstFive.state).toBe('imported');
-    if (firstFive.state !== 'imported') return;
+    const rowIds: number[] = [];
+    for (const [dir] of chain) {
+      const state = importRelease(db, path.join(repoRoot, 'content', 'releases', dir, 'content'));
+      expect(state.state).toBe('imported');
+      if (state.state !== 'imported') return;
+      rowIds.push(state.releaseRowId);
+    }
 
-    const thirteen = importRelease(db, thirteenDir);
-    expect(thirteen.state).toBe('imported');
-    if (thirteen.state !== 'imported') return;
+    const corrected = importRelease(db, loadConfig({}).releaseDir);
+    expect(corrected.state).toBe('imported');
+    if (corrected.state !== 'imported') return;
 
-    const fifteen = importRelease(db, loadConfig({}).releaseDir);
-    expect(fifteen.state).toBe('imported');
-    if (fifteen.state !== 'imported') return;
+    // A fourth release, not a rewrite of the earlier three: their rows still answer for
+    // themselves — including the superseded 1.0.0 bytes of lessons 2 and 7.
+    expect(new Set([...rowIds, corrected.releaseRowId]).size).toBe(4);
+    chain.forEach(([, releaseId, lessonCount], index) => {
+      const summary = loadReleaseSummary(db, rowIds[index] as number);
+      expect(summary?.releaseId).toBe(releaseId);
+      expect(summary?.lessons).toHaveLength(lessonCount);
+    });
 
-    // A third release, not a rewrite of the earlier two: their rows still answer for themselves.
-    expect(
-      new Set([firstFive.releaseRowId, thirteen.releaseRowId, fifteen.releaseRowId]).size,
-    ).toBe(3);
-    expect(loadReleaseSummary(db, firstFive.releaseRowId)?.releaseId).toBe('FSSE-HTTP-FIRST-FIVE');
-    expect(loadReleaseSummary(db, firstFive.releaseRowId)?.lessons).toHaveLength(5);
-    expect(loadReleaseSummary(db, thirteen.releaseRowId)?.releaseId).toBe(
-      'FSSE-HTTP-FIRST-THIRTEEN',
-    );
-    expect(loadReleaseSummary(db, thirteen.releaseRowId)?.lessons).toHaveLength(13);
-
-    // Five rows plus thirteen plus fifteen: nothing merged, nothing replaced, nothing deleted.
+    // 5 + 13 + 15 + 15 rows: nothing merged, nothing replaced, nothing deleted.
     const rows = db.prepare('SELECT count(*) AS n FROM content_lesson').get() as { n: number };
-    expect(rows.n).toBe(33);
+    expect(rows.n).toBe(48);
 
     // Verify-on-every-start stays cheap: the identical release lands on its existing row.
-    expect(importRelease(db, loadConfig({}).releaseDir)).toEqual(fifteen);
+    expect(importRelease(db, loadConfig({}).releaseDir)).toEqual(corrected);
   });
 });

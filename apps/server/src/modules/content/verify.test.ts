@@ -495,7 +495,7 @@ describe('the release the author actually supplied', () => {
     const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
     expect(release.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
-    expect(release.version).toBe('1.0.0-draft');
+    expect(release.version).toBe('1.0.1-draft');
     expect(release.lessons.map((lesson) => lesson.candidateLessonId)).toEqual([
       'LS-M020-01',
       'LS-M020-02',
@@ -516,9 +516,16 @@ describe('the release the author actually supplied', () => {
     expect(release.lessons.map((lesson) => lesson.order)).toEqual([
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     ]);
+    // Lesson 1 was revised long ago; lessons 2 and 7 carry the 1.0.1 corrections (CF-001, CF-002).
     expect(release.lessons.map((lesson) => lesson.contentVersion)).toEqual([
       '2.0.0-draft',
-      ...Array.from({ length: 14 }, () => '1.0.0-draft'),
+      '1.0.1-draft',
+      '1.0.0-draft',
+      '1.0.0-draft',
+      '1.0.0-draft',
+      '1.0.0-draft',
+      '1.0.1-draft',
+      ...Array.from({ length: 8 }, () => '1.0.0-draft'),
     ]);
     expect(release.lessons[0]?.labId).toBeNull();
     expect(release.lessons.map((lesson) => lesson.labId).slice(1)).toEqual([
@@ -561,6 +568,14 @@ describe('the release the author actually supplied', () => {
       'FSSE-HTTP-LAB-09-13',
       'FSSE-HTTP-LAB-14-15',
     ]);
+    // The two kits that nest a corrected lesson advance with it; the other three do not.
+    expect(release.labKits.map((kit) => kit.version)).toEqual([
+      '1.0.1-draft',
+      '1.0.0-draft',
+      '1.0.1-draft',
+      '1.0.0-draft',
+      '1.0.0-draft',
+    ]);
     expect(release.activitySet.sourcePath).toBe('trial-activities.json');
     const activitySet = JSON.parse(release.activitySet.sourceText) as {
       activity_set_id: string;
@@ -575,7 +590,7 @@ describe('the release the author actually supplied', () => {
 
     expect(release.date).toBe('2026-09-21');
     expect(release.status).toContain('owner-review candidate');
-    expect(release.status).toContain('newly authored');
+    expect(release.status).toContain('CF-001 and CF-002 corrected');
     expect(release.audience).toContain('caching mechanisms');
     expect(release.sourceOfTruth).toBe('The supplied UTF-8 Markdown lesson files');
   });
@@ -619,15 +634,16 @@ describe('the release the author actually supplied', () => {
 });
 
 /**
- * Criterion C2 in docs/specs/content-release-first-fifteen.md (extending slice 5's C2). The
- * superseded packages stay in the repo as the baselines the fifteen-release's compatibility claim
- * is checked against: same IDs, same content versions, same bytes, same reading order for every
- * lesson they carry. When Milestone 2 keys learner state on (candidate_lesson_id,
- * content_version), this is what proves a release update cannot orphan it. Both baselines are
- * compared directly — first-five as well as thirteen — so the chain's oldest link is proven
- * against the current release, not left to transitivity through a test that no longer exists.
+ * Criterion C2 in docs/specs/content-release-corrections-101.md (extending the two C2s before
+ * it). The superseded packages stay in the repo as the baselines the current release's
+ * compatibility claim is checked against. The 1.0.1 corrections are the first release update that
+ * legitimately changes shipped lesson bytes, so "agrees" now means: every lesson keeps its ID and
+ * order, and its content either carries the identical (version, sha256) pair or carries exactly
+ * the transition `content-corrections.json` authorizes — nothing changed silently. When Milestone
+ * 2 keys learner state on (candidate_lesson_id, content_version), old attempts keep the version
+ * they recorded; that is why an authorized change advances the version rather than reusing it.
  */
-describe('the superseded releases, still beside the fifteen', () => {
+describe('the superseded releases, still beside the corrected fifteen', () => {
   const baselines = [
     {
       name: 'first-five',
@@ -641,7 +657,39 @@ describe('the superseded releases, still beside the fifteen', () => {
       lessonCount: 13,
       dir: path.join(repoRoot, 'content', 'releases', 'http-lessons-09-13-release-v1', 'content'),
     },
+    {
+      name: 'fifteen-1.0.0',
+      releaseId: 'FSSE-HTTP-FIRST-FIFTEEN',
+      lessonCount: 15,
+      dir: path.join(repoRoot, 'content', 'releases', 'http-lessons-14-15-release-v1', 'content'),
+    },
   ] as const;
+
+  /** The author's signed-off transitions: lesson ID → the previous and current identity pairs. */
+  const authorized = new Map(
+    (
+      JSON.parse(
+        fs.readFileSync(
+          path.join(
+            repoRoot,
+            'content',
+            'releases',
+            'http-first-fifteen-v1_0_1',
+            'content-corrections.json',
+          ),
+          'utf8',
+        ),
+      ) as {
+        lessons: {
+          lesson_id: string;
+          previous_version: string;
+          previous_sha256: string;
+          version: string;
+          sha256: string;
+        }[];
+      }
+    ).lessons.map((entry) => [entry.lesson_id, entry]),
+  );
 
   it.each(baselines)('the $name release still verifies clean from its own directory', (base) => {
     const release = releaseOf(verifyRelease(base.dir));
@@ -650,31 +698,52 @@ describe('the superseded releases, still beside the fifteen', () => {
     expect(release.lessons).toHaveLength(base.lessonCount);
   });
 
+  it('accepts exactly CF-001 and CF-002, each advancing 1.0.0-draft to 1.0.1-draft', () => {
+    expect([...authorized.keys()].sort()).toEqual(['LS-M020-02', 'LS-M020-07']);
+    for (const entry of authorized.values()) {
+      expect(entry.previous_version).toBe('1.0.0-draft');
+      expect(entry.version).toBe('1.0.1-draft');
+      expect(entry.sha256).not.toBe(entry.previous_sha256);
+    }
+  });
+
   it.each(baselines)(
-    'the $name release agrees with the fifteen on every key learner state will hang off',
+    'the $name release agrees with the current one, allowing only the authorized corrections',
     (base) => {
       const baseline = releaseOf(verifyRelease(base.dir));
-      const fifteen = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+      const current = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
-      // Guard against a vacuous pass: this comparison only says something while the two sides are
-      // genuinely different releases.
-      expect(fifteen.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
-      expect(fifteen.releaseId).not.toBe(baseline.releaseId);
+      // Guard against a vacuous pass: the current release must be the corrected reissue, not the
+      // baseline read back.
+      expect(current.version).toBe('1.0.1-draft');
+      expect(`${current.releaseId}@${current.version}`).not.toBe(
+        `${baseline.releaseId}@${baseline.version}`,
+      );
 
       for (const before of baseline.lessons) {
-        const after = fifteen.lessons.find(
+        const after = current.lessons.find(
           (lesson) => lesson.candidateLessonId === before.candidateLessonId,
         );
         expect(after, `${before.candidateLessonId} must survive the release update`).toBeDefined();
-        expect({
-          contentVersion: after?.contentVersion,
-          sha256: after?.sha256,
-          order: after?.order,
-        }).toEqual({
-          contentVersion: before.contentVersion,
-          sha256: before.sha256,
-          order: before.order,
-        });
+        expect(after?.order).toBe(before.order);
+
+        const correction = authorized.get(before.candidateLessonId);
+        if (correction && before.sha256 === correction.previous_sha256) {
+          // The baseline holds the pre-correction bytes: the current release must carry exactly
+          // the authorized replacement, not some third version.
+          expect({ contentVersion: after?.contentVersion, sha256: after?.sha256 }).toEqual({
+            contentVersion: correction.version,
+            sha256: correction.sha256,
+          });
+        } else {
+          expect({
+            contentVersion: after?.contentVersion,
+            sha256: after?.sha256,
+          }).toEqual({
+            contentVersion: before.contentVersion,
+            sha256: before.sha256,
+          });
+        }
       }
     },
   );

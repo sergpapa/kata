@@ -208,7 +208,7 @@ describe('the front-matter facts a learner is shown', () => {
 const releaseDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../../..',
-  'content/releases/http-lessons-14-15-release-v1/content',
+  'content/releases/http-first-fifteen-v1_0_1/content',
 );
 const lessonsDir = path.join(releaseDir, 'lessons');
 
@@ -263,6 +263,16 @@ describe('the fifteen authored lessons, read from the release directory', () => 
     ).toBe(firstProse);
   });
 
+  it('carries CF-001\u2019s accepted correction in Lesson 2\u2019s diagram source', () => {
+    // The register's exact proposed text, not just "something changed": a different edit that
+    // happened to parse would otherwise pass the whole automated suite. That it actually draws is
+    // the screenshot gate's question (lesson-02 expects `drawn`); this pins the bytes to CF-001.
+    const source = readLesson('HTTP_Lesson_02_Student_Edition_v1.md');
+
+    expect(source).toContain('Stopped, the file remains');
+    expect(source).not.toContain('Stopped; the file remains');
+  });
+
   it('keeps the blank line inside Lesson 1\u2019s request sample, up against the closing fence', () => {
     const body = lessonBodyBelowTitle(readLesson('HTTP_Lesson_01_Student_Edition_v2.md'));
 
@@ -292,6 +302,14 @@ describe('the front-matter facts of the authored lessons', () => {
     ]);
   });
 
+  it('shows Lesson 7 the corrected prerequisite wording, not the stable ID (CF-002 accepted)', () => {
+    const facts = learnerFacingFacts(frontMatterOf('HTTP_Lesson_07_Student_Edition_v1.md'));
+    const prerequisites = JSON.stringify(facts.find((fact) => fact.key === 'prerequisites'));
+
+    expect(prerequisites).toContain('Lesson 6');
+    expect(prerequisites).not.toContain('LS-M020-06');
+  });
+
   it('shows Lesson 2 its own keys, and keeps its exercise_kit filename out', () => {
     const keys = learnerFacingFacts(frontMatterOf('HTTP_Lesson_02_Student_Edition_v1.md')).map(
       (fact) => fact.key,
@@ -312,10 +330,10 @@ describe('the front-matter facts of the authored lessons', () => {
 
   /**
    * Aimed at what the app controls: the identity and ingestion fields of the lesson being shown.
-   * Not a blanket "no ID-shaped text anywhere" — Lesson 7's authored prerequisites mention
-   * LS-M020-06 in prose, and showing the author's own words is the contract, not a leak. Whether
-   * that wording should say "Lesson 6" instead is CF-002 in docs/content-feedback.md, the owner's
-   * call.
+   * Not a blanket "no ID-shaped text anywhere" — authored prose may name another lesson however
+   * the author chooses, and showing their own words is the contract, not a leak. (Lesson 7 did
+   * exactly that until CF-002 was accepted in 1.0.1-draft; the test below pins the corrected
+   * wording.)
    */
   it.each(realLessonFiles)('never leaks %s’s own identity fields into the facts', (file) => {
     const frontMatter = frontMatterOf(file);
