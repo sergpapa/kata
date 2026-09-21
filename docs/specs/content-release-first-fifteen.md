@@ -35,7 +35,7 @@ Checked 2026-09-21 against the received bytes, before any code moved:
 
 ## Acceptance criteria
 
-- [ ] C1. **Default import.** With no env overrides the app verifies and imports
+- [x] C1. **Default import.** With no env overrides the app verifies and imports
       `FSSE-HTTP-FIRST-FIFTEEN@1.0.0-draft` from
       `content/releases/http-lessons-14-15-release-v1/content` (received as
       `docs/HTTP_Investigation_Lessons_14_15_v1`, rehomed byte-for-byte under `content/releases/`
@@ -43,27 +43,27 @@ Checked 2026-09-21 against the received bytes, before any code moved:
       `LS-M021-07`, in manifest order 1–15; Lesson 1 at `2.0.0-draft`, every other lesson at
       `1.0.0-draft`; the five lab kits (`FSSE-HTTP-LAB-02`, `-03-05`, `-06-08`, `-09-13`,
       `-14-15`) with their manifest hashes; the 45-entry activity set stored whole.
-- [ ] C2. **Continuity of the keys learner state will hang off.** For lessons 1–13, the
+- [x] C2. **Continuity of the keys learner state will hang off.** For lessons 1–13, the
       (`candidate_lesson_id`, `content_version`, `sha256`, `order`) tuple in the imported
       fifteen-release equals the thirteen-release's values, read from that package at test time.
       Both superseded releases (first-five, thirteen) still verify clean from their own
       directories — they remain valid input, and they are the baselines the comparison is made
       against.
-- [ ] C3. **Three releases, one record store.** A database that already imported the first-five
+- [x] C3. **Three releases, one record store.** A database that already imported the first-five
       and thirteen-releases — the store an owner who followed the chain actually has — imports the
       fifteen-release beside them: the old rows remain untouched, and re-importing the
       fifteen-release adds no rows.
-- [ ] C4. **All fifteen authored lessons pass the rendering contract.** The server-side
+- [x] C4. **All fifteen authored lessons pass the rendering contract.** The server-side
       real-lesson suite (`lessonView.test.ts`) and the client-side one (`realLessons.test.tsx`)
       run over the fifteen-release lessons directory, file list derived from the release manifest,
       so the suites cannot silently cover less than the release.
-- [ ] C5. **Diagram truth, stated per lesson.** The census is unchanged: lessons 1, 5, 6, 11 draw
+- [x] C5. **Diagram truth, stated per lesson.** The census is unchanged: lessons 1, 5, 6, 11 draw
       in real Chromium, lesson 2 keeps its honest fallback (CF-001, bytes unchanged again — the
       fix still waits for a reissue), and the other ten lesson routes — now including 14 and
       15 — must load no Mermaid.
-- [ ] C6. **The list surfaces scale.** Dashboard and sidebar list fifteen lessons in manifest
+- [x] C6. **The list surfaces scale.** Dashboard and sidebar list fifteen lessons in manifest
       order with correct hrefs — pinned at component level with a fifteen-lesson fixture.
-- [ ] C7. **The screenshot gate covers the new surface.** All fifteen lesson routes visited at
+- [x] C7. **The screenshot gate covers the new surface.** All fifteen lesson routes visited at
       the three widths in both schemes, with the C5 expectations enforced from inside each frame's
       own document, plus the existing zoom, drawer and pinned-navigation checks.
 
@@ -124,3 +124,52 @@ before, and can run the investigation kit's servers on 4321/4323 while the app i
   that no longer exists. `apiFixture.ts`'s `thirteenLessons` stops being exported (it builds
   `fifteenLessons`); the dashboard scale test re-aims from thirteen to fifteen, its five-lesson
   base case untouched. No assertion was weakened.
+
+- 2026-09-21, green and verified. All ten red tests pass with the config flip; README and
+  `content/RELEASES.md` follow. Full local gate: 453 tests across 18 files, lint, typecheck,
+  build, format, and the screenshot gate over nineteen routes × three widths × both schemes plus
+  the zoom, drawer and pinned-navigation passes — four diagrams drawn and read inside their
+  frames, lessons 14 and 15 loading no Mermaid. End-to-end, all three servers at once: the built
+  app answered `/api/release` on 8317 with `FSSE-HTTP-FIRST-FIFTEEN` and fifteen lessons ending in
+  the two authored investigation titles, while the kit's incident server (extracted to a scratch
+  directory, never the repo) answered the seeded 17:00 notice on 4321 and its transfer server
+  answered the morning edition on 4323.
+
+- 2026-09-21, reviews.
+
+  - **test-guardian PRE: pass, no gaps.** It verified every hardcoded expectation against the
+    release bytes independently (including grepping both new lessons for Mermaid fences rather
+    than trusting this spec), traced the two boundary-test TypeErrors into `patchManifest` to
+    confirm the mechanical-red diagnosis, and confirmed the `it.each` baseline refactor loses no
+    claim. Its note on the sidebar: `Shell.tsx` carries no per-lesson list, so C6's "sidebar"
+    obligation is the aggregate count already pinned by an existing fixture test — not a gap.
+  - **test-guardian POST: skipped by rule.** `git diff` from the pinned red commit over every test
+    path showed two prettier line-rewraps (`service.test.ts`, `apiFixture.ts`); no assertion
+    moved. The `/code-review` fixes below added tests after that diff was taken; each was watched
+    red before its fix, which is the same evidence POST exists to produce.
+  - **`/code-review` (medium): three findings, all fixed, none introduced by this slice's diff.**
+    1. Medium — a YAML alias cycle in front matter parsed into a circular object, passed
+       verification, and crashed `JSON.stringify` at store time (startup) or render time instead
+       of the named refusal the app promises. Now refused as `front_matter_invalid` in
+       `splitFrontMatter`, where the importer and the lesson view get the same guard; regression
+       test watched red first.
+    2. Low — `Shell.tsx`'s first-paint focus guard was a "have I run" boolean, which StrictMode's
+       doubled mount effect (dev-only) tripped: initial load stole focus to `<main>`. The guard
+       now remembers the last route key, so only a real change of address focuses; a StrictMode
+       render test watched red first.
+    3. Low — the real-release tests called `loadConfig()` with ambient `process.env`, so a
+       developer's exported `EDUCODE_RELEASE_DIR` would re-aim them at an arbitrary directory.
+       They now pass `{}` and pin the repo default they mean to verify.
+  - **Design review: ship with nits**, one applied. The code-block scroll cue was functionally
+    present but visually imperceptible: a 10px black fade at 45% on the dark navy code surface
+    measured a 4–11/255 delta at the edge of lesson 14's overflowing curl blocks — a hard cut to
+    any eye — and lessons 14–15 repeat that shape six-plus times where earlier lessons had few.
+    The shared gradient stack now takes a `--scroll-shadow` custom property beside
+    `--scroll-surface` (80% ink on the code surface, the original 45% on the light card) and
+    widens 10px → 22px. Verified by pixel-sampling the regenerated capture: the darkest edge
+    background on an overflowing block reads (7,11,18) against the flat (25,35,62), and blocks
+    that fit stay flat because the sliding cover still hides the shadow. Its second note was an
+    error in this session's own briefing (the eight-row table is lesson 15 §5, not §7), corrected
+    here, no action. Content verdicts: tall narrow tables wrap tall, never wide — the lesson-13
+    content-shaped judgment, unchanged; the long kit filename wraps cleanly; fifteen dashboard
+    rows list without truncation at 375px in both schemes.

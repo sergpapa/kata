@@ -2,41 +2,36 @@
 
 ## Current state
 
-Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-THIRTEEN` — thirteen lessons across
-modules M020 and M021, four lab kits, 39 activity entries — from
-`content/releases/http-lessons-09-13-release-v1/content`, and serves all of it inside
-the Engineering Practice shell unchanged. All three received packages now live byte-for-byte under
-`content/releases/` (pure `git mv`, every manifest hash intact; ADR 0009), the redundant outer
-wrapper folders are gone, `content/RELEASES.md` names the current release, and one
-`.gitattributes` rule (`content/releases/** -text`) now protects every drop from line-ending
-conversion — previously only the first-five package was protected. A future drop gets a directory
-there and one path flip in `apps/server/src/config.ts`. Lessons 1–5 kept their IDs, versions and bytes, verified
-against the first-five manifest, which still imports clean beside the new release: the record
-store holds both, append-only, so nothing a learner ever records against lessons 1–5 can be
-orphaned by a release update. The two received packages are committed byte-for-byte like the first
-one; the 6–8 package matters for its revised curriculum specifications, its lesson content being a
-subset of the thirteen-release.
+Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-FIFTEEN` — fifteen lessons across
+modules M020 and M021, five lab kits, 45 activity entries — from
+`content/releases/http-lessons-14-15-release-v1/content`, and serves all of it inside the
+Engineering Practice shell unchanged. Lessons 14–15 are the deep-investigation pair: a stale-cache
+incident diagnosis and its repair, backed by a kit whose starter code is deliberately faulty — the
+kit ZIP is stored byte-for-byte and must never be "fixed". All four received packages live
+byte-for-byte under `content/releases/` (ADR 0009); `content/RELEASES.md` names the current one.
+This drop proved the pattern: a directory there, one path flip in `apps/server/src/config.ts`, and
+the manifest-driven suites extended themselves. Lessons 1–13 kept their IDs, versions and bytes,
+verified against both superseded baselines (first-five and thirteen) at test time; all three real
+releases import side by side into one record store, append-only, so nothing a learner ever
+records can be orphaned by a release update.
 
-The app moved from port 4317 to 8317 (screenshot runner 4318 → 8318): the author's lab kits own
-4315–4320, and lessons 6–8 tell the learner to run a kit server on 4317 and curl it while reading
-the lesson — with the app squatting there, the kit cannot start, or worse, curl gets the app's
-answer. Verified side by side: the app serves thirteen lessons on 8317 while the 6–8 kit listens
-on 4317.
-
-Lessons 1, 5, 6 and 11 draw their diagrams; lesson 6's flowchart exposed that the screenshot
-gate's reader only understood sequence diagrams (SVG `text` labels), so it now also reads the
-HTML-in-`foreignObject` labels flowcharts use. Lesson 2 keeps its honest fallback — its bytes are
-unchanged in the new release, so CF-001 now needs the _next_ reissue — and CF-002 is new: lesson
-7's authored prerequisite shows the learner a stable ID. Both sit in `docs/content-feedback.md`,
-the register whose copy is the owner handover. Markdown still parses straight to React elements,
+No port moved this slice: the new kit binds 4321/4323 (author's kits now span 4315–4323), clear of
+the app's 8317 and the screenshot runner's 8318. Verified with all three servers answering at
+once. The diagram census is unchanged — lessons 1, 5, 6, 11 draw, lesson 2 keeps its honest
+fallback (CF-001 still needs the next reissue, bytes unchanged again), and lessons 14–15 carry no
+fence and load no Mermaid. CF-002 stands; no new content findings — the new lessons cite
+prerequisites by lesson number, not stable ID. Markdown still parses straight to React elements,
 raw HTML still becomes visible text, and the sandboxed-iframe diagram exception still grants
 nothing. Schema version 2, unchanged again this slice.
 
-`npm test` (435 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm test` (453 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
 `npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate now visits
-seventeen routes at three widths in both schemes, plus the 720px zoom pass, the open drawer, and
-pinned navigation 3,000px down a lesson. Nothing on any page claims progress, because nothing
-records what has been read; that is Milestone 2, and the dashboard says so in words.
+nineteen routes at three widths in both schemes, plus the 720px zoom pass, the open drawer, and
+pinned navigation 3,000px down a lesson. This slice's `/code-review` also closed two latent
+defects outside the diff: a YAML alias cycle in front matter now gets a named refusal instead of
+crashing the importer, and the shell no longer steals focus on first paint under StrictMode's
+doubled dev effects. Nothing on any page claims progress, because nothing records what has been
+read; that is Milestone 2, and the dashboard says so in words.
 
 Known and not fixed: the design package's published `--input` border measures 1.53:1 on white
 where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2 adds the
@@ -45,12 +40,12 @@ Deferred with reasons in `docs/specs/content-release-first-thirteen.md`: content
 tables at 375px (lesson 13), and open-disclosure captures missing from the screenshot gate.
 
 Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds
-those, and will add heading `id`s with it — now over thirteen lessons instead of five, which is
+those, and will add heading `id`s with it — now over fifteen lessons instead of five, which is
 also why it matters more.
 
 Next action: Milestone 1, slice 4 — reader navigation and resume, which lands inside this shell.
 
-## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–13 since the FIRST-THIRTEEN release — in the app, in the authored wording and order)
+## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
 - [x] **Release import.** Done 2026-09-11. All eight hashes verified against received bytes on every
       start, paths refused by either OS convention and by real path, identity conflicts between the
@@ -91,14 +86,25 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
       review (one fix: tables at 375px now carry the same scroll cue as code blocks). Criteria and
       slice log in `docs/specs/content-release-first-thirteen.md`; content findings CF-002 and the
       CF-001 carry-over in `docs/content-feedback.md`.
+- [x] **Fifteen-lesson release import.** Done 2026-09-21, again out of order because the content
+      arrived: the lessons 14–15 investigation package. The app imports `FSSE-HTTP-FIRST-FIFTEEN`;
+      lessons 1–13 keep their keys and bytes, proven against both superseded baselines at test
+      time; no port conflict (the new kit binds 4321/4323, verified running beside the app). The
+      findings that mattered came from `/code-review`, both latent: a circular YAML alias crashed
+      the importer instead of the promised named refusal, and StrictMode's doubled dev effects made
+      the shell steal focus on first paint. test-guardian PRE (no gaps), POST skipped on diff
+      evidence, design review ship-with-nits (one applied: the code-block scroll cue was
+      near-invisible on the dark surface; it now carries its own shadow ink and width, verified by
+      pixel-sampling the regenerated capture). Criteria and slice log in
+      `docs/specs/content-release-first-fifteen.md`.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
 ## Milestone 2 — Keep the owner's work honestly (goal: work survives a refresh and a restart, and is never falsely labelled saved)
 
-- [ ] **Activity placement.** The 39 activities from `trial-activities.json` (15 original, 24
-      added with lessons 6–13) beside their `source_heading`, without re-rendering the excerpt
-      that is already on the page.
+- [ ] **Activity placement.** The 45 activities from `trial-activities.json` (15 original, 24
+      added with lessons 6–13, 6 with lessons 14–15) beside their `source_heading`, without
+      re-rendering the excerpt that is already on the page.
 - [ ] **Acknowledged saves.** Compare-and-set writes with the four states — unsaved, saving, saved,
       failed to save — and a visible conflict path rather than a silent overwrite.
 - [ ] **Prediction history.** An acknowledged prediction is its own revision; a later correction
@@ -109,17 +115,19 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
 ## Milestone 3 — Local labs and the handoff back (goal: the owner can do the terminal work and send their notes to the content author)
 
 - [ ] **Lab downloads.** Correct kit per lesson (none for 1, its own for 2, shared kits for 3–5,
-      6–8 and 9–13), served with its version identity, plus copy-exact command buttons that copy
-      and never execute.
+      6–8, 9–13 and 14–15), served with its version identity, plus copy-exact command buttons that
+      copy and never execute. The 14–15 kit ships deliberately faulty starter code; byte-for-byte
+      is the contract, not a defect.
 - [ ] **Export.** The owner's actual work with lesson, activity, content-version and release context,
       in a form that travels with the owner review forms (`Owner_Review_After_Lesson_05.md`, `_08`,
       `_13`).
 - [ ] **Accessibility and responsiveness pass.** Keyboard operation of navigation, notes, downloads,
       help and export; 375 / 768 / 1440 with no horizontal page scroll; diagram meaning as text.
 - [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
-      the 6–8 handoff's "App acceptance checks" and the seven in the 9–13 handoff's "Acceptance in
-      your app" (the ones this slice already proved are marked in its spec), and write an honest
-      verification report naming what was exercised and what was not.
+      the 6–8 handoff's "App acceptance checks", the seven in the 9–13 handoff's "Acceptance in
+      your app" and the seven in the 14–15 handoff's "Acceptance" (several depend on Milestone 2/3
+      surfaces that do not exist yet), and write an honest verification report naming what was
+      exercised and what was not.
 
 ## Beyond the checkpoint — not started, not scheduled
 
@@ -129,6 +137,30 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-21, slice 6 — fifteen-lesson release import.** Built to
+  `docs/specs/content-release-first-fifteen.md`: 453 tests, test-guardian PRE, `/code-review`,
+  design review, POST skipped on diff evidence (two prettier line-rewraps after the pinned red
+  commit; the review fixes' tests were each watched red before their fix).
+
+  The smoothest drop yet, by design: ADR 0009's layout meant the package landed under
+  `content/releases/` by pure `git mv` before any test was written, and the manifest-driven
+  suites from slices 2–5 extended themselves — the red state was ten tests, all failing for the
+  single reason that config still pointed at the thirteen-release. No port conflict this time
+  (kit on 4321/4323, app on 8317; all three servers verified answering at once). The superseded
+  describe now compares both baselines directly against the fifteen, keeping the oldest link
+  proven when the first-five-versus-thirteen test retired.
+
+  The defects that mattered came from `/code-review` and were latent, not this slice's: (1) a
+  YAML alias cycle in front matter parsed into a circular object and crashed `JSON.stringify` at
+  store time — an uncaught startup crash where the app promises a named refusal; now refused as
+  `front_matter_invalid` inside `splitFrontMatter`, covering importer and lesson view alike.
+  (2) the shell's first-paint focus guard was a "have I run" boolean, so StrictMode's doubled dev
+  effects made the initial load steal focus to `<main>`; the guard now remembers the last route
+  key. (3) the real-release tests read ambient `process.env`, so an exported
+  `EDUCODE_RELEASE_DIR` would silently re-aim them; they now pass `{}`. No new content findings:
+  lessons 14–15 cite prerequisites by number, so CF-002's pattern did not recur, and CF-001 waits
+  on the next reissue (lesson 2's bytes unchanged again).
 
 - **2026-09-21, slice 5 — thirteen-lesson release import.** Built to
   `docs/specs/content-release-first-thirteen.md`: 435 tests, test-guardian PRE, `/code-review`,

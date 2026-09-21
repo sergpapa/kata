@@ -204,9 +204,12 @@ h1 + .lesson-provenance {
    still has something out of view. Without this a reader at 375px sees a diagram cut off at a
    plain border and has no reason to think there is more of it.
 
-   One treatment, one rule, with each box naming its own surface: splitting the stack would mean
-   copies drifting apart, which is how tables shipped without it — Lesson 11's flag table was the
-   first content wide enough at 375px to show the hard cut. */
+   One treatment, one rule, with each box naming its own surface and its own shadow ink: splitting
+   the stack would mean copies drifting apart, which is how tables shipped without it — Lesson 11's
+   flag table was the first content wide enough at 375px to show the hard cut. The shadow is 22px,
+   not 10: at 10px a black fade on the already-dark code surface measured a 4–11/255 delta at the
+   edge — a hard cut to any eye. The code surface also needs stronger ink than the light card does
+   for the same reason. */
 .code-block-text,
 .diagram-reason pre,
 .table-scroll {
@@ -215,19 +218,21 @@ h1 + .lesson-provenance {
       local,
     linear-gradient(to left, var(--scroll-surface) 60%, transparent) right / 28px 100% no-repeat
       local,
-    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 45%), transparent) left / 10px 100%
+    radial-gradient(farthest-side at 0 50%, var(--scroll-shadow), transparent) left / 22px 100%
       no-repeat scroll,
-    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 45%), transparent) right / 10px 100%
+    radial-gradient(farthest-side at 100% 50%, var(--scroll-shadow), transparent) right / 22px 100%
       no-repeat scroll;
 }
 
 .code-block-text,
 .diagram-reason pre {
   --scroll-surface: var(--code-bg);
+  --scroll-shadow: rgb(0 0 0 / 80%);
 }
 
 .table-scroll {
   --scroll-surface: var(--card);
+  --scroll-shadow: rgb(0 0 0 / 45%);
   margin: 1rem 0;
   overflow-x: auto;
 }
