@@ -1,0 +1,67 @@
+{
+  "date": "2026-09-21",
+  "release_id": "FSSE-HTTP-FIRST-FIFTEEN",
+  "release_version": "1.0.1-draft",
+  "package_integrity_result": "passed",
+  "accepted_feedback": [
+    "CF-001",
+    "CF-002"
+  ],
+  "lesson_count": 15,
+  "activity_count": 45,
+  "lab_download_count": 5,
+  "lesson_edits_match_accepted_text_plus_version_and_date": true,
+  "unchanged_other_lesson_sources": 13,
+  "unchanged_other_lab_archives": 3,
+  "unchanged_runtime_and_other_members_in_repacked_kits": true,
+  "unchanged_stable_ids_order_titles_and_activity_prompts": true,
+  "updated_activity_version_references": 6,
+  "nested_lesson_copies_match_canonical": true,
+  "source_and_archive_hashes_and_byte_counts": "verified",
+  "activity_versions_and_headings": "verified",
+  "markdown_code_fences": "balanced",
+  "diagram_inventory": [
+    {
+      "lesson_id": "LS-M020-01",
+      "block": 1,
+      "type": "sequenceDiagram",
+      "source_sha256": "12f961dc416c710c902a6b65f819bc19f9a15985f242871b41d241ba6483c5fd",
+      "reported_defect_source_scan": "passed"
+    },
+    {
+      "lesson_id": "LS-M020-02",
+      "block": 1,
+      "type": "sequenceDiagram",
+      "source_sha256": "93b424e47aa179f3477541d521dc0891f04e69e0b6cb2cbe33faeb14a0ee7aa4",
+      "reported_defect_source_scan": "passed"
+    },
+    {
+      "lesson_id": "LS-M020-05",
+      "block": 1,
+      "type": "sequenceDiagram",
+      "source_sha256": "f98ce008b4223bd03c36b31eb1b7caa82c8aca79c45a946fa8be3fb67d806a53",
+      "reported_defect_source_scan": "passed"
+    },
+    {
+      "lesson_id": "LS-M020-06",
+      "block": 1,
+      "type": "flowchart TD",
+      "source_sha256": "6ef2387754a2c7c5ccc2b3b242830f1914c85784d67a07664378b818061ad024",
+      "reported_defect_source_scan": "passed"
+    },
+    {
+      "lesson_id": "LS-M021-03",
+      "block": 1,
+      "type": "sequenceDiagram",
+      "source_sha256": "2831e4232064a1d0f31f7d964c8996f9f2c4c7e1f08442eac9dc1e5794c272ae",
+      "reported_defect_source_scan": "passed"
+    }
+  ],
+  "mermaid_parser_and_render": {
+    "author_rerun": "not performed; no installed engine; registry request timed out",
+    "reviewer_evidence": "Supplied CF-001 reports successful corrected render at 969.5 x 704; not remeasured here",
+    "target_app_verification": "pending coder acceptance with pinned Mermaid version"
+  },
+  "runtime_suites": "not rerun; code unchanged; prior reports retained as historical evidence",
+  "superseded_releases": "unchanged"
+}

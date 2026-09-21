@@ -1,0 +1,68 @@
+{
+  "release_id": "FSSE-HTTP-FIRST-FIFTEEN",
+  "previous_version": "1.0.0-draft",
+  "version": "1.0.1-draft",
+  "date": "2026-09-21",
+  "accepted_feedback": [
+    "CF-001",
+    "CF-002"
+  ],
+  "preserve_stable_ids": true,
+  "preserve_historical_attempt_versions": true,
+  "lessons": [
+    {
+      "feedback_id": "CF-001",
+      "lesson_id": "LS-M020-02",
+      "path": "lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.1-draft",
+      "previous_sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9",
+      "sha256": "5c0fc15814ba407afec2d2616390b720cdc7184c98a2ee7f728521d90dc06cec",
+      "original_text": "    Server-->>Terminal: Stopped; the file remains",
+      "replacement_text": "    Server-->>Terminal: Stopped, the file remains"
+    },
+    {
+      "feedback_id": "CF-002",
+      "lesson_id": "LS-M020-07",
+      "path": "lessons/HTTP_Lesson_07_Student_Edition_v1.md",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.1-draft",
+      "previous_sha256": "82124ef56ef9c7176fc2121c4102198be932088c3ca21c6c22c681cafd70fe55",
+      "sha256": "b3aaf768d08617ba6467c7fe3c97d264bc020038fe618e4c2382ec576bd03f44",
+      "original_text": "  - \"Follow path/method conditions, helper calls, and return in LS-M020-06\"",
+      "replacement_text": "  - \"Follow path/method conditions, helper calls, and return in Lesson 6\""
+    }
+  ],
+  "lab_downloads": [
+    {
+      "lab_id": "FSSE-HTTP-LAB-02",
+      "path": "labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.1-draft",
+      "previous_sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2",
+      "sha256": "3b0be057eb58c1b382de25bafd394a269308d366c82a22d113f7d01b17272bf6",
+      "nested_lesson": "http-lesson-02-lab/HTTP_Lesson_02_Student_Edition_v1.md",
+      "nested_lesson_sha256": "5c0fc15814ba407afec2d2616390b720cdc7184c98a2ee7f728521d90dc06cec",
+      "runtime_members_unchanged": true
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-06-08",
+      "path": "labs/HTTP_Lessons_06_08_Local_Kit_v1.zip",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.1-draft",
+      "previous_sha256": "1c1798641c6474675db618e1aa0f9c86eb25d5bfadeaaf66a1530f7b3627e998",
+      "sha256": "913e53d3e00ab376cd50ec977e3861b1ab4b136a28dec7baf168e4d858f5e1c5",
+      "nested_lesson": "http-lessons-06-08-lab/HTTP_Lesson_07_Student_Edition_v1.md",
+      "nested_lesson_sha256": "b3aaf768d08617ba6467c7fe3c97d264bc020038fe618e4c2382ec576bd03f44",
+      "runtime_members_unchanged": true
+    }
+  ],
+  "activity_version_references_updated": [
+    "ACT-M020-02-01",
+    "ACT-M020-02-02",
+    "ACT-M020-02-03",
+    "ACT-M020-07-01",
+    "ACT-M020-07-02",
+    "ACT-M020-07-03"
+  ]
+}
