@@ -58,8 +58,8 @@ export const fiveLessons = [
   lesson(5, 'Lesson 5: One page can make several requests'),
 ];
 
-/** The full thirteen-release list, in manifest order across both modules. */
-export const thirteenLessons = [
+/** The thirteen-release list, in manifest order across both modules; kept as the fifteen's base. */
+const thirteenLessons = [
   ...fiveLessons,
   lesson(6, 'Lesson 6: Follow the code that chooses the reply'),
   lesson(7, 'Lesson 7: Add opening hours—and check the promise'),
@@ -69,6 +69,16 @@ export const thirteenLessons = [
   lesson(11, 'Lesson 11: Ask whether your copy still applies'),
   lesson(12, 'Lesson 12: Make the conditional decision precise'),
   lesson(13, 'Lesson 13: What the server sent is not always what the page received'),
+];
+
+/** The full fifteen-release list; orders 14–15 are the investigation pair, still inside M021. */
+export const fifteenLessons = [
+  ...thirteenLessons,
+  lesson(
+    14,
+    'Lesson 14: The notice changed. Why are returning visitors still seeing the old one?',
+  ),
+  lesson(15, 'Lesson 15: Repair the cause—and make the evidence survive your fix'),
 ];
 
 export function importedRelease(lessons = fiveLessons) {

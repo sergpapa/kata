@@ -203,12 +203,12 @@ describe('the front-matter facts a learner is shown', () => {
  * HTTP messages and a Mermaid diagram.
  *
  * The file list comes from the release manifest rather than being written out here, so this suite
- * cannot quietly cover less than the release: a fourteenth lesson joins it on arrival.
+ * cannot quietly cover less than the release: a sixteenth lesson joins it on arrival.
  */
 const releaseDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../../..',
-  'content/releases/http-lessons-09-13-release-v1/content',
+  'content/releases/http-lessons-14-15-release-v1/content',
 );
 const lessonsDir = path.join(releaseDir, 'lessons');
 
@@ -222,9 +222,9 @@ function readLesson(file: string): string {
   return fs.readFileSync(path.join(lessonsDir, file), 'utf8');
 }
 
-describe('the thirteen authored lessons, read from the release directory', () => {
+describe('the fifteen authored lessons, read from the release directory', () => {
   it('covers every lesson the release carries', () => {
-    expect(realLessonFiles).toHaveLength(13);
+    expect(realLessonFiles).toHaveLength(15);
   });
 
   it.each(realLessonFiles)('leaves %s byte-identical below the cut', (file) => {

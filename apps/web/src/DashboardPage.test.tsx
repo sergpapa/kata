@@ -3,10 +3,10 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { App } from './App.js';
 import {
   answerRoutes,
+  fifteenLessons,
   fiveLessons,
   importedRelease,
   lesson,
-  thirteenLessons,
 } from './testkit/apiFixture.js';
 
 /**
@@ -127,18 +127,18 @@ describe('the list of lessons', () => {
     );
   });
 
-  it('scales to the thirteen-lesson release without truncating or reordering', async () => {
-    answerRoutes({ '/api/release': importedRelease(thirteenLessons) });
+  it('scales to the fifteen-lesson release without truncating or reordering', async () => {
+    answerRoutes({ '/api/release': importedRelease(fifteenLessons) });
 
     render(<App />);
 
     const rows = await within(screen.getByRole('main')).findAllByRole('listitem');
-    expect(rows).toHaveLength(13);
+    expect(rows).toHaveLength(15);
     expect(rows.map((row) => within(row).getByRole('link').textContent?.trim())).toEqual(
-      thirteenLessons.map((entry) => entry.displayTitle),
+      fifteenLessons.map((entry) => entry.displayTitle),
     );
     expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual(
-      thirteenLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
+      fifteenLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
     );
   });
 

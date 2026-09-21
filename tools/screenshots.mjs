@@ -34,13 +34,14 @@ const schemes = ['light', 'dark'];
 /**
  * Pages to capture. Add a route here when a slice adds one.
  *
- * The thirteen lesson pages are here because criteria W2 and W3 in docs/specs/markdown-rendering.md
+ * The fifteen lesson pages are here because criteria W2 and W3 in docs/specs/markdown-rendering.md
  * cannot be checked anywhere else: jsdom applies no stylesheet, so horizontal overflow and
  * `white-space` are invisible to the vitest suite. These are real checks, not just captures.
  *
- * The diagram expectations are criterion C6 in docs/specs/content-release-first-thirteen.md:
+ * The diagram expectations are criterion C5 in docs/specs/content-release-first-fifteen.md:
  * lessons 1, 5, 6 and 11 draw, lesson 2 keeps its honest fallback until CF-001 is accepted in a
- * reissued release, and every other lesson must load no Mermaid at all.
+ * reissued release, and every other lesson — 14 and 15 carry no fence — must load no Mermaid at
+ * all.
  */
 const routes = [
   { name: 'home', path: '/' },
@@ -60,6 +61,8 @@ const routes = [
   { name: 'lesson-11', path: '/lessons/LS-M021-03', diagram: 'drawn' },
   { name: 'lesson-12', path: '/lessons/LS-M021-04', diagram: 'none' },
   { name: 'lesson-13', path: '/lessons/LS-M021-05', diagram: 'none' },
+  { name: 'lesson-14', path: '/lessons/LS-M021-06', diagram: 'none' },
+  { name: 'lesson-15', path: '/lessons/LS-M021-07', diagram: 'none' },
 ];
 
 const serverEntry = path.join(repoRoot, 'apps', 'server', 'dist', 'index.js');

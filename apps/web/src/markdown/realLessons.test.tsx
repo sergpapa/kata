@@ -12,11 +12,11 @@ import { LessonMarkdown } from './LessonMarkdown.js';
  * the author actually wrote.
  *
  * The file list comes from the release manifest rather than being written out here, so this suite
- * cannot quietly cover less than the release: a fourteenth lesson joins it on arrival.
+ * cannot quietly cover less than the release: a sixteenth lesson joins it on arrival.
  */
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const releaseDir = path.join(repoRoot, 'content/releases/http-lessons-09-13-release-v1/content');
+const releaseDir = path.join(repoRoot, 'content/releases/http-lessons-14-15-release-v1/content');
 const lessonsDir = path.join(releaseDir, 'lessons');
 
 const lessonFiles = (
@@ -46,9 +46,9 @@ function renderLesson(file: string): HTMLElement {
 
 afterEach(cleanup);
 
-describe('the thirteen authored lessons', () => {
-  it('has all thirteen files where the release puts them', () => {
-    expect(lessonFiles).toHaveLength(13);
+describe('the fifteen authored lessons', () => {
+  it('has all fifteen files where the release puts them', () => {
+    expect(lessonFiles).toHaveLength(15);
     for (const file of lessonFiles) {
       expect(fs.existsSync(path.join(lessonsDir, file))).toBe(true);
     }

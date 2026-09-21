@@ -47,7 +47,7 @@ describe('importing a release into the record store', () => {
     expect(rows.n).toBe(0);
   });
 
-  it('imports the release the author supplied, thirteen lessons in authored order', () => {
+  it('imports the release the author supplied, fifteen lessons in authored order', () => {
     db = openDatabase(':memory:');
 
     const state = importRelease(db, loadConfig().releaseDir);
@@ -55,7 +55,7 @@ describe('importing a release into the record store', () => {
     expect(state.state).toBe('imported');
     if (state.state !== 'imported') return;
     const summary = loadReleaseSummary(db, state.releaseRowId);
-    expect(summary?.releaseId).toBe('FSSE-HTTP-FIRST-THIRTEEN');
+    expect(summary?.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
     expect(summary?.lessons.map((lesson) => lesson.candidateLessonId)).toEqual([
       'LS-M020-01',
       'LS-M020-02',
@@ -70,14 +70,17 @@ describe('importing a release into the record store', () => {
       'LS-M021-03',
       'LS-M021-04',
       'LS-M021-05',
+      'LS-M021-06',
+      'LS-M021-07',
     ]);
   });
 
   /**
-   * Criterion C3 in docs/specs/content-release-first-thirteen.md, with the two real releases: the
-   * record store an owner has been studying from is the one the thirteen-release lands beside.
+   * Criterion C3 in docs/specs/content-release-first-fifteen.md, with the three real releases: the
+   * record store of an owner who followed the whole chain — first-five, then thirteen — is the one
+   * the fifteen-release lands beside.
    */
-  it('imports the thirteen-release beside an already-imported first-five, touching nothing', () => {
+  it('imports the fifteen-release beside the two already-imported releases, touching nothing', () => {
     db = openDatabase(':memory:');
     const firstFiveDir = path.join(
       repoRoot,
@@ -86,26 +89,42 @@ describe('importing a release into the record store', () => {
       'vs-code-first-five-v1',
       'content',
     );
+    const thirteenDir = path.join(
+      repoRoot,
+      'content',
+      'releases',
+      'http-lessons-09-13-release-v1',
+      'content',
+    );
 
     const firstFive = importRelease(db, firstFiveDir);
     expect(firstFive.state).toBe('imported');
     if (firstFive.state !== 'imported') return;
 
-    const thirteen = importRelease(db, loadConfig().releaseDir);
+    const thirteen = importRelease(db, thirteenDir);
     expect(thirteen.state).toBe('imported');
     if (thirteen.state !== 'imported') return;
 
-    // A second release, not a rewrite of the first: the earlier rows still answer for themselves.
-    expect(thirteen.releaseRowId).not.toBe(firstFive.releaseRowId);
-    const earlier = loadReleaseSummary(db, firstFive.releaseRowId);
-    expect(earlier?.releaseId).toBe('FSSE-HTTP-FIRST-FIVE');
-    expect(earlier?.lessons).toHaveLength(5);
+    const fifteen = importRelease(db, loadConfig().releaseDir);
+    expect(fifteen.state).toBe('imported');
+    if (fifteen.state !== 'imported') return;
 
-    // Five rows plus thirteen: nothing merged, nothing replaced, nothing deleted.
+    // A third release, not a rewrite of the earlier two: their rows still answer for themselves.
+    expect(new Set([firstFive.releaseRowId, thirteen.releaseRowId, fifteen.releaseRowId]).size).toBe(
+      3,
+    );
+    expect(loadReleaseSummary(db, firstFive.releaseRowId)?.releaseId).toBe('FSSE-HTTP-FIRST-FIVE');
+    expect(loadReleaseSummary(db, firstFive.releaseRowId)?.lessons).toHaveLength(5);
+    expect(loadReleaseSummary(db, thirteen.releaseRowId)?.releaseId).toBe(
+      'FSSE-HTTP-FIRST-THIRTEEN',
+    );
+    expect(loadReleaseSummary(db, thirteen.releaseRowId)?.lessons).toHaveLength(13);
+
+    // Five rows plus thirteen plus fifteen: nothing merged, nothing replaced, nothing deleted.
     const rows = db.prepare('SELECT count(*) AS n FROM content_lesson').get() as { n: number };
-    expect(rows.n).toBe(18);
+    expect(rows.n).toBe(33);
 
     // Verify-on-every-start stays cheap: the identical release lands on its existing row.
-    expect(importRelease(db, loadConfig().releaseDir)).toEqual(thirteen);
+    expect(importRelease(db, loadConfig().releaseDir)).toEqual(fifteen);
   });
 });

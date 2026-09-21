@@ -4,8 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
 
 /**
- * Criteria C1 and C4 in docs/specs/content-release-first-thirteen.md — the defaults the app runs
- * with when the owner starts it plain, with no environment set.
+ * Criterion C1 in docs/specs/content-release-first-fifteen.md and C4 in
+ * docs/specs/content-release-first-thirteen.md — the defaults the app runs with when the owner
+ * starts it plain, with no environment set.
  */
 describe('the default configuration', () => {
   it('serves on 8317, leaving 4317 to the lessons 6–8 lab kit', () => {
@@ -22,11 +23,11 @@ describe('the default configuration', () => {
     expect(loadConfig({ EDUCODE_PORT: '5000' }).port).toBe(5000);
   });
 
-  it('points at the thirteen-lesson release, and that directory really holds a manifest', () => {
+  it('points at the fifteen-lesson release, and that directory really holds a manifest', () => {
     const releaseDir = loadConfig({}).releaseDir;
 
     expect(releaseDir.split(path.sep).join('/')).toContain(
-      'content/releases/http-lessons-09-13-release-v1/content',
+      'content/releases/http-lessons-14-15-release-v1/content',
     );
     expect(fs.existsSync(path.join(releaseDir, 'learning-release.json'))).toBe(true);
   });

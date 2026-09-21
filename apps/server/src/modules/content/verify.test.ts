@@ -464,10 +464,10 @@ describe('lab kits referenced by lessons', () => {
 });
 
 describe('the release the author actually supplied', () => {
-  it('verifies clean: thirteen lessons, authored order, authored versions, Lesson 1 with no lab', () => {
+  it('verifies clean: fifteen lessons, authored order, authored versions, Lesson 1 with no lab', () => {
     const release = releaseOf(verifyRelease(loadConfig().releaseDir));
 
-    expect(release.releaseId).toBe('FSSE-HTTP-FIRST-THIRTEEN');
+    expect(release.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
     expect(release.version).toBe('1.0.0-draft');
     expect(release.lessons.map((lesson) => lesson.candidateLessonId)).toEqual([
       'LS-M020-01',
@@ -483,13 +483,15 @@ describe('the release the author actually supplied', () => {
       'LS-M021-03',
       'LS-M021-04',
       'LS-M021-05',
+      'LS-M021-06',
+      'LS-M021-07',
     ]);
     expect(release.lessons.map((lesson) => lesson.order)).toEqual([
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
     ]);
     expect(release.lessons.map((lesson) => lesson.contentVersion)).toEqual([
       '2.0.0-draft',
-      ...Array.from({ length: 12 }, () => '1.0.0-draft'),
+      ...Array.from({ length: 14 }, () => '1.0.0-draft'),
     ]);
     expect(release.lessons[0]?.labId).toBeNull();
     expect(release.lessons.map((lesson) => lesson.labId).slice(1)).toEqual([
@@ -505,6 +507,8 @@ describe('the release the author actually supplied', () => {
       'FSSE-HTTP-LAB-09-13',
       'FSSE-HTTP-LAB-09-13',
       'FSSE-HTTP-LAB-09-13',
+      'FSSE-HTTP-LAB-14-15',
+      'FSSE-HTTP-LAB-14-15',
     ]);
   });
 
@@ -520,7 +524,7 @@ describe('the release the author actually supplied', () => {
     }
   });
 
-  it('carries the four lab kits and the 39-entry activity file it references', () => {
+  it('carries the five lab kits and the 45-entry activity file it references', () => {
     const release = releaseOf(verifyRelease(loadConfig().releaseDir));
 
     expect(release.labKits.map((kit) => kit.labId)).toEqual([
@@ -528,20 +532,21 @@ describe('the release the author actually supplied', () => {
       'FSSE-HTTP-LAB-03-05',
       'FSSE-HTTP-LAB-06-08',
       'FSSE-HTTP-LAB-09-13',
+      'FSSE-HTTP-LAB-14-15',
     ]);
     expect(release.activitySet.sourcePath).toBe('trial-activities.json');
     const activitySet = JSON.parse(release.activitySet.sourceText) as {
       activity_set_id: string;
       activities: unknown[];
     };
-    expect(activitySet.activity_set_id).toBe('FSSE-HTTP-FIRST-THIRTEEN-ACTIVITIES');
-    expect(activitySet.activities).toHaveLength(39);
+    expect(activitySet.activity_set_id).toBe('FSSE-HTTP-FIRST-FIFTEEN-ACTIVITIES');
+    expect(activitySet.activities).toHaveLength(45);
   });
 
   it('carries the release identity the author published, not just its ID', () => {
     const release = releaseOf(verifyRelease(loadConfig().releaseDir));
 
-    expect(release.date).toBe('2026-09-18');
+    expect(release.date).toBe('2026-09-21');
     expect(release.status).toContain('owner-review candidate');
     expect(release.status).toContain('newly authored');
     expect(release.audience).toContain('caching mechanisms');
@@ -553,13 +558,13 @@ describe('the release the author actually supplied', () => {
     tempDirs.push(dir);
     copyReleaseDir(loadConfig().releaseDir, dir);
     patchManifest(dir, (manifest) => {
-      (manifest.lab_downloads[3] as { sha256: string }).sha256 = 'd'.repeat(64);
+      (manifest.lab_downloads[4] as { sha256: string }).sha256 = 'd'.repeat(64);
     });
 
     const failure = refusalOf(verifyRelease(dir));
 
     expect(failure.code).toBe('hash_mismatch');
-    expect(failure.file).toBe('labs/HTTP_Lessons_09_13_Local_Kit_v1.zip');
+    expect(failure.file).toBe('labs/HTTP_Lessons_14_15_Investigation_Kit_v1.zip');
   });
 
   it('catches a corrupted hash on the last lesson, not only the first', () => {
@@ -567,13 +572,13 @@ describe('the release the author actually supplied', () => {
     tempDirs.push(dir);
     copyReleaseDir(loadConfig().releaseDir, dir);
     patchManifest(dir, (manifest) => {
-      (manifest.lessons[12] as { sha256: string }).sha256 = 'e'.repeat(64);
+      (manifest.lessons[14] as { sha256: string }).sha256 = 'e'.repeat(64);
     });
 
     const failure = refusalOf(verifyRelease(dir));
 
     expect(failure.code).toBe('hash_mismatch');
-    expect(failure.file).toBe('lessons/HTTP_Lesson_13_Student_Edition_v1.md');
+    expect(failure.file).toBe('lessons/HTTP_Lesson_15_Student_Edition_v1.md');
   });
 
   it('records the manifest hash it verified the release against', () => {
@@ -587,50 +592,63 @@ describe('the release the author actually supplied', () => {
 });
 
 /**
- * Criterion C2 in docs/specs/content-release-first-thirteen.md. The first-five package stays in
- * the repo as the baseline the thirteen-release's compatibility claim is checked against: same
- * IDs, same content versions, same bytes, same reading order for lessons 1–5. When Milestone 2
- * keys learner state on (candidate_lesson_id, content_version), this is what proves a release
- * update cannot orphan it.
+ * Criterion C2 in docs/specs/content-release-first-fifteen.md (extending slice 5's C2). The
+ * superseded packages stay in the repo as the baselines the fifteen-release's compatibility claim
+ * is checked against: same IDs, same content versions, same bytes, same reading order for every
+ * lesson they carry. When Milestone 2 keys learner state on (candidate_lesson_id,
+ * content_version), this is what proves a release update cannot orphan it. Both baselines are
+ * compared directly — first-five as well as thirteen — so the chain's oldest link is proven
+ * against the current release, not left to transitivity through a test that no longer exists.
  */
-describe('the superseded first-five release, still beside the thirteen', () => {
-  const firstFiveDir = path.join(
-    repoRoot,
-    'content',
-    'releases',
-    'vs-code-first-five-v1',
-    'content',
+describe('the superseded releases, still beside the fifteen', () => {
+  const baselines = [
+    {
+      name: 'first-five',
+      releaseId: 'FSSE-HTTP-FIRST-FIVE',
+      lessonCount: 5,
+      dir: path.join(repoRoot, 'content', 'releases', 'vs-code-first-five-v1', 'content'),
+    },
+    {
+      name: 'thirteen',
+      releaseId: 'FSSE-HTTP-FIRST-THIRTEEN',
+      lessonCount: 13,
+      dir: path.join(repoRoot, 'content', 'releases', 'http-lessons-09-13-release-v1', 'content'),
+    },
+  ] as const;
+
+  it.each(baselines)('the $name release still verifies clean from its own directory', (base) => {
+    const release = releaseOf(verifyRelease(base.dir));
+
+    expect(release.releaseId).toBe(base.releaseId);
+    expect(release.lessons).toHaveLength(base.lessonCount);
+  });
+
+  it.each(baselines)(
+    'the $name release agrees with the fifteen on every key learner state will hang off',
+    (base) => {
+      const baseline = releaseOf(verifyRelease(base.dir));
+      const fifteen = releaseOf(verifyRelease(loadConfig().releaseDir));
+
+      // Guard against a vacuous pass: this comparison only says something while the two sides are
+      // genuinely different releases.
+      expect(fifteen.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
+      expect(fifteen.releaseId).not.toBe(baseline.releaseId);
+
+      for (const before of baseline.lessons) {
+        const after = fifteen.lessons.find(
+          (lesson) => lesson.candidateLessonId === before.candidateLessonId,
+        );
+        expect(after, `${before.candidateLessonId} must survive the release update`).toBeDefined();
+        expect({
+          contentVersion: after?.contentVersion,
+          sha256: after?.sha256,
+          order: after?.order,
+        }).toEqual({
+          contentVersion: before.contentVersion,
+          sha256: before.sha256,
+          order: before.order,
+        });
+      }
+    },
   );
-
-  it('still verifies clean from its own directory', () => {
-    const release = releaseOf(verifyRelease(firstFiveDir));
-
-    expect(release.releaseId).toBe('FSSE-HTTP-FIRST-FIVE');
-    expect(release.lessons).toHaveLength(5);
-  });
-
-  it('agrees with the thirteen-release on every key learner state will hang off', () => {
-    const firstFive = releaseOf(verifyRelease(firstFiveDir));
-    const thirteen = releaseOf(verifyRelease(loadConfig().releaseDir));
-
-    // Guard against a vacuous pass: this comparison only says something while the two sides are
-    // genuinely different releases.
-    expect(thirteen.releaseId).toBe('FSSE-HTTP-FIRST-THIRTEEN');
-
-    for (const before of firstFive.lessons) {
-      const after = thirteen.lessons.find(
-        (lesson) => lesson.candidateLessonId === before.candidateLessonId,
-      );
-      expect(after, `${before.candidateLessonId} must survive the release update`).toBeDefined();
-      expect({
-        contentVersion: after?.contentVersion,
-        sha256: after?.sha256,
-        order: after?.order,
-      }).toEqual({
-        contentVersion: before.contentVersion,
-        sha256: before.sha256,
-        order: before.order,
-      });
-    }
-  });
 });
