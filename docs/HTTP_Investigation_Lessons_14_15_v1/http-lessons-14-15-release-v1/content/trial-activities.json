@@ -1,0 +1,911 @@
+{
+  "schema_version": "1.0.0",
+  "activity_set_id": "FSSE-HTTP-FIRST-FIFTEEN-ACTIVITIES",
+  "version": "1.0.0-draft",
+  "purpose": "Owner learning rehearsal; first-thirteen records retained and six new practice recording entries added",
+  "presentation": "Use source_heading to place recording fields beside the canonical lesson section. Do not render prompt_markdown a second time when the section is already visible.",
+  "prediction_policy": "Keep the original acknowledged prediction separate from later explanation; do not hide the authored walkthrough or impose an answer embargo.",
+  "attempt_provenance": "The app records supplied-example study versus learner-reported local observation; an export alone does not independently verify execution.",
+  "activities": [
+    {
+      "activity_id": "ACT-M020-01-01",
+      "lesson_id": "LS-M020-01",
+      "lesson_version": "2.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice A: explain a supplied exchange",
+      "source_heading": "Practice A: explain a supplied exchange",
+      "prompt_markdown": "The client sends:\n\n```http\nGET /opening-hours HTTP/1.1\nHost: cafe.example\n\n```\n\nThe server returns this excerpt:\n\n```http\nHTTP/1.1 200 OK\nContent-Type: text/plain\n\nMonday-Friday: 08:00-17:00\nSaturday-Sunday: Closed\n```\n\nExplain the exchange in three steps:\n\n1. **Identify the request.** What action is requested, and what information is the target?\n2. **Read the outcome.** What reports whether the request succeeded?\n3. **Identify the content.** What information would the recipient find in the body?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-01-02",
+      "lesson_id": "LS-M020-01",
+      "lesson_version": "2.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: repair an explanation",
+      "source_heading": "Practice B: repair an explanation",
+      "prompt_markdown": "A learner writes:\n\n> “The server is the browser. It sends back `GET`. The page says ‘Not found,’ so we know the server did not respond.”\n\nCorrect the first two sentences using what you have learned. For the last sentence, explain why words on the screen alone do not establish that no response arrived.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-01-03",
+      "lesson_id": "LS-M020-01",
+      "lesson_version": "2.0.0-draft",
+      "kind": "prediction",
+      "title": "Practice C: make a bounded prediction",
+      "source_heading": "Practice C: make a bounded prediction",
+      "prompt_markdown": "For this exercise, the café application's rules are explicitly given:\n\n- `/menu` and `/opening-hours` are available and return `200` with their content when requested with `GET`.\n- An unknown path returns `404` with a short explanation.\n\nYou change only `/opening-hours` to `/opening-times`. Which outcome do you predict, and why? Is your prediction based on a universal rule about English words, or on this application's stated rules?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-02-01",
+      "lesson_id": "LS-M020-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Predict before stopping",
+      "source_heading": "Predict before stopping",
+      "prompt_markdown": "The menu is visible in your browser. What do you think happens if you stop the café process?\n\nConsider two different questions:\n\n1. Does the menu already drawn on the screen have to disappear immediately?\n2. Can this stopped process answer a new request?\n\nWrite a prediction, even if you are unsure. Then run the experiment.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Make a new request",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-02-02",
+      "lesson_id": "LS-M020-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "local_practice",
+      "title": "Task A: run the service and explain the destination",
+      "source_heading": "Task A: run the service and explain the destination",
+      "prompt_markdown": "Start the café on port `4313`, or another available port if that one is occupied. Request its opening hours. Record:\n\n- The command you ran.\n- The full address you opened.\n- The matching request log entry.\n- What the host, port, and path each contributed.\n\nThen stop the café and record what happens when you make a fresh request to that address.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Full explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-02-03",
+      "lesson_id": "LS-M020-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Task B: repair a mistaken explanation",
+      "source_heading": "Task B: repair a mistaken explanation",
+      "prompt_markdown": "A learner says:\n\n> “I opened `server.mjs` in VS Code, so the server is running. The `/menu` part picks port 4312. If my browser still shows the old menu, that proves the server is alive.”\n\nIdentify three mistakes and explain each correction.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Full explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-03-01",
+      "lesson_id": "LS-M020-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "8. Predict, open, compare",
+      "source_heading": "8. Predict, open, compare",
+      "prompt_markdown": "Before opening the URLs, write a prediction: **What do you expect to remain the same, and what do you expect to look different?** A short sentence is enough. Preserve it so you can compare it with what you observe.\n\nOpen these addresses one at a time in your browser, using your actual port:\n\n| Address | What to look for |\n| --- | --- |\n| `http://127.0.0.1:4315/menu.txt` | The title and drinks as lines of text |\n| `http://127.0.0.1:4315/menu.html` | A heading and a list built from HTML |\n| `http://127.0.0.1:4315/api/menu` | Named values in the JSON body |\n\nCompare the information, not just the appearance. Each version names the same three drinks. The browser may show JSON as raw text or offer a formatted, collapsible view. Either can be a way to inspect the same data; your browser's formatting is not a different menu returned by the café.\n\nLook at the server terminal after each visit. Lines such as `GET /api/menu -> 200` are the supplied server's summaries. They tell you the method, path, and response status that this server recorded. They are not the complete HTTP message.\n\nNow open:\n\n```text\nhttp://127.0.0.1:4315/menu-as-text\n```\n\nHere, the server supplies the same HTML body as `/menu.html`, labelled `text/plain`. You should see markup such as `<h1>` as text instead of seeing it used as the page heading. The drinks have not changed. The way the browser treats the content has changed.\n\nAt this point, the lesson tells you which headers the fixture sends. You have directly observed the browser's presentation and the server's summaries. In Lesson 4, you will inspect the response headers yourself, which will give you another kind of evidence.\n\nRecord one observation that matched your prediction and one detail that surprised you. If something failed, record the URL and the actual message. That is a useful observation too.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-03-02",
+      "lesson_id": "LS-M020-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice B: investigate a label",
+      "source_heading": "Practice B: investigate a label",
+      "prompt_markdown": "This is a supplied example, not a response you need to create in the lab:\n\n```http\nHTTP/1.1 200 OK\nContent-Type: application/json\n\nTea, Coffee, Hot chocolate\n```\n\nThe intended client expects the JSON object with `title` and `drinks` shown earlier. Does the status prove the body follows that agreement? Would changing only the header create that object? Explain what is missing.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-03-03",
+      "lesson_id": "LS-M020-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice C: choose a useful form",
+      "source_heading": "Practice C: choose a useful form",
+      "prompt_markdown": "You need to let another program find the drink list reliably. Which of today's forms makes that named list most explicit in our examples? What must the two programs still agree about?\n\nThen change the requirement: you want to present a simple document with a main heading and list. Which of today's forms directly expresses that document structure?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-04-01",
+      "lesson_id": "LS-M020-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "6. Ask for a menu the café does not have",
+      "source_heading": "6. Ask for a menu the café does not have",
+      "prompt_markdown": "Keep the server running. Before the next command, predict whether a missing menu means there can be no HTTP response.\n\nThen run:\n\n```sh\ncurl -i \"http://127.0.0.1:4315/api/missing-menu\"\n```\n\nThe shortened response should be:\n\n```http\nHTTP/1.1 404 Not Found\nContent-Type: application/json\n\n{\n  \"error\": \"Menu not found\"\n}\n```\n\nThere is a response. It has a status, a content type, and a body. The server could be contacted, understood enough of the request to choose this answer, and reported that it had no menu at that path.\n\nThe body is still JSON. `error` is a property name chosen by the café's author, and `Menu not found` is its string value. JSON can describe a failure as well as a successful result.\n\nYou should also see `GET /api/missing-menu -> 404` in Terminal A. Compare that summary with curl's output. Both describe the same request outcome from different places in the system.\n\nIt would be inaccurate to write “the server is down” on this evidence. In this controlled experiment, the server just answered you. A better statement is: “The server returned 404 for `/api/missing-menu`; `/api/menu` returned 200.”\n\nThere is one tool detail worth keeping in mind. By default, curl does not treat an HTTP 404 response as a failed transfer for its process exit result. It can complete its job of transferring an error response. Scripts can request other failure policies with additional options; we will study that when we use curl in automation. For now, inspect the **HTTP status**, rather than assuming that the return of a normal-looking terminal prompt means the requested menu was supplied.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-04-02",
+      "lesson_id": "LS-M020-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "7. Stop the server and ask again",
+      "source_heading": "7. Stop the server and ask again",
+      "prompt_markdown": "We will now change one thing: whether the server program is running. Use the known working path so you do not change the path and the server state at the same time.\n\nFirst, make a prediction. **If the program that answers port 4315 is stopped, who could supply a 404 response?**\n\nGo to Terminal A and press **Ctrl+C**. Clear any text selection first. You should see the café's stopped message and a command prompt. Stop only your own supplied server.\n\nReturn to Terminal B and repeat the known working request:\n\n```sh\ncurl -i \"http://127.0.0.1:4315/api/menu\"\n```\n\nIf nothing else is listening at that address and port, curl should report that it failed to connect. The wording varies by operating system and curl version. A typical message begins with `curl: (7)` and says it could not connect to the server.\n\nThat message comes from **curl**, not from an HTTP response body sent by the stopped café. You should not receive the café's `HTTP/1.1 404 Not Found` response, because the stopped process cannot choose and send that answer.\n\n| Experiment | What you can observe | What it supports in this lab |\n| --- | --- | --- |\n| Running café, `/api/menu` | HTTP 200 and a menu body | The server supplied the menu for this request |\n| Running café, `/api/missing-menu` | HTTP 404 and an error body | The server answered but had no menu at that path |\n| Café stopped, known working path | A curl connection error, with no café HTTP status line | The client could not establish this connection |\n\nThe last observation alone would not diagnose every possible connection problem on a real network. Here, you have additional evidence: you deliberately stopped the only lab server. Keep the conclusion as specific as the experiment allows.\n\nIf you still get a response, investigate instead of forcing the expected answer. Did you stop the right terminal? Does the URL use the port printed by this server? Is another copy running? Those questions reuse Lesson 2's distinction between a source file, a process, and a listening address.\n\nRestart the café in Terminal A:\n\n```sh\nnode server.mjs\n```\n\nUse your alternate port argument if you chose one. Wait for the listening message, then repeat the known working request from Terminal B. Confirm that you can obtain the menu again.\n\nYou have now carried out a small controlled investigation: establish a working case, change one relevant condition, observe the result, and restore the working case.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-04-03",
+      "lesson_id": "LS-M020-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: explain a missing body",
+      "source_heading": "Practice B: explain a missing body",
+      "prompt_markdown": "You ran `curl -I` for `/api/menu`, saw status 200, and received no drink list. Before declaring a bug, what method should you check in the server log? Which command would request the body and show its response headers?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-05-01",
+      "lesson_id": "LS-M020-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "5. Press a button and follow the data",
+      "source_heading": "5. Press a button and follow the data",
+      "prompt_markdown": "Keep the Network panel open. Before clicking, predict the target path, response format, and one body value you expect the **Load menu** button to obtain.\n\nNow press **Load menu** on the café page. You should see **Menu loaded.**, a menu heading, and the three drink names. The browser's address can remain `/cafe`; a page update does not have to be a navigation to a new document.\n\nFind the new request for `/api/menu`. If you cannot see it, make sure All is selected and no text filter is hiding it. The name may appear as `menu`, so verify the full URL.\n\nInspect the request's details and record:\n\n- Request URL and method.\n- Response status.\n- Response `Content-Type`.\n- One value from the response body.\n\nThe expected response is the same kind you inspected with curl in Lesson 4: GET receives 200 and an `application/json` body with `title` and `drinks`. Your browser may classify this row as **fetch** or group it with **Fetch/XHR** requests. For now, connect that label to this fact: page code initiated the request to obtain data.\n\nThe script then reads the JSON values and places the drink names into the page's list. **Fetching data** and **displaying data** are two steps. JSON does not spontaneously draw buttons, and the server did not send a whole replacement HTML document in this response.\n\nYou can check that claim by looking at the API's body. It contains the menu object. It does not contain the complete café page you inspected in the document response.\n\nHere is the relationship among the important events. The image and script requests are shown as independent branches; their exact completion order is not a lesson requirement.\n\n```mermaid\nsequenceDiagram\n    participant Learner\n    participant Browser\n    participant Cafe as Cafe server\n    Learner->>Browser: Open the cafe page\n    Browser->>Cafe: GET /cafe\n    Cafe-->>Browser: 200 and HTML\n    par Referenced image\n        Browser->>Cafe: GET /assets/cup.svg\n        Cafe-->>Browser: 200 and image\n    and Referenced script\n        Browser->>Cafe: GET /assets/menu-page.js\n        Cafe-->>Browser: 200 and script\n    end\n    Learner->>Browser: Press Load menu\n    Browser->>Cafe: GET /api/menu\n    Cafe-->>Browser: 200 and JSON\n    Browser->>Browser: Page code updates the list\n```\n\nIn words: navigation requests the HTML; references in that HTML lead to image and script requests; the later button click causes a JSON request; the supplied script uses its response to update the existing page. All the browser-side work happens in the learner's browser. The diagram does not introduce an extra server for the page code.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-05-02",
+      "lesson_id": "LS-M020-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "6. A visible page can contain a failed operation",
+      "source_heading": "6. A visible page can contain a failed operation",
+      "prompt_markdown": "Now we will use the second button: **Try a missing menu**. It deliberately asks for `/api/missing-menu`, which the supplied café does not have.\n\nBefore clicking, make a prediction: **Will a 404 for that request mean the original `/cafe` document must also have failed? Will the heading and image necessarily disappear?**\n\nClick the button and inspect the new request. You should find an HTTP 404 response with this JSON body:\n\n```json\n{\n  \"error\": \"Menu not found\"\n}\n```\n\nOn the page, the earlier drink list should clear, and the message should become **Menu unavailable: Menu not found.** The café heading, cup image, and buttons remain.\n\nThe supplied page code makes those presentation choices. It checks the response status, reads the error explanation, and updates the menu area. A different application might choose another error message or keep the old list with a notice. HTTP alone does not prescribe the exact words or layout of that interface.\n\nThere are now two separate outcomes worth naming:\n\n| Request | Outcome in this experiment |\n| --- | --- |\n| GET `/cafe` during the page load | 200: the HTML document was supplied |\n| GET `/api/missing-menu` after the click | 404: that menu was not supplied |\n\nIt is therefore possible to receive a successful document response and later have a failed data request within that page. Looking only at the document's 200 would miss the operation the user was trying to perform.\n\nConversely, a visible error message does not prove that the whole server is unreachable. This 404 arrived from a running server, just as it did in the curl experiment. The Network panel gives you the evidence needed to distinguish these cases.\n\nPress **Load menu** again and inspect its request. It should receive the successful menu response and repopulate the list. You have restored a working case without reloading the whole document.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-05-03",
+      "lesson_id": "LS-M020-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice C: choose the next piece of evidence",
+      "source_heading": "Practice C: choose the next piece of evidence",
+      "prompt_markdown": "You see the café heading and cup image, but no drink names. That is all you know so far.\n\nGive two different explanations consistent with that observation. Then describe what you would inspect or do to distinguish them. Keep your examples within today's supplied page rather than inventing a database or caching problem we have not investigated.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-06-01",
+      "lesson_id": "LS-M020-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Practice A: the query variation",
+      "source_heading": "Practice A: the query variation",
+      "prompt_markdown": "Predict `GET /api/menu?source=lesson`. Identify the value assigned to `path`, the branch selected, and the data supplied. Then run the request with curl and compare. If you only write “200,” add the reasoning that produced that prediction.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-06-02",
+      "lesson_id": "LS-M020-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: metadata without menu text",
+      "source_heading": "Practice B: metadata without menu text",
+      "prompt_markdown": "Use `curl -I \"http://127.0.0.1:4317/api/menu\"`. Where does HEAD travel through the handler, and where does its behavior diverge from GET? Remember that `-I` is the capital-letter option from Lesson 4.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-06-03",
+      "lesson_id": "LS-M020-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Practice C: a different spelling",
+      "source_heading": "Practice C: a different spelling",
+      "prompt_markdown": "Predict `GET /api/menus`. Is the café's knowledge of English plurals relevant? Name the comparison that decides the result.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-07-01",
+      "lesson_id": "LS-M020-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: repair an overclaim",
+      "source_heading": "Practice A: repair an overclaim",
+      "prompt_markdown": "A developer says, “The hours request returned 200, so opening hours are correct.” What else should they inspect? Name the case in the supplied tests that would catch a wrong hours value.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-07-02",
+      "lesson_id": "LS-M020-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: choose the next check",
+      "source_heading": "Practice B: choose the next check",
+      "prompt_markdown": "Your tests pass after adding the route, but curl receives the starter's 404. What could explain that? Choose a check that would help distinguish a stale running process from a wrong URL.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-07-03",
+      "lesson_id": "LS-M020-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: evaluate a shortcut",
+      "source_heading": "Practice C: evaluate a shortcut",
+      "prompt_markdown": "Someone proposes replacing the final fallback with a 200 hours response so that `/api/hours` works. Which existing promise would that break? Would testing only GET hours catch the problem?",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-08-01",
+      "lesson_id": "LS-M020-08",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: choose your next comparison",
+      "source_heading": "Practice A: choose your next comparison",
+      "prompt_markdown": "Before reading further, record which hypothesis you would check next and why. What result would make you revise it? If you have already inspected the source, say so and explain which evidence you used.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Walkthrough: connect the source to the observed reply",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-08-02",
+      "lesson_id": "LS-M020-08",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: your short incident note",
+      "source_heading": "Practice B: your short incident note",
+      "prompt_markdown": "Write a note another developer could review. Include the reported symptom, the two requests you compared, the observed mismatch, the source decision that explains it, the change, and the checks you repeated. Finish with a limit of your conclusion.\n\nFor example, a supported limit is that these local checks cover the stated route contract, not the behavior of a deployed service under load. If you read the walkthrough before diagnosing the cause, record that assistance. The explanation can still show what you now understand.\n\nHere is a model explanation based on the supplied fixture, not a claim about your execution:\n\n> GET hours returned 200 with menu JSON, while GET menu returned the expected menu. The incident's route table associated both paths with the menu object, so the handler's successful branch selected the wrong data for hours. Associating the hours path with the hours object corrected that relationship. The hours-content check fails before this repair and passes afterward; menu, missing-path, and method cases protect the surrounding contract. Manual confirmation requires restarting the intended process. These checks do not establish production readiness.\n\nCompare the reasoning structure with your note. You do not need to copy its wording.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice B: your short incident note",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M020-08-03",
+      "lesson_id": "LS-M020-08",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Practice C: investigate the changed case",
+      "source_heading": "Practice C: investigate the changed case",
+      "prompt_markdown": "Use the same method: identify the running copy, reproduce the exact request, choose a comparison, and trace the selection. Find a repair that preserves the documented path `/api/hours`. Changing the client to an accidental server path would hide the contract mismatch rather than restore the agreed interface.\n\nThe checks for this copy are:\n\n```sh\nnode --test checks/transfer.test.mjs\n```\n\nRecord the failing behavior before repair and the passing behavior after. Stop and restart this manual server after saving changes. Keep the original and transfer notes separate so you can explain how their causes differ.\n\nHints and the full explanation are in `reference/Hints_and_Walkthroughs.md`, with a repaired implementation in `reference/transfer-handler.mjs`. They are available whenever needed. If you study the solution first, treat this as worked practice; a later unfamiliar case is needed before claiming independent transfer.",
+      "prompt_scope": "Exact authored section excerpt; may include worked feedback. Read in lesson order.",
+      "feedback_source_heading": "Practice C: investigate the changed case",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-01-01",
+      "lesson_id": "LS-M021-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: source fields and visible content",
+      "source_heading": "Practice A: source fields and visible content",
+      "prompt_markdown": "The full notice currently says 18:00. A colleague changes only `editorNote`. Should the selected body's `message` change? Explain using the response calculation, not a guess about how often websites update.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-01-02",
+      "lesson_id": "LS-M021-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: identity across time",
+      "source_heading": "Practice B: identity across time",
+      "prompt_markdown": "Two saved response bodies from `/api/notice` contain different closing times. Does that prove the requests used different URLs? What else could explain the difference in this kit?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-01-03",
+      "lesson_id": "LS-M021-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: two targets with one pathname",
+      "source_heading": "Practice C: two targets with one pathname",
+      "prompt_markdown": "A proposed client stores every response under just `/api/notice`, discarding the query. It first saves the short view, then uses that saved body to answer a full-view request. What requirement could it violate, even if the closing time is still current?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-02-01",
+      "lesson_id": "LS-M021-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: fresh does not mean unchanged",
+      "source_heading": "Practice A: fresh does not mean unchanged",
+      "prompt_markdown": "A response has a 300-second freshness lifetime and a current age of 90 seconds. The origin changed its notice 30 seconds ago. Is the stored response fresh under that lifetime? Does the time calculation prove its body equals the origin's current body?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-02-02",
+      "lesson_id": "LS-M021-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: stale does not mean different",
+      "source_heading": "Practice B: stale does not mean different",
+      "prompt_markdown": "The cache's copy has age 301 seconds. Its lifetime is 300 seconds, but the café has not changed the notice. Why can both “the copy is stale” and “the content is still the same” be true?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-02-03",
+      "lesson_id": "LS-M021-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: select a policy for a stated requirement",
+      "source_heading": "Practice C: select a policy for a stated requirement",
+      "prompt_markdown": "For this exercise, a product owner permits keeping the notice locally but requires checking before every reuse. Which of the two directives, `no-cache` or `no-store`, expresses that storage-plus-checking model? What additional mechanism do we need to understand next?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-03-01",
+      "lesson_id": "LS-M021-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: a validator without a body",
+      "source_heading": "Practice A: a validator without a body",
+      "prompt_markdown": "A tool retains `notice.etag` but deletes the saved JSON. It sends the tag and receives 304. Can it recover the notice from that response? What ordinary request could it make to obtain the body again?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-03-02",
+      "lesson_id": "LS-M021-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: an unchanged source detail",
+      "source_heading": "Practice B: an unchanged source detail",
+      "prompt_markdown": "The internal note changes, and the next conditional GET returns 304. A colleague says, “The server ignored the edit.” What narrower explanation fits the fixture and the evidence?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-03-03",
+      "lesson_id": "LS-M021-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: a different selected view",
+      "source_heading": "Practice C: a different selected view",
+      "prompt_markdown": "You save the full-view tag, then present it while requesting `/api/notice?view=short`. Why should the supplied fixture send the short body with 200 instead of confirming the full representation as a match?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-04-01",
+      "lesson_id": "LS-M021-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: condition presence is not a match",
+      "source_heading": "Practice A: condition presence is not a match",
+      "prompt_markdown": "An implementation returns 304 whenever the request contains If-None-Match. Which ordinary case would it get wrong? Explain what needs to be compared instead.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-04-02",
+      "lesson_id": "LS-M021-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: matching before checking existence",
+      "source_heading": "Practice B: matching before checking existence",
+      "prompt_markdown": "A proposed function checks `condition === 'match'` before `!exists`. Use one matrix row to show why that order violates this lab's agreement.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-04-03",
+      "lesson_id": "LS-M021-04",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: a body-free response is not enough evidence",
+      "source_heading": "Practice C: a body-free response is not enough evidence",
+      "prompt_markdown": "A tool sees an empty body after a HEAD request and concludes that its stored copy was successfully validated. What else must it inspect before drawing that conclusion?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-05-01",
+      "lesson_id": "LS-M021-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: two statuses",
+      "source_heading": "Practice A: two statuses",
+      "prompt_markdown": "The origin records a matching conditional GET with status 304. The page shows status 200 and the existing notice. Explain how both observations fit one operation, including where the body came from.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-05-02",
+      "lesson_id": "LS-M021-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: bypass is not a repair report",
+      "source_heading": "Practice B: bypass is not a repair report",
+      "prompt_markdown": "A developer writes, “I bypassed caching and got the new closing time, so the bug is fixed.” What did the action establish? What follow-up comparison would test whether the normal path now behaves as required?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-05-03",
+      "lesson_id": "LS-M021-05",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: an unchanged screen",
+      "source_heading": "Practice C: an unchanged screen",
+      "prompt_markdown": "The source file has been edited, but nobody has pressed a button or reloaded the page. The old notice remains visible. Can you conclude that the browser reused an HTTP-cache entry after the edit? What evidence would be needed?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-06-01",
+      "lesson_id": "LS-M021-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: the smallest convincing comparison",
+      "source_heading": "Practice A: the smallest convincing comparison",
+      "prompt_markdown": "Keep the initial body/tag, one controlled source change, an ordinary current response, and a conditional response using the old tag. Explain what each contributes. Which result rules out a failed save as the complete explanation?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-06-02",
+      "lesson_id": "LS-M021-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: review the tempting fix",
+      "source_heading": "Practice B: review the tempting fix",
+      "prompt_markdown": "A colleague proposes changing the title whenever the closing time changes. Explain why that might make today's symptom disappear, and why it leaves the dependency problem in place. What future edit would expose the weakness?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-06-03",
+      "lesson_id": "LS-M021-06",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: bound your conclusion",
+      "source_heading": "Practice C: bound your conclusion",
+      "prompt_markdown": "Write a short diagnosis with observed behavior, causal path, the violated requirement, and one limit of your evidence. If you used only curl, make that clear. If you did not finish, describe your strongest supported finding and the next discriminating experiment.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-07-01",
+      "lesson_id": "LS-M021-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice A: useful failure before the fix",
+      "source_heading": "Practice A: useful failure before the fix",
+      "prompt_markdown": "Show your completed regression failing because the old-tag request received 304, then passing after repair. Explain why a syntax error, skipped test, or passing unconditional request would not establish the same thing.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-07-02",
+      "lesson_id": "LS-M021-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice B: a different kind of incomplete repair",
+      "source_heading": "Practice B: a different kind of incomplete repair",
+      "prompt_markdown": "An engineer hashes the whole source object. It now detects the changed closing time, but internal-note edits change the tag too. Is that the same correctness failure as the original false 304? Which requirement does the alternative miss in this assignment?",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M021-07-03",
+      "lesson_id": "LS-M021-07",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: distinguish the two incidents",
+      "source_heading": "Practice C: distinguish the two incidents",
+      "prompt_markdown": "For each case, identify where information was lost: constructing the validator or selecting a saved result. Explain why the incident repair did not solve the transfer case. State the fixed-source assumption that limits the transfer repair.",
+      "prompt_scope": "Exact authored practice section; record observations separately from supplied examples.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    }
+  ]
+}

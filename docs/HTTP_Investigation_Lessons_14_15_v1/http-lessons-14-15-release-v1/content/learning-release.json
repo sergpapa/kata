@@ -1,0 +1,239 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "FSSE-HTTP-FIRST-FIFTEEN",
+  "version": "1.0.0-draft",
+  "date": "2026-09-21",
+  "status": "owner-review candidate; Lessons 14–15 newly authored; browser rehearsal and app integration pending",
+  "audience": "Learners who studied the prior caching mechanisms; investigation, repair, regression, and supported transfer",
+  "source_of_truth": "The supplied UTF-8 Markdown lesson files",
+  "lesson_key_field": "candidate_lesson_id",
+  "lessons": [
+    {
+      "order": 1,
+      "lesson_id": "LS-M020-01",
+      "document_id": "FSSE-HTTP-STUDENT-01",
+      "version": "2.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 1: What happens when your browser asks for something?",
+      "path": "lessons/HTTP_Lesson_01_Student_Edition_v2.md",
+      "sha256": "4221faed9d16238ffedd04957d4377f18efc0ddd65420e9230462a78f7a55adf",
+      "lab_id": null
+    },
+    {
+      "order": 2,
+      "lesson_id": "LS-M020-02",
+      "document_id": "FSSE-HTTP-STUDENT-02",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 2: Give the browser an address—and something to answer",
+      "path": "lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9",
+      "lab_id": "FSSE-HTTP-LAB-02"
+    },
+    {
+      "order": 3,
+      "lesson_id": "LS-M020-03",
+      "document_id": "FSSE-HTTP-STUDENT-03",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 3: One menu, three ways to carry it",
+      "path": "lessons/HTTP_Lesson_03_Student_Edition_v1.md",
+      "sha256": "3a4363e7621142feb1a28cf0bdcbc24cc9e63b607e443097d6860067ed99cb00",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    },
+    {
+      "order": 4,
+      "lesson_id": "LS-M020-04",
+      "document_id": "FSSE-HTTP-STUDENT-04",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 4: Ask the café directly—and inspect its reply",
+      "path": "lessons/HTTP_Lesson_04_Student_Edition_v1.md",
+      "sha256": "a672ebd956c8e4f1a34048eccbb332cf4272201d21e7f67d922e2738cf984c39",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    },
+    {
+      "order": 5,
+      "lesson_id": "LS-M020-05",
+      "document_id": "FSSE-HTTP-STUDENT-05",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 5: One page can make several requests",
+      "path": "lessons/HTTP_Lesson_05_Student_Edition_v1.md",
+      "sha256": "88183507682391ff5e8a203b3b5d0273e431fa5e546e36ffcbd957251b578080",
+      "lab_id": "FSSE-HTTP-LAB-03-05"
+    },
+    {
+      "order": 6,
+      "lesson_id": "LS-M020-06",
+      "document_id": "FSSE-HTTP-STUDENT-06",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 6: Follow the code that chooses the reply",
+      "path": "lessons/HTTP_Lesson_06_Student_Edition_v1.md",
+      "sha256": "9b490d7434b11de54448ac22279b863cf75edbff2c19a5bbcbb8633bbc5cb88d",
+      "lab_id": "FSSE-HTTP-LAB-06-08"
+    },
+    {
+      "order": 7,
+      "lesson_id": "LS-M020-07",
+      "document_id": "FSSE-HTTP-STUDENT-07",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 7: Add opening hours—and check the promise",
+      "path": "lessons/HTTP_Lesson_07_Student_Edition_v1.md",
+      "sha256": "82124ef56ef9c7176fc2121c4102198be932088c3ca21c6c22c681cafd70fe55",
+      "lab_id": "FSSE-HTTP-LAB-06-08"
+    },
+    {
+      "order": 8,
+      "lesson_id": "LS-M020-08",
+      "document_id": "FSSE-HTTP-STUDENT-08",
+      "version": "1.0.0-draft",
+      "module": "M020",
+      "title": "Lesson 8: The reply arrived. Why is it the wrong one?",
+      "path": "lessons/HTTP_Lesson_08_Student_Edition_v1.md",
+      "sha256": "536cf779243a7059d3ed16460349f947c9746f49583ca01e13fc45459afebf4b",
+      "lab_id": "FSSE-HTTP-LAB-06-08"
+    },
+    {
+      "order": 9,
+      "lesson_id": "LS-M021-01",
+      "document_id": "FSSE-HTTP-STUDENT-09",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 9: The same address can give you a different answer",
+      "path": "lessons/HTTP_Lesson_09_Student_Edition_v1.md",
+      "sha256": "211e14ac98cebdab10ba3aad7a0e0d7423f20728737db680c3c4c3f837089c31",
+      "lab_id": "FSSE-HTTP-LAB-09-13"
+    },
+    {
+      "order": 10,
+      "lesson_id": "LS-M021-02",
+      "document_id": "FSSE-HTTP-STUDENT-10",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 10: Keeping a copy is not permission to reuse it forever",
+      "path": "lessons/HTTP_Lesson_10_Student_Edition_v1.md",
+      "sha256": "ed2c5ac2023aad1cf7763d2ae04c362fad7dc7767620cf45fdeadd56d1deb6df",
+      "lab_id": "FSSE-HTTP-LAB-09-13"
+    },
+    {
+      "order": 11,
+      "lesson_id": "LS-M021-03",
+      "document_id": "FSSE-HTTP-STUDENT-11",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 11: Ask whether your copy still applies",
+      "path": "lessons/HTTP_Lesson_11_Student_Edition_v1.md",
+      "sha256": "25d0ae8bef5349b8e6d5d5b7a1331bc2530b7bafe39460ff72cba6254950f8eb",
+      "lab_id": "FSSE-HTTP-LAB-09-13"
+    },
+    {
+      "order": 12,
+      "lesson_id": "LS-M021-04",
+      "document_id": "FSSE-HTTP-STUDENT-12",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 12: Make the conditional decision precise",
+      "path": "lessons/HTTP_Lesson_12_Student_Edition_v1.md",
+      "sha256": "65247003cb9c1ba96034a769695842210f0cfab61581143325c9604bbf90dbea",
+      "lab_id": "FSSE-HTTP-LAB-09-13"
+    },
+    {
+      "order": 13,
+      "lesson_id": "LS-M021-05",
+      "document_id": "FSSE-HTTP-STUDENT-13",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 13: What the server sent is not always what the page received",
+      "path": "lessons/HTTP_Lesson_13_Student_Edition_v1.md",
+      "sha256": "4466eda9945b51ec71e16e7b05f1908ebde8b3a1983088abf8833a3ffb378830",
+      "lab_id": "FSSE-HTTP-LAB-09-13"
+    },
+    {
+      "order": 14,
+      "lesson_id": "LS-M021-06",
+      "document_id": "FSSE-HTTP-STUDENT-14",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 14: The notice changed. Why are returning visitors still seeing the old one?",
+      "path": "lessons/HTTP_Lesson_14_Student_Edition_v1.md",
+      "sha256": "7b48678a6957a2aada5d9fabef359bab5b9f4f7424edb80cbf60815c0d002e04",
+      "lab_id": "FSSE-HTTP-LAB-14-15"
+    },
+    {
+      "order": 15,
+      "lesson_id": "LS-M021-07",
+      "document_id": "FSSE-HTTP-STUDENT-15",
+      "version": "1.0.0-draft",
+      "module": "M021",
+      "title": "Lesson 15: Repair the cause—and make the evidence survive your fix",
+      "path": "lessons/HTTP_Lesson_15_Student_Edition_v1.md",
+      "sha256": "4bb2eddc05376600cee7ff26ffafa8d433b59d26db25c18d69d36edb9f8b4259",
+      "lab_id": "FSSE-HTTP-LAB-14-15"
+    }
+  ],
+  "lab_downloads": [
+    {
+      "lab_id": "FSSE-HTTP-LAB-02",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2",
+      "lesson_ids": [
+        "LS-M020-02"
+      ]
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-03-05",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lessons_03_05_Local_Kit_v1.zip",
+      "sha256": "88287e1169c45ec348104a2a171b6f02fd3123ae0be03c1fcbbabfbad2963534",
+      "lesson_ids": [
+        "LS-M020-03",
+        "LS-M020-04",
+        "LS-M020-05"
+      ]
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-06-08",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lessons_06_08_Local_Kit_v1.zip",
+      "sha256": "1c1798641c6474675db618e1aa0f9c86eb25d5bfadeaaf66a1530f7b3627e998",
+      "lesson_ids": [
+        "LS-M020-06",
+        "LS-M020-07",
+        "LS-M020-08"
+      ]
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-09-13",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lessons_09_13_Local_Kit_v1.zip",
+      "sha256": "6d5856790f8c2fc151680e54be087a4a69dc3040b6b3f6d70f9106e018a01ebe",
+      "lesson_ids": [
+        "LS-M021-01",
+        "LS-M021-02",
+        "LS-M021-03",
+        "LS-M021-04",
+        "LS-M021-05"
+      ]
+    },
+    {
+      "lab_id": "FSSE-HTTP-LAB-14-15",
+      "version": "1.0.0-draft",
+      "path": "labs/HTTP_Lessons_14_15_Investigation_Kit_v1.zip",
+      "sha256": "dfed67766c759add87b00dc69d1fdcbe74f528e2474779bf1f27a54dfa0e2fa0",
+      "lesson_ids": [
+        "LS-M021-06",
+        "LS-M021-07"
+      ]
+    }
+  ],
+  "activities": {
+    "path": "trial-activities.json",
+    "sha256": "bc1a3c657cca1b1b3f97fb272ffa0681fdef7533469b9e8f84c83b3b7e545219"
+  },
+  "supersedes_release": "FSSE-HTTP-FIRST-THIRTEEN@1.0.0-draft",
+  "compatibility": "Lessons 1–13, their versions, prior activity records, and previous lab bytes are unchanged; preserve state by stable IDs"
+}

@@ -1,0 +1,149 @@
+{
+  "package_id": "FSSE-HTTP-INVESTIGATION-14-15",
+  "version": "1.0.0-draft",
+  "date": "2026-09-21",
+  "read_first": "START_HERE.md",
+  "release_manifest": "content/learning-release.json",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "9ae16563c90b911cfa8efa8311e3a182fdf4e6335797e44dc63383a7feed1d39"
+    },
+    {
+      "path": "Owner_Review_After_Lesson_15.md",
+      "sha256": "da63840fcff687c6ade38cf3fd8c5a21f7b97d883f0529a3b7ac03e337924c84"
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "1fc7bb24db6528e9fd298d13a60277f4d8405803b16284b09948a2f78b370954"
+    },
+    {
+      "path": "VS_Code_Coder_Handoff_Lessons_14_15_v1.md",
+      "sha256": "ee63e673d90166817e7e60e98aeb1699de14c7b6be6702a6268f6dec12de9e7e"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "sha256": "2bab83933fee54fe0f316c7fd6d9818ed2d2b3a32bb1bcdb86cd13a4cf3dd698"
+    },
+    {
+      "path": "content/labs/HTTP_Lesson_02_Local_Server_Kit_v1.zip",
+      "sha256": "5a6b0898eddd536327ede5790c6d68475b1994351ddf4c1cd75d4300ed2ba8d2"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_03_05_Local_Kit_v1.zip",
+      "sha256": "88287e1169c45ec348104a2a171b6f02fd3123ae0be03c1fcbbabfbad2963534"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_06_08_Local_Kit_v1.zip",
+      "sha256": "1c1798641c6474675db618e1aa0f9c86eb25d5bfadeaaf66a1530f7b3627e998"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_09_13_Local_Kit_v1.zip",
+      "sha256": "6d5856790f8c2fc151680e54be087a4a69dc3040b6b3f6d70f9106e018a01ebe"
+    },
+    {
+      "path": "content/labs/HTTP_Lessons_14_15_Investigation_Kit_v1.zip",
+      "sha256": "dfed67766c759add87b00dc69d1fdcbe74f528e2474779bf1f27a54dfa0e2fa0"
+    },
+    {
+      "path": "content/learning-release.json",
+      "sha256": "c6ab948d71ae8f3ec868b52e8b0c82ce14bdcf5897cd92e2fdd5ebc5382d04d8"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_01_Student_Edition_v2.md",
+      "sha256": "4221faed9d16238ffedd04957d4377f18efc0ddd65420e9230462a78f7a55adf"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_02_Student_Edition_v1.md",
+      "sha256": "38a49d3120ce8b7e6f24dea0171208b5823b71bc8a5978263f61ad081f9db0c9"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_03_Student_Edition_v1.md",
+      "sha256": "3a4363e7621142feb1a28cf0bdcbc24cc9e63b607e443097d6860067ed99cb00"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_04_Student_Edition_v1.md",
+      "sha256": "a672ebd956c8e4f1a34048eccbb332cf4272201d21e7f67d922e2738cf984c39"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_05_Student_Edition_v1.md",
+      "sha256": "88183507682391ff5e8a203b3b5d0273e431fa5e546e36ffcbd957251b578080"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_06_Student_Edition_v1.md",
+      "sha256": "9b490d7434b11de54448ac22279b863cf75edbff2c19a5bbcbb8633bbc5cb88d"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_07_Student_Edition_v1.md",
+      "sha256": "82124ef56ef9c7176fc2121c4102198be932088c3ca21c6c22c681cafd70fe55"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_08_Student_Edition_v1.md",
+      "sha256": "536cf779243a7059d3ed16460349f947c9746f49583ca01e13fc45459afebf4b"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_09_Student_Edition_v1.md",
+      "sha256": "211e14ac98cebdab10ba3aad7a0e0d7423f20728737db680c3c4c3f837089c31"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_10_Student_Edition_v1.md",
+      "sha256": "ed2c5ac2023aad1cf7763d2ae04c362fad7dc7767620cf45fdeadd56d1deb6df"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_11_Student_Edition_v1.md",
+      "sha256": "25d0ae8bef5349b8e6d5d5b7a1331bc2530b7bafe39460ff72cba6254950f8eb"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_12_Student_Edition_v1.md",
+      "sha256": "65247003cb9c1ba96034a769695842210f0cfab61581143325c9604bbf90dbea"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_13_Student_Edition_v1.md",
+      "sha256": "4466eda9945b51ec71e16e7b05f1908ebde8b3a1983088abf8833a3ffb378830"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_14_Student_Edition_v1.md",
+      "sha256": "7b48678a6957a2aada5d9fabef359bab5b9f4f7424edb80cbf60815c0d002e04"
+    },
+    {
+      "path": "content/lessons/HTTP_Lesson_15_Student_Edition_v1.md",
+      "sha256": "4bb2eddc05376600cee7ff26ffafa8d433b59d26db25c18d69d36edb9f8b4259"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "sha256": "bc1a3c657cca1b1b3f97fb272ffa0681fdef7533469b9e8f84c83b3b7e545219"
+    },
+    {
+      "path": "package-verification.json",
+      "sha256": "d006a3f54a9d04b2bfdde76bc4202e87445c9709e9a55a429c9bbeb476188401"
+    },
+    {
+      "path": "specifications/Curriculum_Architecture_v1_1.md",
+      "sha256": "66cd10a18566bd635423cc2beacd41bcc19cb3af313b414a898d8db737f712cd"
+    },
+    {
+      "path": "specifications/Curriculum_Depth_and_Progression_Map_v1.md",
+      "sha256": "447ad38e20bb0330adcdabb5821f53cf9ce49901ad00706b8659470fb00fe494"
+    },
+    {
+      "path": "specifications/Graduate_Competency_Standard_v1.md",
+      "sha256": "501145c310956a46319d27649840c0e4bdf501e6a2ddd684422da51a335d78ca"
+    },
+    {
+      "path": "specifications/HTTP_Deep_Investigation_Design_v1.md",
+      "sha256": "4dd605d55f7ee9e761c734a60d5f18cf8c30d058ea6d117149bf09305efa6be1"
+    },
+    {
+      "path": "specifications/Learning_Design_Review_and_Curriculum_Refinement_v1_1.md",
+      "sha256": "1502852bd5e9f5bbc4aa99bf26d0932b8296e68ee64df1eb5f0a88c61f2b7025"
+    },
+    {
+      "path": "specifications/Lesson_Authoring_Standard_v1.md",
+      "sha256": "29166d8e9a64dc035f0ef48b3123e9a1f4a72937c78874b6630f7bb0a9be9058"
+    },
+    {
+      "path": "specifications/Release_Status_and_Sequence.md",
+      "sha256": "0e45f737c5877ae97b63acf6438e56123c9ed799b15164bcb16385d9704e29d1"
+    }
+  ]
+}
