@@ -1,7 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { App } from './App.js';
-import { answerRoutes, fiveLessons, importedRelease, lesson } from './testkit/apiFixture.js';
+import {
+  answerRoutes,
+  fiveLessons,
+  importedRelease,
+  lesson,
+  thirteenLessons,
+} from './testkit/apiFixture.js';
 
 /**
  * Criteria D1–D6 in docs/specs/visual-design-integration.md.
@@ -118,6 +124,21 @@ describe('the list of lessons', () => {
     );
     expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual(
       fiveLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
+    );
+  });
+
+  it('scales to the thirteen-lesson release without truncating or reordering', async () => {
+    answerRoutes({ '/api/release': importedRelease(thirteenLessons) });
+
+    render(<App />);
+
+    const rows = await within(screen.getByRole('main')).findAllByRole('listitem');
+    expect(rows).toHaveLength(13);
+    expect(rows.map((row) => within(row).getByRole('link').textContent?.trim())).toEqual(
+      thirteenLessons.map((entry) => entry.displayTitle),
+    );
+    expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual(
+      thirteenLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
     );
   });
 

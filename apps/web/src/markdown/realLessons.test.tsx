@@ -6,24 +6,27 @@ import { cleanup, render, waitFor } from '@testing-library/react';
 import { LessonMarkdown } from './LessonMarkdown.js';
 
 /**
- * Criteria D in docs/specs/markdown-rendering.md: the renderer against the author's own five files,
- * read from disk. A fixture proves the contract; only the real release proves the contract covers
- * what the author actually wrote.
+ * Criteria D in docs/specs/markdown-rendering.md and C5–C6 in
+ * docs/specs/content-release-first-thirteen.md: the renderer against the author's own files, read
+ * from disk. A fixture proves the contract; only the real release proves the contract covers what
+ * the author actually wrote.
+ *
+ * The file list comes from the release manifest rather than being written out here, so this suite
+ * cannot quietly cover less than the release: a fourteenth lesson joins it on arrival.
  */
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const lessonsDir = path.join(
+const releaseDir = path.join(
   repoRoot,
-  'VS_Code_App_and_First_Five_Lessons_v1/vs-code-first-five-v1/content/lessons',
+  'HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content',
 );
+const lessonsDir = path.join(releaseDir, 'lessons');
 
-const lessonFiles = [
-  'HTTP_Lesson_01_Student_Edition_v2.md',
-  'HTTP_Lesson_02_Student_Edition_v1.md',
-  'HTTP_Lesson_03_Student_Edition_v1.md',
-  'HTTP_Lesson_04_Student_Edition_v1.md',
-  'HTTP_Lesson_05_Student_Edition_v1.md',
-];
+const lessonFiles = (
+  JSON.parse(fs.readFileSync(path.join(releaseDir, 'learning-release.json'), 'utf8')) as {
+    lessons: { path: string }[];
+  }
+).lessons.map((entry) => path.basename(entry.path));
 
 /**
  * Cuts the front matter and the title heading the way the server does before serving a body.
@@ -46,8 +49,9 @@ function renderLesson(file: string): HTMLElement {
 
 afterEach(cleanup);
 
-describe('the five authored lessons', () => {
-  it('has all five files where the release puts them', () => {
+describe('the thirteen authored lessons', () => {
+  it('has all thirteen files where the release puts them', () => {
+    expect(lessonFiles).toHaveLength(13);
     for (const file of lessonFiles) {
       expect(fs.existsSync(path.join(lessonsDir, file))).toBe(true);
     }
@@ -145,14 +149,24 @@ describe('Lesson 1, whose request example depends on a blank line', () => {
  * That a diagram genuinely becomes a picture is checked by tools/screenshots.mjs in a real browser.
  * jsdom cannot answer that question and nothing here pretends to.
  *
- * (Supersedes slice 2's criterion D4, which required all three fences to stay labelled source
- * blocks. Two of the three now become pictures where a browser can draw them.)
+ * (Supersedes slice 2's criterion D4, which required every fence to stay a labelled source
+ * block. Four of the five now become pictures where a browser can draw them; Lesson 2's keeps
+ * its honest fallback until CF-001 is accepted in a reissued release.)
+ */
+/**
+ * The five lessons that carry a Mermaid fence, and where each one's equivalent textual account
+ * sits. Lessons 1, 2, 5 and 6 put an "In words:" paragraph directly after the fence; Lesson 11
+ * introduces its diagram in the paragraph directly before it. The authoring standard requires the
+ * account ("provide an equivalent textual account"), not a fixed position, so the assertion
+ * follows the author.
  */
 const diagramLessons = [
-  'HTTP_Lesson_01_Student_Edition_v2.md',
-  'HTTP_Lesson_02_Student_Edition_v1.md',
-  'HTTP_Lesson_05_Student_Edition_v1.md',
-];
+  { file: 'HTTP_Lesson_01_Student_Edition_v2.md', grammar: 'sequenceDiagram', account: 'after' },
+  { file: 'HTTP_Lesson_02_Student_Edition_v1.md', grammar: 'sequenceDiagram', account: 'after' },
+  { file: 'HTTP_Lesson_05_Student_Edition_v1.md', grammar: 'sequenceDiagram', account: 'after' },
+  { file: 'HTTP_Lesson_06_Student_Edition_v1.md', grammar: 'flowchart', account: 'after' },
+  { file: 'HTTP_Lesson_11_Student_Edition_v1.md', grammar: 'sequenceDiagram', account: 'before' },
+] as const;
 
 /** The exact bytes between the fences, which is what the reader must be able to get back to. */
 function mermaidSourceOf(file: string): string {
@@ -161,23 +175,30 @@ function mermaidSourceOf(file: string): string {
   return text.slice(start, text.indexOf('\n```', start) + 1);
 }
 
-describe('the three Mermaid diagrams', () => {
-  it.each(diagramLessons)('never leaves %s’s diagram source off the page', (file) => {
+describe('the five Mermaid diagrams', () => {
+  it.each(diagramLessons)('never leaves $file’s diagram source off the page', ({ file }) => {
     const container = renderLesson(file);
 
     const blocks = [...container.querySelectorAll('pre')].map((block) => block.textContent ?? '');
     expect(blocks).toContain(mermaidSourceOf(file));
   });
 
-  it.each(diagramLessons)('keeps %s’s “In words” prose beside the diagram', (file) => {
-    const container = renderLesson(file);
+  it.each(diagramLessons)(
+    'keeps $file’s textual account beside the diagram',
+    ({ file, grammar, account }) => {
+      const container = renderLesson(file);
 
-    const diagram = [...container.querySelectorAll('.diagram')].find((element) =>
-      (element.textContent ?? '').includes('sequenceDiagram'),
-    );
-    expect(diagram).toBeDefined();
-    expect(diagram?.nextElementSibling?.textContent).toMatch(/^In words:/);
-  });
+      const diagram = [...container.querySelectorAll('.diagram')].find((element) =>
+        (element.textContent ?? '').includes(grammar),
+      );
+      expect(diagram).toBeDefined();
+      if (account === 'after') {
+        expect(diagram?.nextElementSibling?.textContent).toMatch(/^In words:/);
+      } else {
+        expect(diagram?.previousElementSibling?.textContent).toMatch(/^The diagram shows/);
+      }
+    },
+  );
 
   /**
    * The real library, doing its real thing. The generous budget is the honest cost of importing

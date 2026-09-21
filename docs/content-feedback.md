@@ -14,9 +14,10 @@ costs_ at the bottom.
 
 ## Status
 
-| ID     | Lesson | Kind             | One line                                           | Status               |
-| ------ | ------ | ---------------- | -------------------------------------------------- | -------------------- |
-| CF-001 | 2      | Diagram (breaks) | `;` in a Mermaid message stops the diagram drawing | Open — owner to rule |
+| ID     | Lesson | Kind             | One line                                             | Status               |
+| ------ | ------ | ---------------- | ---------------------------------------------------- | -------------------- |
+| CF-001 | 2      | Diagram (breaks) | `;` in a Mermaid message stops the diagram drawing   | Open — owner to rule |
+| CF-002 | 7      | Teaching         | A prerequisite names `LS-M020-06` where the learner reads "Lesson 6" | Open — owner to rule |
 
 Kinds: **breaks** — the reader sees a degraded page until it is fixed. **teaching** — the page
 renders, but the content could read better. **cosmetic** — presentation only.
@@ -59,10 +60,48 @@ Expecting '()', 'SOLID_OPEN_ARROW', 'DOTTED_OPEN_ARROW', 'SOLID_ARROW', ... got 
 remains`) works equally well if the stronger break reads better; the only character that must go is
 the semicolon.
 
+**2026-09-21.** The two releases received since (`FSSE-HTTP-FIRST-EIGHT`,
+`FSSE-HTTP-FIRST-THIRTEEN`, both dated 2026-09-18) carry Lesson 2 byte-identical, so the defect
+ships unchanged in the release the app now imports. Accepting this entry means taking it into the
+*next* reissue.
+
 **What the reader sees until then.** The lesson is readable and loses no teaching: the page shows a
 line saying the diagram could not be drawn, the diagram's source in a labelled block, and the
 parser's reason behind a disclosure. Lessons 1 and 5 draw their diagrams normally — this is the
 only one of the three affected.
+
+---
+
+## CF-002 — Lesson 7's prerequisite speaks in stable IDs
+
+**Lesson:** 7, _Add opening hours—and check the promise_ (`LS-M020-07`)
+**File:** `content/lessons/HTTP_Lesson_07_Student_Edition_v1.md`, line 10, in the front-matter
+`prerequisites` list (thirteen-release copy; the same bytes ship in the 6–8 release)
+**Kind:** teaching — the page renders, but the learner is shown an internal identifier
+**Found:** 2026-09-21, Milestone 1 slice 5
+**Status:** open
+
+Exact original:
+
+```
+  - "Follow path/method conditions, helper calls, and return in LS-M020-06"
+```
+
+Proposed:
+
+```
+  - "Follow path/method conditions, helper calls, and return in Lesson 6"
+```
+
+**Why.** The front-matter `prerequisites` are learner-facing: the app shows them in the lesson's
+facts panel under "Before you start". `LS-M020-06` is the release's stable ingestion key — every
+other prerequisite in all thirteen lessons speaks in the learner's terms ("Lesson 6", "Save a
+source file…"), and this is the only place a stable ID appears in learner-facing front-matter
+prose. A learner has no way to resolve it.
+
+**What the reader sees until then.** The facts panel shows the line as authored, ID included. The
+app deliberately does not rewrite it: showing the author's own words is the rendering contract,
+and this register is where the wording question goes instead.
 
 ---
 
@@ -76,12 +115,15 @@ For CF-001, four things move together:
    the import refuses the file outright: _"is not the file the release describes"_
    (`apps/server/src/modules/content/releaseFiles.ts:114`).
 3. The same lesson file inside the Lesson 2 lab kit, which carries its own copy at
-   `content/labs/HTTP_Lesson_02_Local_Server_Kit_v1/http-lesson-02-lab/`.
+   `http-lesson-02-lab/` inside the kit zip.
 4. The kit's zip and its `sha256` in `lab_downloads` (currently `5a6b0898…`), since the zip's bytes
    change with the file inside it.
 
-That is a release reissue, and the release version should move with it. It is the owner's call, not
-the implementation's.
+That is a release reissue, and the release version should move with it. Since 2026-09-21 the
+releases are cumulative — the same lesson bytes and kit zip ship in `FSSE-HTTP-FIRST-FIVE`,
+`FSSE-HTTP-FIRST-EIGHT` and `FSSE-HTTP-FIRST-THIRTEEN` — so a reissue applies the edit to whichever
+release is then current; the app imports one release directory at a time and does not need the
+superseded manifests changed. It is the owner's call, not the implementation's.
 
 ## Adding an entry
 

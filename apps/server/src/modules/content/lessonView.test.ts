@@ -198,29 +198,35 @@ describe('the front-matter facts a learner is shown', () => {
 });
 
 /**
- * The same two functions against the author's own five files. The fixture proves the rules; only
- * the real bytes prove the rules survive contact with a 549-line lesson carrying tables, fenced
+ * The same two functions against the author's own files. The fixture proves the rules; only the
+ * real bytes prove the rules survive contact with a 549-line lesson carrying tables, fenced
  * HTTP messages and a Mermaid diagram.
+ *
+ * The file list comes from the release manifest rather than being written out here, so this suite
+ * cannot quietly cover less than the release: a fourteenth lesson joins it on arrival.
  */
-const lessonsDir = path.resolve(
+const releaseDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../../..',
-  'VS_Code_App_and_First_Five_Lessons_v1/vs-code-first-five-v1/content/lessons',
+  'HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content',
 );
+const lessonsDir = path.join(releaseDir, 'lessons');
 
-const realLessonFiles = [
-  'HTTP_Lesson_01_Student_Edition_v2.md',
-  'HTTP_Lesson_02_Student_Edition_v1.md',
-  'HTTP_Lesson_03_Student_Edition_v1.md',
-  'HTTP_Lesson_04_Student_Edition_v1.md',
-  'HTTP_Lesson_05_Student_Edition_v1.md',
-];
+const realLessonFiles = (
+  JSON.parse(fs.readFileSync(path.join(releaseDir, 'learning-release.json'), 'utf8')) as {
+    lessons: { path: string }[];
+  }
+).lessons.map((entry) => path.basename(entry.path));
 
 function readLesson(file: string): string {
   return fs.readFileSync(path.join(lessonsDir, file), 'utf8');
 }
 
-describe('the five authored lessons, read from the release directory', () => {
+describe('the thirteen authored lessons, read from the release directory', () => {
+  it('covers every lesson the release carries', () => {
+    expect(realLessonFiles).toHaveLength(13);
+  });
+
   it.each(realLessonFiles)('leaves %s byte-identical below the cut', (file) => {
     const source = readLesson(file);
 
@@ -291,7 +297,7 @@ describe('the front-matter facts of the authored lessons', () => {
       (fact) => fact.key,
     );
 
-    // exercise_kit is in four of the five authored files. A deny-list with a gap ships the zip
+    // exercise_kit is in most of the authored files. A deny-list with a gap ships the zip
     // filename into the facts panel on all four; only an allow-list keeps it out.
     expect(keys).toEqual([
       'audience',
@@ -304,12 +310,31 @@ describe('the front-matter facts of the authored lessons', () => {
     ]);
   });
 
-  it.each(realLessonFiles)('never leaks an identifier out of %s', (file) => {
-    const facts = learnerFacingFacts(frontMatterOf(file));
+  /**
+   * Aimed at what the app controls: the identity and ingestion fields of the lesson being shown.
+   * Not a blanket "no ID-shaped text anywhere" — Lesson 7's authored prerequisites mention
+   * LS-M020-06 in prose, and showing the author's own words is the contract, not a leak. Whether
+   * that wording should say "Lesson 6" instead is CF-002 in docs/content-feedback.md, the owner's
+   * call.
+   */
+  it.each(realLessonFiles)('never leaks %s’s own identity fields into the facts', (file) => {
+    const frontMatter = frontMatterOf(file);
+    const facts = learnerFacingFacts(frontMatter);
+
+    const identityFields = [
+      'candidate_lesson_id',
+      'document_id',
+      'module',
+      'version',
+      'date',
+      'exercise_kit',
+      'lab_id',
+    ];
+    expect(facts.map((fact) => fact.key).filter((key) => identityFields.includes(key))).toEqual([]);
 
     const shown = JSON.stringify(facts);
-    expect(shown).not.toContain('FSSE-HTTP-STUDENT');
-    expect(shown).not.toContain('LS-M020');
+    expect(shown).not.toContain(String(frontMatter.candidate_lesson_id));
+    expect(shown).not.toContain(String(frontMatter.document_id));
     expect(shown).not.toContain('.zip');
   });
 });

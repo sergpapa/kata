@@ -21,17 +21,21 @@ export function answerRoutes(bodies: Readonly<Record<string, unknown>>, status =
 }
 
 export function lesson(order: number, title: string) {
-  const id = `LS-M020-0${order}`;
+  // Course order 1–8 is module M020; 9–13 restart the lesson number inside M021, exactly as the
+  // thirteen-release's manifest keys them. Position and identity must not be conflated — that is
+  // the bug the handoff warns about ("do not make lesson 1 of M021 replace the first course lesson").
+  const id =
+    order <= 8 ? `LS-M020-0${order}` : `LS-M021-0${order - 8}`;
   return {
     order,
     candidateLessonId: id,
     contentVersion: order === 1 ? '2.0.0-draft' : '1.0.0-draft',
-    documentId: `FSSE-HTTP-STUDENT-0${order}`,
-    module: 'M020',
+    documentId: `FSSE-HTTP-STUDENT-${String(order).padStart(2, '0')}`,
+    module: order <= 8 ? 'M020' : 'M021',
     displayTitle: title,
     manifestTitle: title,
-    sourcePath: `lessons/HTTP_Lesson_0${order}_Student_Edition_v1.md`,
-    sha256: `${order}`.repeat(64),
+    sourcePath: `lessons/HTTP_Lesson_${String(order).padStart(2, '0')}_Student_Edition_v1.md`,
+    sha256: String(order).padStart(2, '0').repeat(32),
     labId: order === 1 ? null : 'FSSE-HTTP-LAB-03-05',
   };
 }
@@ -46,13 +50,26 @@ export const releaseSummary = {
   importedAt: '2026-09-11T10:00:00.000Z',
 };
 
-/** The five real titles, so a test that reads the dashboard reads what the owner reads. */
+/** The real titles, so a test that reads the dashboard reads what the owner reads. */
 export const fiveLessons = [
   lesson(1, 'Lesson 1: What happens when your browser asks for something?'),
   lesson(2, 'Lesson 2: Give the browser an address—and something to answer'),
   lesson(3, 'Lesson 3: One menu, three ways to carry it'),
   lesson(4, 'Lesson 4: Ask the café directly—and inspect its reply'),
   lesson(5, 'Lesson 5: One page can make several requests'),
+];
+
+/** The full thirteen-release list, in manifest order across both modules. */
+export const thirteenLessons = [
+  ...fiveLessons,
+  lesson(6, 'Lesson 6: Follow the code that chooses the reply'),
+  lesson(7, 'Lesson 7: Add opening hours—and check the promise'),
+  lesson(8, 'Lesson 8: The reply arrived. Why is it the wrong one?'),
+  lesson(9, 'Lesson 9: The same address can give you a different answer'),
+  lesson(10, 'Lesson 10: Keeping a copy is not permission to reuse it forever'),
+  lesson(11, 'Lesson 11: Ask whether your copy still applies'),
+  lesson(12, 'Lesson 12: Make the conditional decision precise'),
+  lesson(13, 'Lesson 13: What the server sent is not always what the page received'),
 ];
 
 export function importedRelease(lessons = fiveLessons) {
