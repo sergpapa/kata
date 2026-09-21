@@ -74,10 +74,7 @@ const thirteenLessons = [
 /** The full fifteen-release list; orders 14–15 are the investigation pair, still inside M021. */
 export const fifteenLessons = [
   ...thirteenLessons,
-  lesson(
-    14,
-    'Lesson 14: The notice changed. Why are returning visitors still seeing the old one?',
-  ),
+  lesson(14, 'Lesson 14: The notice changed. Why are returning visitors still seeing the old one?'),
   lesson(15, 'Lesson 15: Repair the cause—and make the evidence survive your fix'),
 ];
 

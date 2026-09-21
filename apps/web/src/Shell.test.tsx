@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from './App.js';
@@ -252,6 +253,22 @@ describe('where focus lands when the page changes', () => {
       expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Reviews'),
     );
     expect(document.activeElement).toBe(screen.getByRole('main'));
+  });
+
+  it('steals no focus on first paint, even under StrictMode’s doubled mount effects', async () => {
+    answerRoutes({ '/api/release': importedRelease() });
+
+    // main.tsx mounts the app inside StrictMode. Its dev-only second effect run used to look like
+    // a navigation to the settled flag, dropping a keyboard reader onto <main> before they had
+    // done anything — exactly the first-paint steal the flag exists to prevent.
+    render(
+      <StrictMode>
+        <App />
+      </StrictMode>,
+    );
+
+    await screen.findAllByRole('listitem');
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('keeps Tab inside the open drawer, which covers the page behind it', async () => {

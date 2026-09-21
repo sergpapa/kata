@@ -50,7 +50,7 @@ describe('importing a release into the record store', () => {
   it('imports the release the author supplied, fifteen lessons in authored order', () => {
     db = openDatabase(':memory:');
 
-    const state = importRelease(db, loadConfig().releaseDir);
+    const state = importRelease(db, loadConfig({}).releaseDir);
 
     expect(state.state).toBe('imported');
     if (state.state !== 'imported') return;
@@ -105,14 +105,14 @@ describe('importing a release into the record store', () => {
     expect(thirteen.state).toBe('imported');
     if (thirteen.state !== 'imported') return;
 
-    const fifteen = importRelease(db, loadConfig().releaseDir);
+    const fifteen = importRelease(db, loadConfig({}).releaseDir);
     expect(fifteen.state).toBe('imported');
     if (fifteen.state !== 'imported') return;
 
     // A third release, not a rewrite of the earlier two: their rows still answer for themselves.
-    expect(new Set([firstFive.releaseRowId, thirteen.releaseRowId, fifteen.releaseRowId]).size).toBe(
-      3,
-    );
+    expect(
+      new Set([firstFive.releaseRowId, thirteen.releaseRowId, fifteen.releaseRowId]).size,
+    ).toBe(3);
     expect(loadReleaseSummary(db, firstFive.releaseRowId)?.releaseId).toBe('FSSE-HTTP-FIRST-FIVE');
     expect(loadReleaseSummary(db, firstFive.releaseRowId)?.lessons).toHaveLength(5);
     expect(loadReleaseSummary(db, thirteen.releaseRowId)?.releaseId).toBe(
@@ -125,6 +125,6 @@ describe('importing a release into the record store', () => {
     expect(rows.n).toBe(33);
 
     // Verify-on-every-start stays cheap: the identical release lands on its existing row.
-    expect(importRelease(db, loadConfig().releaseDir)).toEqual(fifteen);
+    expect(importRelease(db, loadConfig({}).releaseDir)).toEqual(fifteen);
   });
 });

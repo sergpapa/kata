@@ -330,6 +330,33 @@ describe('reading the lesson file', () => {
     expect(failure.code).toBe('front_matter_invalid');
   });
 
+  it('refuses a front matter that refers to itself, rather than crashing at store time', () => {
+    const fixture = makeFixture();
+    replaceLessonFile(
+      fixture,
+      'lessons/lesson-02.md',
+      lessonSource(
+        // A YAML alias cycle parses into a circular object. Unrefused, it passes every identity
+        // check and then throws inside JSON.stringify when the importer stores it — an uncaught
+        // crash at startup instead of the named refusal the app promises.
+        [
+          'document_id: FIX-DOC-02',
+          'version: "1.0.0-draft"',
+          'module: M020',
+          'candidate_lesson_id: FIX-LS-02',
+          'notes: &loop',
+          '  self: *loop',
+        ].join('\n'),
+        '# Lesson 2: the authored title\n\nProse.',
+      ),
+    );
+
+    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
+
+    expect(failure.code).toBe('front_matter_invalid');
+    expect(failure.file).toBe('lessons/lesson-02.md');
+  });
+
   it('refuses a lesson whose front matter carries no candidate_lesson_id', () => {
     const fixture = makeFixture();
     replaceLessonFile(
@@ -465,7 +492,7 @@ describe('lab kits referenced by lessons', () => {
 
 describe('the release the author actually supplied', () => {
   it('verifies clean: fifteen lessons, authored order, authored versions, Lesson 1 with no lab', () => {
-    const release = releaseOf(verifyRelease(loadConfig().releaseDir));
+    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
     expect(release.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
     expect(release.version).toBe('1.0.0-draft');
@@ -513,7 +540,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('reads each display title from the lesson file, not from the manifest or the filename', () => {
-    const release = releaseOf(verifyRelease(loadConfig().releaseDir));
+    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
     expect(release.lessons[0]?.displayTitle).toBe(
       'Lesson 1: What happens when your browser asks for something?',
@@ -525,7 +552,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('carries the five lab kits and the 45-entry activity file it references', () => {
-    const release = releaseOf(verifyRelease(loadConfig().releaseDir));
+    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
     expect(release.labKits.map((kit) => kit.labId)).toEqual([
       'FSSE-HTTP-LAB-02',
@@ -544,7 +571,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('carries the release identity the author published, not just its ID', () => {
-    const release = releaseOf(verifyRelease(loadConfig().releaseDir));
+    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
     expect(release.date).toBe('2026-09-21');
     expect(release.status).toContain('owner-review candidate');
@@ -556,7 +583,7 @@ describe('the release the author actually supplied', () => {
   it('catches a corrupted hash on the last lab kit, not only the first', () => {
     const dir = makeTempDir();
     tempDirs.push(dir);
-    copyReleaseDir(loadConfig().releaseDir, dir);
+    copyReleaseDir(loadConfig({}).releaseDir, dir);
     patchManifest(dir, (manifest) => {
       (manifest.lab_downloads[4] as { sha256: string }).sha256 = 'd'.repeat(64);
     });
@@ -570,7 +597,7 @@ describe('the release the author actually supplied', () => {
   it('catches a corrupted hash on the last lesson, not only the first', () => {
     const dir = makeTempDir();
     tempDirs.push(dir);
-    copyReleaseDir(loadConfig().releaseDir, dir);
+    copyReleaseDir(loadConfig({}).releaseDir, dir);
     patchManifest(dir, (manifest) => {
       (manifest.lessons[14] as { sha256: string }).sha256 = 'e'.repeat(64);
     });
@@ -582,9 +609,9 @@ describe('the release the author actually supplied', () => {
   });
 
   it('records the manifest hash it verified the release against', () => {
-    const release = releaseOf(verifyRelease(loadConfig().releaseDir));
+    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
     const manifestBytes = fs.readFileSync(
-      path.join(loadConfig().releaseDir, 'learning-release.json'),
+      path.join(loadConfig({}).releaseDir, 'learning-release.json'),
     );
 
     expect(release.manifestSha256).toBe(sha256(manifestBytes));
@@ -627,7 +654,7 @@ describe('the superseded releases, still beside the fifteen', () => {
     'the $name release agrees with the fifteen on every key learner state will hang off',
     (base) => {
       const baseline = releaseOf(verifyRelease(base.dir));
-      const fifteen = releaseOf(verifyRelease(loadConfig().releaseDir));
+      const fifteen = releaseOf(verifyRelease(loadConfig({}).releaseDir));
 
       // Guard against a vacuous pass: this comparison only says something while the two sides are
       // genuinely different releases.

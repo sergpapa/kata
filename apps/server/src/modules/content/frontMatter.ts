@@ -56,6 +56,21 @@ export function splitFrontMatter(
     };
   }
 
+  // A YAML alias cycle parses into a circular object, which every consumer downstream stores or
+  // renders via JSON.stringify — an uncaught crash instead of a named refusal. Refuse it here,
+  // where the file is still known.
+  try {
+    JSON.stringify(parsed);
+  } catch {
+    return {
+      ok: false,
+      problem: {
+        kind: 'invalid',
+        detail: 'its front matter refers to itself (a YAML alias cycle), so it cannot be stored',
+      },
+    };
+  }
+
   return { ok: true, value: { frontMatter: parsed as Record<string, unknown>, body } };
 }
 

@@ -96,7 +96,12 @@ export function Shell({
   const trigger = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
   const main = useRef<HTMLElement>(null);
-  const settled = useRef(false);
+  /**
+   * The address whose page last claimed focus — null until first paint. A plain "have I run"
+   * boolean cannot tell StrictMode's doubled mount effect from a navigation, and stole focus on
+   * initial load in dev; only an actual change of address is a navigation.
+   */
+  const focusedRoute = useRef<string | null>(null);
   const wasOpen = useRef(false);
   /** Whether the drawer was dismissed rather than navigated out of. Decides where focus lands. */
   const dismissed = useRef(false);
@@ -126,8 +131,8 @@ export function Shell({
   // region announces the change and puts the next Tab in the right place. Skipped on first paint,
   // where nothing has changed yet and stealing focus would be wrong.
   useEffect(() => {
-    if (settled.current) main.current?.focus();
-    settled.current = true;
+    if (focusedRoute.current !== null && focusedRoute.current !== routeKey) main.current?.focus();
+    focusedRoute.current = routeKey;
   }, [routeKey]);
 
   // The drawer owns the focus it took. Opening puts the reader on the first destination, because a
