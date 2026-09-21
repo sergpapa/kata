@@ -98,7 +98,7 @@ the exact reason the release was refused.
 - [x] D3. The page lists the five lesson titles in manifest order with the release ID and version,
       or states the named failure. No lesson body is rendered in this slice.
 - [x] D4. The real supplied release at
-      `VS_Code_App_and_First_Five_Lessons_v1/vs-code-first-five-v1/content` imports clean: exactly
+      `content/releases/vs-code-first-five-v1/content` imports clean: exactly
       five lessons, IDs `LS-M020-01` … `LS-M020-05` in order 1–5, Lesson 1 at `2.0.0-draft` and
       Lessons 2–5 at `1.0.0-draft`, Lesson 1 with no lab.
 

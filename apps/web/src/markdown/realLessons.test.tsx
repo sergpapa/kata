@@ -16,10 +16,7 @@ import { LessonMarkdown } from './LessonMarkdown.js';
  */
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const releaseDir = path.join(
-  repoRoot,
-  'HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content',
-);
+const releaseDir = path.join(repoRoot, 'content/releases/http-lessons-09-13-release-v1/content');
 const lessonsDir = path.join(releaseDir, 'lessons');
 
 const lessonFiles = (

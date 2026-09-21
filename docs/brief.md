@@ -4,7 +4,7 @@
 interview — the requirements already exist in writing, and this brief selects the subset that the
 first checkpoint delivers.
 
-**Source package:** `VS_Code_App_and_First_Five_Lessons_v1/vs-code-first-five-v1/`
+**Source package:** `content/releases/vs-code-first-five-v1/`
 (entry document `VS_Code_Coder_Handoff_v1.md`, package `FSSE-VSCODE-FIRST-FIVE-HANDOFF` v1.0.0-draft).
 That directory is an input, not our source code. It is left byte-for-byte intact; its hashes are how
 we prove an import was faithful.

@@ -26,7 +26,7 @@ describe('the default configuration', () => {
     const releaseDir = loadConfig({}).releaseDir;
 
     expect(releaseDir.split(path.sep).join('/')).toContain(
-      'HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content',
+      'content/releases/http-lessons-09-13-release-v1/content',
     );
     expect(fs.existsSync(path.join(releaseDir, 'learning-release.json'))).toBe(true);
   });

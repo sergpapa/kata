@@ -2,10 +2,11 @@
 # which machine checked it out.
 * text=auto eol=lf
 
-# The supplied content package is byte-addressed: `learning-release.json` carries a SHA-256 for every
-# lesson, lab and the activity file, and the importer verifies them. Any line-ending conversion here
-# changes those bytes and breaks every hash. Leave this directory untouched.
-VS_Code_App_and_First_Five_Lessons_v1/** -text
+# The supplied content packages are byte-addressed: each `learning-release.json` and
+# `package-manifest.json` carries a SHA-256 for every file, and the importer verifies them. Any
+# line-ending conversion here changes those bytes and breaks every hash. Every received drop lives
+# under content/releases/, so one rule protects them all. Leave these directories untouched.
+content/releases/** -text
 
 *.zip binary
 *.png binary

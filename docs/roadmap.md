@@ -4,8 +4,13 @@
 
 Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-THIRTEEN` — thirteen lessons across
 modules M020 and M021, four lab kits, 39 activity entries — from
-`HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content`, and serves all of it inside
-the Engineering Practice shell unchanged. Lessons 1–5 kept their IDs, versions and bytes, verified
+`content/releases/http-lessons-09-13-release-v1/content`, and serves all of it inside
+the Engineering Practice shell unchanged. All three received packages now live byte-for-byte under
+`content/releases/` (pure `git mv`, every manifest hash intact; ADR 0009), the redundant outer
+wrapper folders are gone, `content/RELEASES.md` names the current release, and one
+`.gitattributes` rule (`content/releases/** -text`) now protects every drop from line-ending
+conversion — previously only the first-five package was protected. A future drop gets a directory
+there and one path flip in `apps/server/src/config.ts`. Lessons 1–5 kept their IDs, versions and bytes, verified
 against the first-five manifest, which still imports clean beside the new release: the record
 store holds both, append-only, so nothing a learner ever records against lessons 1–5 can be
 orphaned by a release update. The two received packages are committed byte-for-byte like the first

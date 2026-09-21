@@ -208,7 +208,7 @@ describe('the front-matter facts a learner is shown', () => {
 const releaseDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../../../..',
-  'HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content',
+  'content/releases/http-lessons-09-13-release-v1/content',
 );
 const lessonsDir = path.join(releaseDir, 'lessons');
 

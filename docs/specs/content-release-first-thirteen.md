@@ -33,7 +33,8 @@ Checked 2026-09-21 against the received bytes, before any code moved:
 
 - [x] C1. **Default import.** With no env overrides the app verifies and imports
       `FSSE-HTTP-FIRST-THIRTEEN@1.0.0-draft` from
-      `HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content`: exactly thirteen
+      `content/releases/http-lessons-09-13-release-v1/content` (received as
+      `HTTP_Caching_Lessons_09_13_v1`, rehomed byte-for-byte under `content/releases/`): exactly thirteen
       lessons, `LS-M020-01` … `LS-M020-08` then `LS-M021-01` … `LS-M021-05`, in manifest order
       1–13; Lesson 1 at `2.0.0-draft`, every other lesson at `1.0.0-draft`; the four lab kits
       (`FSSE-HTTP-LAB-02`, `-03-05`, `-06-08`, `-09-13`) with their manifest hashes; the 39-entry

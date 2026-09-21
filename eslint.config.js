@@ -11,9 +11,7 @@ export default tseslint.config(
       'screenshots/**',
       'test-results/**',
       'playwright-report/**',
-      'VS_Code_App_and_First_Five_Lessons_v1/**',
-      'HTTP_Curriculum_Depth_and_Lessons_06_08_v1/**',
-      'HTTP_Caching_Lessons_09_13_v1/**',
+      'content/releases/**',
       // Supplied reference material, like the releases above: not this application's source to lint.
       'engineering-practice-ui-design-v1/**',
       // Other tools' worktrees. A second checkout inside the repo is not a second project.

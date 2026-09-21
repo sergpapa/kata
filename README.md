@@ -84,24 +84,26 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 
 ## Where things are
 
-| Path                                          | What lives there                                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `apps/server`                                 | Fastify application, domain modules under `src/modules/<area>/`, SQLite access      |
-| `apps/server/src/modules/content/`            | Release import: manifest, hashes, path safety, and the content repository           |
-| `apps/web`                                    | React client (Vite)                                                                 |
-| `apps/web/src/markdown/`                      | The lesson renderer and the guards that keep lesson content inert                   |
-| `tools/`                                      | Local development tooling, including the screenshot capture                         |
-| `docs/brief.md`                               | What the first checkpoint delivers, and its hard constraints                        |
-| `docs/roadmap.md`                             | Current state and the remaining slices — read this first in a new session           |
-| `docs/specs/`                                 | The agreed acceptance criteria for each slice, and its slice log                    |
-| `docs/adr/`                                   | Why the stack and the data rules are what they are                                  |
-| `data/`                                       | Your work. Not committed. Delete the directory to start clean.                      |
-| `HTTP_Caching_Lessons_09_13_v1/`              | The current content package (lessons 1–13); the app imports from it by default      |
-| `HTTP_Curriculum_Depth_and_Lessons_06_08_v1/` | The lessons 6–8 package: superseded content, current curriculum specifications      |
-| `VS_Code_App_and_First_Five_Lessons_v1/`      | The first content package, and the app/architecture handoff that governs this build |
+| Path                                                | What lives there                                                                           |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `apps/server`                                       | Fastify application, domain modules under `src/modules/<area>/`, SQLite access             |
+| `apps/server/src/modules/content/`                  | Release import: manifest, hashes, path safety, and the content repository                  |
+| `apps/web`                                          | React client (Vite)                                                                        |
+| `apps/web/src/markdown/`                            | The lesson renderer and the guards that keep lesson content inert                          |
+| `tools/`                                            | Local development tooling, including the screenshot capture                                |
+| `docs/brief.md`                                     | What the first checkpoint delivers, and its hard constraints                               |
+| `docs/roadmap.md`                                   | Current state and the remaining slices — read this first in a new session                  |
+| `docs/specs/`                                       | The agreed acceptance criteria for each slice, and its slice log                           |
+| `docs/adr/`                                         | Why the stack and the data rules are what they are                                         |
+| `data/`                                             | Your work. Not committed. Delete the directory to start clean.                             |
+| `content/releases/`                                 | Every received content package, byte-for-byte; `content/RELEASES.md` names the current one |
+| `content/releases/http-lessons-09-13-release-v1/`   | The current package (lessons 1–13); the app imports from it by default                     |
+| `content/releases/http-depth-and-lessons-06-08-v1/` | The lessons 6–8 package: superseded content, current curriculum specifications             |
+| `content/releases/vs-code-first-five-v1/`           | The first content package, and the app/architecture handoff that governs this build        |
 
 The content packages are inputs, kept byte-for-byte; never edit them. Proposed changes to their
-content go to [docs/content-feedback.md](docs/content-feedback.md) for the owner instead.
+content go to [docs/content-feedback.md](docs/content-feedback.md) for the owner instead. A new
+drop gets its own directory under `content/releases/`; see [content/RELEASES.md](content/RELEASES.md).
 
 ## Pinned versions
 

@@ -81,7 +81,8 @@ describe('importing a release into the record store', () => {
     db = openDatabase(':memory:');
     const firstFiveDir = path.join(
       repoRoot,
-      'VS_Code_App_and_First_Five_Lessons_v1',
+      'content',
+      'releases',
       'vs-code-first-five-v1',
       'content',
     );
