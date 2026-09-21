@@ -16,7 +16,10 @@ Markdown still parses straight to React elements — no HTML string exists anywh
 anything that must not render becomes visible text rather than being deleted. A diagram is the one
 exception to "no markup anywhere", kept honest by being a `srcDoc` on an iframe whose `sandbox`
 grants nothing at all. Lesson 2's diagram does not parse as authored, so it shows its source with
-the parser's own reason; the fix is proposed in the spec and needs a reissued release. Schema
+the parser's own reason; the fix is proposed as CF-001 in `docs/content-feedback.md` and needs a
+reissued release. That file is the register of every proposed change to the authored content — each
+entry carries the exact original and proposed text, so handing the batch to the owner after a review
+pass is a copy of the file, not a reconstruction. Schema
 version 2, unchanged this slice.
 
 `npm test` (364 passing across 16 files), `npm run lint`, `npm run typecheck`, `npm run build`,

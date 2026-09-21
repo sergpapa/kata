@@ -45,8 +45,8 @@ Replacing `;` with `,` or with an em dash makes it render at 969.5 × 704. **Tha
 made in this slice.** The handoff requires returning a proposed teaching change to the owner with
 the exact original and proposed text (§4 "Versioning and ownership"), and the lesson file's
 SHA-256 is in `content/learning-release.json` — editing it in place would make the release refuse
-to import. The exact original and proposed text is in the slice log below, for the owner to accept
-or decline.
+to import. The exact original and proposed text is CF-001 in `docs/content-feedback.md`, which is
+where every proposed content change is collected for the owner to accept or decline.
 
 This is the one useful thing about the defect: the labelled text fallback this slice owes is not a
 branch that only a test exercises. It is what the owner will see on Lesson 2 until the release is
@@ -235,7 +235,8 @@ background.
   successful render; natural size with the diagram scrolling inside its own box on a phone.
 
 - 2026-09-11. **Proposed teaching change, for the owner to accept or decline.** Lesson 2's diagram
-  cannot be drawn as authored. Not changed in this slice.
+  cannot be drawn as authored. Not changed in this slice. Recorded as CF-001 in
+  `docs/content-feedback.md`, which is the copy to keep current if the wording is revisited.
 
   File: `content/lessons/HTTP_Lesson_02_Student_Edition_v1.md`, line 418.
 
