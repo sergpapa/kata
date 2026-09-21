@@ -128,3 +128,41 @@ exactly as before, and can start the 6–8 lab kit on 4317 while the app is runn
      shown text. This is a strictly narrower claim about the app plus a register entry about the
      content, not a weakening: the old assertion was proving a property of the author's prose,
      which was never the app's to promise.
+
+- 2026-09-21, green and verified. All eleven red tests pass with the config move (release
+  directory, 8317, proxy, screenshot runner on 8318 — 4318 is the 6–8 kit's documented alternate).
+  Full local gate: 435 tests across 18 files, lint, typecheck, build, format, and the screenshot
+  gate over seventeen routes × three widths × both schemes. End-to-end, both halves of the port
+  story proven at once: the built app answering thirteen lessons on 8317 while the 6–8 kit's
+  server listened on 4317 and answered curl.
+
+  The defect that mattered was in the gate, not the app. The diagram reader counted only SVG
+  `text` labels and read ink from `text.messageText` — both sequence-diagram anatomy — so Lesson
+  6's fully drawn flowchart (eleven labels, all HTML inside `foreignObject`) failed twelve checks
+  as "0 labels, unreadable ink". The picture was perfect; the reader was grammar-blind, the exact
+  inverse of the blank frames slice 3's review caught. `tools/diagram-checks.mjs` now counts both
+  label mechanisms and reads legibility from `.messageText` fill or `.nodeLabel` colour, whichever
+  the drawing has, probed against the real frame DOM (0 texts, 11 foreignObjects, ink
+  `rgb(51,51,51)` on white) before it was written.
+
+- 2026-09-21, reviews.
+
+  - **test-guardian PRE: pass** with one real gap, closed before the tests were pinned — the Vite
+    dev proxy's default port was untested (`viteProxy.test.ts` added). Its two smaller notes were
+    also taken: the fixture hash collision at orders 1/11, 2/12, 3/13 fixed with
+    `padStart(2, '0').repeat(32)`, and the red-count in this log corrected.
+  - **test-guardian POST: skipped by rule.** `git diff` from the pinned red commit over every test
+    path shows one comment count fix and one prettier line-join; no assertion moved.
+  - **`/code-review` (medium): no correctness bugs.** Two low findings, both closed: the roadmap's
+    Current state was stale (rewritten this slice), and two extracted kit directories sat
+    untracked inside the byte-for-byte first-five package — verified byte-identical to their
+    committed zips, then deleted as derived artifacts.
+  - **Design review: ship with nits**, one should-fix applied — Lesson 11's wide tables at 375px
+    hard-cut with no scroll affordance where code blocks and diagrams both signal more content;
+    `.table-scroll` now shares their gradient stack, each box naming its own surface token
+    (`--code-bg` / `--card`). Two nits deferred with reasons: (1) Lesson 13's plain-text tables go
+    very tall at 375px from narrow-column wrapping — legible, not broken, content-shaped; worth a
+    stacked variant only if more tables arrive shaped like this. (2) The screenshot gate never
+    captures a `<details>` disclosure open, so an overflow inside the facts panel would be
+    invisible to it; noted for the slice that next touches those panels rather than growing this
+    one's scope.

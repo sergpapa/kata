@@ -2,46 +2,50 @@
 
 ## Current state
 
-Last updated 2026-09-15. The five lessons import, each reads at its own address, the authored
-Mermaid diagrams are drawn, and all of it now sits inside the Engineering Practice design: a navy
-course sidebar beside a pale workspace, a white top bar carrying the trail, and a card on the
-dashboard saying which lesson to start. The sidebar and the top bar stay pinned to the viewport,
-so navigation is reachable from anywhere in a 12,000px lesson. Below 768px the sidebar becomes a
-drawer, reached from a trigger in the top bar that stays on screen with it. Nothing on any
-page claims progress — no ratio, no bar, no "studied" — because nothing records what has been read;
-that is Milestone 2, and the dashboard says so in words. Practice, Reviews and Progress are real
-addresses with honest pages naming the milestone that builds each one.
+Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-THIRTEEN` — thirteen lessons across
+modules M020 and M021, four lab kits, 39 activity entries — from
+`HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content`, and serves all of it inside
+the Engineering Practice shell unchanged. Lessons 1–5 kept their IDs, versions and bytes, verified
+against the first-five manifest, which still imports clean beside the new release: the record
+store holds both, append-only, so nothing a learner ever records against lessons 1–5 can be
+orphaned by a release update. The two received packages are committed byte-for-byte like the first
+one; the 6–8 package matters for its revised curriculum specifications, its lesson content being a
+subset of the thirteen-release.
 
-Markdown still parses straight to React elements — no HTML string exists anywhere in the app — and
-anything that must not render becomes visible text rather than being deleted. A diagram is the one
-exception to "no markup anywhere", kept honest by being a `srcDoc` on an iframe whose `sandbox`
-grants nothing at all. Lesson 2's diagram does not parse as authored, so it shows its source with
-the parser's own reason; the fix is proposed as CF-001 in `docs/content-feedback.md` and needs a
-reissued release. That file is the register of every proposed change to the authored content — each
-entry carries the exact original and proposed text, so handing the batch to the owner after a review
-pass is a copy of the file, not a reconstruction. Schema
-version 2, unchanged this slice.
+The app moved from port 4317 to 8317 (screenshot runner 4318 → 8318): the author's lab kits own
+4315–4320, and lessons 6–8 tell the learner to run a kit server on 4317 and curl it while reading
+the lesson — with the app squatting there, the kit cannot start, or worse, curl gets the app's
+answer. Verified side by side: the app serves thirteen lessons on 8317 while the 6–8 kit listens
+on 4317.
 
-`npm test` (364 passing across 16 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+Lessons 1, 5, 6 and 11 draw their diagrams; lesson 6's flowchart exposed that the screenshot
+gate's reader only understood sequence diagrams (SVG `text` labels), so it now also reads the
+HTML-in-`foreignObject` labels flowcharts use. Lesson 2 keeps its honest fallback — its bytes are
+unchanged in the new release, so CF-001 now needs the _next_ reissue — and CF-002 is new: lesson
+7's authored prerequisite shows the learner a stable ID. Both sit in `docs/content-feedback.md`,
+the register whose copy is the owner handover. Markdown still parses straight to React elements,
+raw HTML still becomes visible text, and the sandboxed-iframe diagram exception still grants
+nothing. Schema version 2, unchanged again this slice.
+
+`npm test` (435 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
 `npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate now visits
-nine routes at three widths in both schemes, plus a 720px pass (1440 at 200% zoom), the drawer
-checked open at 375px, and navigation checked still in view 3,000px down a lesson. It fails the build if a page scrolls sideways, a code block stops preserving
-whitespace, Mermaid lands in the entry chunk, or a diagram stops being a drawing — that last one
-read from inside the frame's own document, after the review found the old check passing on blank
-frames.
+seventeen routes at three widths in both schemes, plus the 720px zoom pass, the open drawer, and
+pinned navigation 3,000px down a lesson. Nothing on any page claims progress, because nothing
+records what has been read; that is Milestone 2, and the dashboard says so in words.
 
-Two things are known and not fixed. The design package's published `--input` border measures 1.53:1
-on white where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2
-adds the first textarea and `docs/specs/visual-design-integration.md` C2 names darker values that
-pass. And `engineering-practice-ui-design-v1/`, which that spec cites as its source, is committed
-here for the first time so the spec does not point at a directory a clone would not have.
+Known and not fixed: the design package's published `--input` border measures 1.53:1 on white
+where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2 adds the
+first textarea and `docs/specs/visual-design-integration.md` C2 names darker values that pass.
+Deferred with reasons in `docs/specs/content-release-first-thirteen.md`: content-shaped tall
+tables at 375px (lesson 13), and open-disclosure captures missing from the screenshot gate.
 
-Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds those,
-and will add heading `id`s with it.
+Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds
+those, and will add heading `id`s with it — now over thirteen lessons instead of five, which is
+also why it matters more.
 
 Next action: Milestone 1, slice 4 — reader navigation and resume, which lands inside this shell.
 
-## Milestone 1 — Read the five lessons faithfully (goal: the owner can read Lessons 1–5 in the app, in the authored wording and order)
+## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–13 since the FIRST-THIRTEEN release — in the app, in the authored wording and order)
 
 - [x] **Release import.** Done 2026-09-11. All eight hashes verified against received bytes on every
       start, paths refused by either OS convention and by real path, identity conflicts between the
@@ -71,13 +75,25 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
       handling) and a design review, whose finding that mattered was a screenshot check passing on
       blank diagram frames. Criteria, the two knowing deviations and the slice log are in
       `docs/specs/visual-design-integration.md`.
+- [x] **Thirteen-lesson release import.** Done 2026-09-21, out of order because the content
+      arrived: two cumulative packages (lessons 6–8 with revised curriculum specifications, and
+      lessons 9–13). The app imports `FSSE-HTTP-FIRST-THIRTEEN`; lessons 1–5 keep their keys and
+      bytes, proven against the first-five manifest at test time; the app leaves port 4317 to the
+      6–8 lab kit and serves on 8317. The defect that mattered was the screenshot gate's diagram
+      reader being flowchart-blind — a fully drawn Lesson 6 reported zero labels, the inverse of
+      slice 3's blank frames passing. test-guardian PRE (one gap closed: the dev proxy's port was
+      untested), POST skipped on diff evidence, `/code-review` (two low, both closed), design
+      review (one fix: tables at 375px now carry the same scroll cue as code blocks). Criteria and
+      slice log in `docs/specs/content-release-first-thirteen.md`; content findings CF-002 and the
+      CF-001 carry-over in `docs/content-feedback.md`.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
 ## Milestone 2 — Keep the owner's work honestly (goal: work survives a refresh and a restart, and is never falsely labelled saved)
 
-- [ ] **Activity placement.** The 15 activities from `trial-activities.json` beside their
-      `source_heading`, without re-rendering the excerpt that is already on the page.
+- [ ] **Activity placement.** The 39 activities from `trial-activities.json` (15 original, 24
+      added with lessons 6–13) beside their `source_heading`, without re-rendering the excerpt
+      that is already on the page.
 - [ ] **Acknowledged saves.** Compare-and-set writes with the four states — unsaved, saving, saved,
       failed to save — and a visible conflict path rather than a silent overwrite.
 - [ ] **Prediction history.** An acknowledged prediction is its own revision; a later correction
@@ -87,14 +103,18 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
 
 ## Milestone 3 — Local labs and the handoff back (goal: the owner can do the terminal work and send their notes to the content author)
 
-- [ ] **Lab downloads.** Correct kit per lesson (none for 1, its own for 2, shared for 3–5), served
-      with its version identity, plus copy-exact command buttons that copy and never execute.
+- [ ] **Lab downloads.** Correct kit per lesson (none for 1, its own for 2, shared kits for 3–5,
+      6–8 and 9–13), served with its version identity, plus copy-exact command buttons that copy
+      and never execute.
 - [ ] **Export.** The owner's actual work with lesson, activity, content-version and release context,
-      in a form that travels with `Owner_Review_After_Lesson_05.md`.
+      in a form that travels with the owner review forms (`Owner_Review_After_Lesson_05.md`, `_08`,
+      `_13`).
 - [ ] **Accessibility and responsiveness pass.** Keyboard operation of navigation, notes, downloads,
       help and export; 375 / 768 / 1440 with no horizontal page scroll; diagram meaning as text.
-- [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6 and write an
-      honest verification report naming what was exercised and what was not.
+- [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
+      the 6–8 handoff's "App acceptance checks" and the seven in the 9–13 handoff's "Acceptance in
+      your app" (the ones this slice already proved are marked in its spec), and write an honest
+      verification report naming what was exercised and what was not.
 
 ## Beyond the checkpoint — not started, not scheduled
 
@@ -104,6 +124,32 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-21, slice 5 — thirteen-lesson release import.** Built to
+  `docs/specs/content-release-first-thirteen.md`: 435 tests, test-guardian PRE, `/code-review`,
+  design review, POST skipped on diff evidence (only a comment count and a prettier line-join moved
+  after the pinned red commit).
+
+  Scoping found the slice's one genuine conflict before any code moved: the 6–8 lab kit and the
+  app both defaulted to port 4317, and the first-five package never chose a port for the app — the
+  4317 was this repo's own. The app moved to 8317. Every compatibility claim in the two packages
+  was verified against received bytes before being relied on: lessons 1–5 identical across all
+  three manifests, all hashes matching disk, the 15 old activity IDs a subset of the new 39.
+
+  PRE closed a real gap — the Vite dev proxy's port default was untested, so the server could move
+  off 4317 while the client kept dialling it, failing every request in `npm run dev` with nothing
+  red. The defect that mattered after green was in the gate, not the app: the diagram reader only
+  understood sequence diagrams' SVG `text` labels, so Lesson 6's fully drawn flowchart (labels in
+  HTML inside `foreignObject`) reported zero labels — the inverse of slice 3's blank frames
+  passing. The design review's one fix: wide tables at 375px hard-cut with no scroll cue where
+  code blocks and diagrams both fade; `.table-scroll` now shares their gradient stack, each box
+  naming its surface. Content findings went to the register, not the code: CF-002 (lesson 7's
+  prerequisite shows a stable ID) and CF-001's carry-over (lesson 2's bytes unchanged, so the fix
+  needs the next reissue).
+
+  One test re-aimed, declared in the spec: the facts-panel leak check asserted no `LS-M020` text
+  anywhere, which lesson 7's authored prose legitimately trips; it now checks the app's own
+  responsibility — no identity field surfaces, the lesson's own IDs never appear.
 
 - **2026-09-11, slice 2 — Markdown rendering contract.** Built to
   `docs/specs/markdown-rendering.md`: 219 tests, test-guardian PRE and POST, `/code-review`, design
