@@ -31,40 +31,40 @@ Checked 2026-09-21 against the received bytes, before any code moved:
 
 ## Acceptance criteria
 
-- [ ] C1. **Default import.** With no env overrides the app verifies and imports
+- [x] C1. **Default import.** With no env overrides the app verifies and imports
       `FSSE-HTTP-FIRST-THIRTEEN@1.0.0-draft` from
       `HTTP_Caching_Lessons_09_13_v1/http-lessons-09-13-release-v1/content`: exactly thirteen
       lessons, `LS-M020-01` … `LS-M020-08` then `LS-M021-01` … `LS-M021-05`, in manifest order
       1–13; Lesson 1 at `2.0.0-draft`, every other lesson at `1.0.0-draft`; the four lab kits
       (`FSSE-HTTP-LAB-02`, `-03-05`, `-06-08`, `-09-13`) with their manifest hashes; the 39-entry
       activity set stored whole.
-- [ ] C2. **Continuity of the keys learner state will hang off.** For lessons 1–5, the
+- [x] C2. **Continuity of the keys learner state will hang off.** For lessons 1–5, the
       (`candidate_lesson_id`, `content_version`, `sha256`) triple in the imported thirteen-release
       equals the first-five release's manifest values, read from the old package at test time.
       The first-five release still verifies clean from its own directory — it remains valid input,
       not a superseded relic, and it is the baseline the comparison is made against.
-- [ ] C3. **Two releases, one record store.** A database that already imported the first-five
+- [x] C3. **Two releases, one record store.** A database that already imported the first-five
       release imports the thirteen-release beside it: the old rows remain untouched, the app serves
       the release it verified this start, and re-importing the thirteen-release adds no rows.
       (Fixture-level append-only behaviour is already pinned by `repository.test.ts`; this criterion
       drives the two real releases through `importRelease` into one database.)
-- [ ] C4. **The app leaves port 4317 to the lab.** Default port becomes **8317** — it echoes the
+- [x] C4. **The app leaves port 4317 to the lab.** Default port becomes **8317** — it echoes the
       old number but sits far outside the author's climbing 431x kit block. `EDUCODE_PORT` still
       wins. The Vite dev proxy follows the same default. README and docs stop claiming 4317.
-- [ ] C5. **All thirteen authored lessons pass the rendering contract.** The server-side
+- [x] C5. **All thirteen authored lessons pass the rendering contract.** The server-side
       real-lesson suite (`lessonView.test.ts`) and the client-side one (`realLessons.test.tsx`)
       run over the thirteen-release lessons directory, with the file list derived from the release
       manifest rather than hard-coded, so the suites cannot silently cover less than the release.
-- [ ] C6. **Diagram truth, stated per lesson.** Five lessons carry a Mermaid fence: 1, 2, 5, 6, 11.
+- [x] C6. **Diagram truth, stated per lesson.** Five lessons carry a Mermaid fence: 1, 2, 5, 6, 11.
       In real Chromium (`tools/screenshots.mjs`) lessons 1, 5, 6 and 11 must draw; lesson 2 keeps
       its honest fallback (CF-001, bytes unchanged in this release); the other eight lesson routes
       must load no Mermaid. Each diagram's equivalent textual account is asserted where the author
       put it: "In words:" after the fence in lessons 1, 2, 5, 6; the preceding "The diagram shows…"
       paragraph in lesson 11.
-- [ ] C7. **The list surfaces scale.** Dashboard and sidebar list thirteen lessons in manifest
+- [x] C7. **The list surfaces scale.** Dashboard and sidebar list thirteen lessons in manifest
       order with correct hrefs, driven by the release the API serves — pinned at component level
       with a thirteen-lesson fixture.
-- [ ] C8. **The screenshot gate covers the new surface.** All thirteen lesson routes visited at
+- [x] C8. **The screenshot gate covers the new surface.** All thirteen lesson routes visited at
       the three widths in both schemes, with the C6 diagram expectations enforced from inside each
       frame's own document, plus the existing zoom, drawer and pinned-navigation checks.
 
