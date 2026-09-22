@@ -220,3 +220,31 @@ describe('the five Mermaid diagrams', () => {
     expect(blocks).toContain(mermaidSourceOf(file));
   }, 30_000);
 });
+
+/**
+ * Criterion N4 in docs/specs/reader-navigation-and-resume.md, against the author's own files: the
+ * contents list and the rendered body must agree exactly, or a sidebar entry points at nothing.
+ */
+describe('the contents anchors across the fifteen lessons', () => {
+  it.each(lessonFiles)('gives every heading of %s a unique namespaced anchor', (file) => {
+    const container = renderLesson(file);
+
+    const ids = [...container.querySelectorAll('h2, h3, h4, h5, h6')].map((heading) => heading.id);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) expect(id).toMatch(/^user-content-/);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(lessonFiles)('agrees with the rendered sections of %s, one entry each', (file) => {
+    const entries: { id: string; text: string }[][] = [];
+    const { container } = render(
+      <LessonMarkdown markdown={bodyOf(file)} onOutline={(outline) => entries.push([...outline])} />,
+    );
+
+    const sections = [...container.querySelectorAll('h2')];
+    expect(sections.length).toBeGreaterThan(0);
+    expect(entries.at(-1)).toEqual(
+      sections.map((heading) => ({ id: heading.id, text: heading.textContent ?? '' })),
+    );
+  });
+});

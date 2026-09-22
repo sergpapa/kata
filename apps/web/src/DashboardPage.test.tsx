@@ -99,12 +99,17 @@ describe('the counts on the dashboard', () => {
     expect(screen.queryAllByRole('progressbar')).toHaveLength(0);
   });
 
-  it('says plainly that nothing is recorded yet, rather than showing an empty number', async () => {
+  // Re-aimed in slice 4, declared in docs/specs/reader-navigation-and-resume.md: "nothing is
+  // recorded" stopped being true when the resume point arrived. The card now has to state both
+  // truths — what is kept, and what still is not.
+  it('says plainly what is kept and what is not recorded yet', async () => {
     answerRoutes({ '/api/release': importedRelease() });
 
     render(<App />);
 
-    expect(await screen.findByText(/nothing .* recorded yet/i)).toBeTruthy();
+    expect(await screen.findByText(/lesson you last open/i)).toBeTruthy();
+    expect(screen.getByText(/not recorded yet/i)).toBeTruthy();
+    expect(screen.getByText(/milestone 2/i)).toBeTruthy();
   });
 });
 
@@ -169,6 +174,83 @@ describe('the list of lessons', () => {
     expect(details?.hasAttribute('open')).toBe(false);
     expect(details?.textContent).toContain('FSSE-HTTP-FIRST-FIVE');
     expect(details?.textContent).toContain('FSSE-HTTP-LAB-03-05');
+  });
+});
+
+/**
+ * Criteria R3–R5 in docs/specs/reader-navigation-and-resume.md: the card offers the way back to
+ * the lesson last opened — and claims nothing beyond "last opened", because opening is all the
+ * app can actually know happened.
+ */
+describe('the card once a lesson has been opened', () => {
+  const resumeAt = (candidateLessonId: string) => ({
+    state: 'set',
+    candidateLessonId,
+    recordedAt: '2026-09-22T10:00:00.000Z',
+  });
+
+  it('offers Continue to the last-opened lesson, by its number and authored title', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/resume-point': resumeAt('LS-M020-03'),
+    });
+
+    render(<App />);
+    await screen.findByTestId('current-lesson');
+
+    const action = await within(firstCard()).findByRole('link', { name: /continue lesson/i });
+    expect(action.getAttribute('href')).toBe('/lessons/LS-M020-03');
+    expect(firstCard().textContent).toContain('Lesson 3: One menu, three ways to carry it');
+    expect(firstCard().textContent).toContain('03');
+    expect(within(firstCard()).queryByRole('link', { name: /start lesson/i })).toBeNull();
+  });
+
+  it('says last opened, and still claims nothing was read, studied or completed', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/resume-point': resumeAt('LS-M020-03'),
+    });
+
+    render(<App />);
+    await within(await screen.findByTestId('current-lesson')).findByRole('link', {
+      name: /continue lesson/i,
+    });
+
+    expect(firstCard().textContent).toMatch(/last opened/i);
+    const page = screen.getByRole('main').textContent ?? '';
+    expect(page).not.toMatch(/\bread\b/i);
+    expect(page).not.toMatch(/\bstudied\b/i);
+    expect(page).not.toMatch(/\bcompleted\b/i);
+    expect(page).not.toMatch(/\d\s*\/\s*\d/);
+    expect(page).not.toMatch(/\d+\s+of\s+\d+/i);
+    expect(screen.queryAllByRole('progressbar')).toHaveLength(0);
+  });
+
+  it('falls back to Start when the resume point names a lesson this release does not carry', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/resume-point': resumeAt('LS-GONE-99'),
+    });
+
+    render(<App />);
+    await screen.findByTestId('current-lesson');
+
+    const action = within(firstCard()).getByRole('link', { name: /start lesson/i });
+    expect(action.getAttribute('href')).toBe('/lessons/LS-M020-01');
+    expect(firstCard().textContent).not.toMatch(/continue/i);
+  });
+
+  it('offers Start when the answer is plainly none', async () => {
+    answerRoutes({
+      '/api/release': importedRelease(),
+      '/api/resume-point': { state: 'none' },
+    });
+
+    render(<App />);
+    await screen.findByTestId('current-lesson');
+
+    expect(within(firstCard()).getByRole('link', { name: /start lesson/i })).toBeDefined();
+    expect(firstCard().textContent).not.toMatch(/continue/i);
   });
 });
 
