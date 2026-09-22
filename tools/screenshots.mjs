@@ -116,6 +116,11 @@ async function waitForHealth(timeoutMs = 20_000) {
 
 checkMermaidIsLazy(repoRoot, webIndex, failures);
 
+// Wiped like the captures: since slice 4 the app records a resume point, so a data directory kept
+// across runs would give the second run a "Continue" card where the first had "Start" — and a
+// capture that depends on which run produced it is not a capture a review can trust.
+fs.rmSync(path.join(repoRoot, 'data', 'screenshots'), { recursive: true, force: true });
+
 const child = spawn(process.execPath, [serverEntry], {
   env: {
     ...process.env,
@@ -145,6 +150,26 @@ try {
         await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
 
         const drewDiagram = await checkDiagram(page, route, size, scheme, failures);
+
+        // Criterion N3/N4's layout half: every lesson page carries its contents list in the
+        // sidebar, and every entry points at an id that exists exactly once on the page.
+        if (route.path.startsWith('/lessons/')) {
+          const contents = await page.evaluate(() => {
+            const anchors = [...document.querySelectorAll('.contents-list a')];
+            if (anchors.length === 0) return 'no contents entries in the sidebar';
+            const broken = anchors
+              .map((anchor) => anchor.getAttribute('href') ?? '')
+              .filter(
+                (href) =>
+                  !href.startsWith('#') ||
+                  document.querySelectorAll(`[id="${href.slice(1)}"]`).length !== 1,
+              );
+            return broken.length > 0 ? `entries with no single target: ${broken.join(', ')}` : 'ok';
+          });
+          if (contents !== 'ok') {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${contents}`);
+          }
+        }
 
         const overflow = await sidewaysScroll(page);
         if (overflow) {
@@ -232,8 +257,11 @@ try {
   }
 
   /**
-   * Criterion R6. The drawer is the one piece of this layout that has a second state, and a
-   * sidebar that overflows the page only once opened would pass every check above.
+   * Criterion R6, and since slice 4 also N7's layout half. The drawer is the one piece of this
+   * layout that has a second state, and a sidebar that overflows the page only once opened would
+   * pass every check above. Opened on a lesson page rather than the dashboard, because that is
+   * where the drawer carries the most it will ever hold: four destinations, the release block,
+   * and the open lesson's whole contents list.
    */
   for (const scheme of schemes) {
     const context = await browser.newContext({
@@ -241,7 +269,7 @@ try {
       colorScheme: scheme,
     });
     const page = await context.newPage();
-    await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+    await page.goto(`${baseUrl}/lessons/LS-M020-01`, { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: /navigation/i }).click();
     // Settled, not merely present. The drawer slides in over 0.2s, and both the measurement and
     // the capture below would otherwise read a position it is only passing through — which is how
@@ -264,7 +292,12 @@ try {
       // script can know. Querying `#sidebar` matched nothing and passed every time.
       const links = [...document.querySelectorAll('nav.sidebar a')];
       if (links.length === 0) return ['no destinations found in the drawer at all'];
+      if (document.querySelectorAll('.contents-list a').length === 0) {
+        return ['no contents entries in the drawer on a lesson page'];
+      }
       const width = document.documentElement.clientWidth;
+      // Horizontal reach for every link; the contents sit below the fold of an 812px drawer, which
+      // is what the sidebar's own scroll is for, so vertical position is not a failure.
       return links
         .filter((link) => {
           const box = link.getBoundingClientRect();
@@ -274,7 +307,7 @@ try {
     });
     if (reachable.length > 0) {
       failures.push(
-        `the open drawer (${scheme}) at 375px puts ${reachable.length} destination(s) out of ` +
+        `the open drawer (${scheme}) at 375px puts ${reachable.length} link(s) out of ` +
           `reach: ${reachable.join(', ')}`,
       );
     }
@@ -308,7 +341,10 @@ try {
    * page a sidebar that scrolls and one that does not look exactly alike.
    */
   for (const pinned of [
-    { width: 1440, height: 900, selectors: ['nav.sidebar a', '.topbar'] },
+    // '.contents-list a' is the first contents entry (criterion G4): the outline must not push the
+    // reader's way into it off screen — the sidebar scrolls within itself if the list runs long.
+    { width: 1440, height: 900, selectors: ['nav.sidebar a', '.topbar', '.contents-list a'] },
+    { width: 768, height: 1024, selectors: ['nav.sidebar a', '.contents-list a'] },
     { width: 375, height: 812, selectors: ['.sidebar-trigger'] },
   ]) {
     const context = await browser.newContext({
@@ -340,6 +376,65 @@ try {
     await page.screenshot({
       path: path.join(outDir, `pinned-nav-${pinned.width}.png`),
     });
+    await context.close();
+  }
+
+  /**
+   * Criterion N6. A followed contents link must land its heading clear of the sticky top bar —
+   * `scroll-margin-top` is invisible to jsdom, so this is the only place it can be measured.
+   */
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}/lessons/LS-M020-01`, { waitUntil: 'networkidle' });
+
+    const landing = await page.evaluate(() => {
+      const anchor = document.querySelector('.contents-list a');
+      if (!anchor) return 'no contents entry to follow';
+      const target = document.getElementById(anchor.getAttribute('href')?.slice(1) ?? '');
+      if (!target) return `no heading for ${anchor.getAttribute('href')}`;
+      anchor.click();
+      const bar = document.querySelector('.topbar')?.getBoundingClientRect();
+      const heading = target.getBoundingClientRect();
+      if (!bar) return 'no top bar to clear';
+      return heading.top >= bar.bottom && heading.bottom <= window.innerHeight
+        ? 'ok'
+        : `heading lands at ${Math.round(heading.top)}px, top bar ends at ${Math.round(bar.bottom)}px`;
+    });
+    if (landing !== 'ok') {
+      failures.push(`a followed contents link at 1440px: ${landing}`);
+    }
+    await context.close();
+  }
+
+  /**
+   * Criteria R1, R2 and R4, end to end in the real app: open a lesson, and the dashboard's card
+   * offers the way back to it. The vitest suite proves the same facts against fixtures and a
+   * restarted server; this proves the wiring the suite cannot — real client, real PUT, real row.
+   */
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(`${baseUrl}/lessons/LS-M020-07`, { waitUntil: 'networkidle' });
+    await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+
+    const card = await page.evaluate(() => {
+      const section = document.querySelector('[data-testid="current-lesson"]');
+      const action = section?.querySelector('a');
+      if (!section || !action) return 'no current-lesson card on the dashboard';
+      const text = action.textContent?.trim() ?? '';
+      if (!/continue lesson/i.test(text)) return `the action reads "${text}", not Continue lesson`;
+      const href = action.getAttribute('href');
+      if (href !== '/lessons/LS-M020-07') return `the action points at ${href}`;
+      if (!/LESSON 07/.test(section.textContent ?? '')) return 'the card does not say LESSON 07';
+      return 'ok';
+    });
+    if (card !== 'ok') {
+      failures.push(`after opening lesson 7, the dashboard: ${card}`);
+    }
+
+    await page.screenshot({ path: path.join(outDir, 'resume-home-1440.png'), fullPage: true });
+    console.log(`  ${path.relative(repoRoot, path.join(outDir, 'resume-home-1440.png'))}`);
     await context.close();
   }
 } finally {

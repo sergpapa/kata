@@ -18,6 +18,7 @@ import {
   TerminalIcon,
 } from './icons.js';
 import { RouteLink } from './RouteLink.js';
+import type { OutlineEntry } from './markdown/LessonMarkdown.js';
 import type { ReleaseView } from './releaseTypes.js';
 import type { Route } from './route.js';
 
@@ -52,6 +53,18 @@ export function useReportPageName(name: string | null): void {
     report(name);
     return () => report(null);
   }, [report, name]);
+}
+
+/**
+ * How the lesson page hands its section outline to the sidebar, the same way it hands its name to
+ * the top bar: the outline is derived from body content only the lesson's own render has seen.
+ * The setter is called with entries when a lesson body settles and with null on the way out, so a
+ * page that reports nothing shows nothing — the dashboard and the standby pages never call it.
+ */
+const LessonOutline = createContext<(entries: readonly OutlineEntry[] | null) => void>(() => {});
+
+export function useReportLessonOutline(): (entries: readonly OutlineEntry[] | null) => void {
+  return useContext(LessonOutline);
 }
 
 /** Which destination the current address belongs to. A lesson belongs to Learn. */
@@ -92,6 +105,7 @@ export function Shell({
 }) {
   const [open, setOpen] = useState(false);
   const [pageName, setPageName] = useState<string | null>(null);
+  const [outline, setOutline] = useState<readonly OutlineEntry[] | null>(null);
   const sidebarId = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
@@ -125,6 +139,10 @@ export function Shell({
 
   // Stable, so the effect in useReportPageName does not re-run on every render of the page.
   const report = useCallback((name: string | null) => setPageName(name), []);
+  const reportOutline = useCallback(
+    (entries: readonly OutlineEntry[] | null) => setOutline(entries),
+    [],
+  );
 
   // A keyboard or screen-reader user who follows a lesson link would otherwise be left with focus
   // on `body`, at the top of a document they have no idea changed. Moving focus to the new page's
@@ -238,6 +256,25 @@ export function Shell({
             </p>
           </div>
         )}
+
+        {/* Only while a lesson page has reported sections — an empty block on the dashboard would
+            be the dead surface decision 5 refuses. Following an entry closes the drawer like any
+            destination; focus is not handed back to the trigger, because the reader is leaving for
+            the section, not dismissing the drawer. */}
+        {outline && outline.length > 0 && (
+          <div className="sidebar-contents">
+            <p className="eyebrow sidebar-group-label">In this lesson</p>
+            <ul className="contents-list">
+              {outline.map((entry) => (
+                <li key={entry.id}>
+                  <a href={`#${entry.id}`} onClick={() => setOpen(false)}>
+                    {entry.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </nav>
 
       {/* Covers the page the drawer opened over, and closes it on a tap outside. Inert to a
@@ -272,7 +309,9 @@ export function Shell({
         </div>
 
         <main id="main" className="page-content" ref={main} tabIndex={-1}>
-          <PageName.Provider value={report}>{children}</PageName.Provider>
+          <PageName.Provider value={report}>
+            <LessonOutline.Provider value={reportOutline}>{children}</LessonOutline.Provider>
+          </PageName.Provider>
         </main>
       </div>
     </div>

@@ -1,7 +1,10 @@
+import { useEffect, useRef } from 'react';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
-import type { Element } from 'hast';
+import rehypeSlug from 'rehype-slug';
+import type { Element, Root } from 'hast';
+import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 import { MermaidDiagram } from './MermaidDiagram.js';
 
@@ -15,6 +18,39 @@ import { MermaidDiagram } from './MermaidDiagram.js';
  * spellings of a link and an image are covered; `rehype-sanitize` then meets a tree with nothing
  * dangerous left in it; and the component map below decides how the survivors are presented.
  */
+
+/** One contents-list entry: where an anchor points, and the heading text to call it by. */
+export interface OutlineEntry {
+  readonly id: string;
+  readonly text: string;
+}
+
+/** The heading's visible characters, which is what the sidebar entry has to say. */
+function textOf(node: Element): string {
+  let text = '';
+  visit(node, 'text', (child: { value: string }) => {
+    text += child.value;
+  });
+  return text;
+}
+
+/**
+ * Collects the outline off the very tree that renders, after the sanitizer has settled the final
+ * ids — so the contents list can never drift from the page it points into. Sections are the
+ * tree's level-1 and level-2 headings: a body-carried H1 is demoted to `h2` at render, so both
+ * arrive on the page as sections.
+ */
+function rehypeCollectOutline(box: { entries: OutlineEntry[] }) {
+  return (tree: Root): void => {
+    const entries: OutlineEntry[] = [];
+    visit(tree, 'element', (node: Element) => {
+      if (node.tagName !== 'h1' && node.tagName !== 'h2') return;
+      const id = node.properties?.id;
+      if (typeof id === 'string') entries.push({ id, text: textOf(node) });
+    });
+    box.entries = entries;
+  };
+}
 
 /** The fence's info string, read off the `language-*` class mdast puts on the `code` element. */
 function fenceLanguage(node: Element | undefined): string | undefined {
@@ -65,10 +101,11 @@ const components: Components = {
   /**
    * The page's `h1` is the lesson title. Only the *first* authored H1 becomes that title, so a
    * later one is still in the body; it renders here as a section heading rather than as a rival
-   * top-level heading that breaks the outline.
+   * top-level heading that breaks the outline. The rest of its attributes — its anchor id above
+   * all — travel with it, or the contents list would point at a heading that lost its name.
    */
-  h1({ children }) {
-    return <h2>{children}</h2>;
+  h1({ node: _node, children, ...rest }) {
+    return <h2 {...rest}>{children}</h2>;
   },
 
   /**
@@ -108,14 +145,37 @@ const components: Components = {
   },
 };
 
-export function LessonMarkdown({ markdown }: { readonly markdown: string }) {
+export function LessonMarkdown({
+  markdown,
+  onOutline,
+}: {
+  readonly markdown: string;
+  /** Called after render with the section outline of exactly what rendered. */
+  readonly onOutline?: (entries: readonly OutlineEntry[]) => void;
+}) {
+  // Written by the collector plugin during the synchronous Markdown pass, read by the effect after
+  // commit — a callback fired mid-render would be a state write inside someone else's render.
+  const box = useRef<{ entries: OutlineEntry[] }>({ entries: [] });
+
+  useEffect(() => {
+    onOutline?.(box.current.entries);
+  }, [markdown, onOutline]);
+
   return (
     <div className="lesson-body">
       <Markdown
         remarkPlugins={[remarkGfm, remarkInertContent]}
-        // Order matters: the guard has to run before the sanitizer, or the sanitizer strips an
-        // unsafe href first and the target it names can never be shown to the reader.
-        rehypePlugins={[rehypeInertElements, rehypeSanitize]}
+        // Order matters twice over: the guard has to run before the sanitizer, or the sanitizer
+        // strips an unsafe href first and the target it names can never be shown to the reader;
+        // and the slugger runs before the sanitizer so its ids pick up the clobber prefix that
+        // keeps authored heading text from capturing the app's own element ids. The collector runs
+        // last, on the settled tree.
+        rehypePlugins={[
+          rehypeInertElements,
+          rehypeSlug,
+          rehypeSanitize,
+          () => rehypeCollectOutline(box.current),
+        ]}
         components={components}
       >
         {markdown}

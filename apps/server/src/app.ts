@@ -3,8 +3,14 @@ import fastifyStatic from '@fastify/static';
 import fs from 'node:fs';
 import type { Db } from './modules/lifecycle/database.js';
 import { readSchemaVersion } from './modules/lifecycle/database.js';
-import { loadLesson, loadReleaseSummary } from './modules/content/repository.js';
+import {
+  lessonExists,
+  loadLesson,
+  loadNeighbours,
+  loadReleaseSummary,
+} from './modules/content/repository.js';
 import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
+import { loadResumePoint, saveResumePoint } from './modules/learner/resumeRepository.js';
 import type { ReleaseState } from './modules/content/types.js';
 
 export interface AppDeps {
@@ -82,9 +88,54 @@ export function buildApp(deps: AppDeps): FastifyInstance {
           facts: learnerFacingFacts(frontMatter),
           bodyMarkdown: lessonBodyBelowTitle(sourceText),
         },
+        // Manifest order, answered by the side that stores it, so previous/next can never disagree
+        // with the list the dashboard shows.
+        ...loadNeighbours(deps.db, deps.release.releaseRowId, stored.order),
       };
     },
   );
+
+  /**
+   * The lesson last opened — a silent pointer, not learner work (ADR 0010). It answers `none`
+   * rather than a record naming a lesson the imported release does not carry: the row stays, the
+   * app just refuses to offer a link the release cannot honour.
+   */
+  app.get('/api/resume-point', async () => {
+    if (deps.release.state === 'failed') {
+      return { state: 'failed', failure: deps.release.failure };
+    }
+    const stored = loadResumePoint(deps.db);
+    if (!stored || !lessonExists(deps.db, deps.release.releaseRowId, stored.candidateLessonId)) {
+      return { state: 'none' };
+    }
+    return { state: 'set', ...stored };
+  });
+
+  app.put<{ Body: unknown }>('/api/resume-point', async (request, reply) => {
+    if (deps.release.state === 'failed') {
+      return { state: 'failed', failure: deps.release.failure };
+    }
+
+    const body = request.body as { candidateLessonId?: unknown } | null;
+    const candidateLessonId = body?.candidateLessonId;
+    if (typeof candidateLessonId !== 'string' || candidateLessonId === '') {
+      return reply.code(400).send({
+        error: 'resume_point_invalid',
+        message: 'A resume point names one lesson: a non-empty string candidateLessonId.',
+      });
+    }
+
+    if (!lessonExists(deps.db, deps.release.releaseRowId, candidateLessonId)) {
+      return reply.code(404).send({
+        error: 'lesson_not_found',
+        message: `This release has no lesson ${candidateLessonId}.`,
+      });
+    }
+
+    const recordedAt = new Date().toISOString();
+    saveResumePoint(deps.db, candidateLessonId, recordedAt);
+    return { state: 'set', candidateLessonId, recordedAt };
+  });
 
   if (deps.webDistDir && fs.existsSync(deps.webDistDir)) {
     void app.register(fastifyStatic, { root: deps.webDistDir });

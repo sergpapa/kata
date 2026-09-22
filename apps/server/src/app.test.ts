@@ -368,7 +368,9 @@ describe('the resume point', () => {
     expect(got.json()).toEqual({
       state: 'set',
       candidateLessonId: 'FIX-LS-02',
-      recordedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/) as unknown as string,
+      recordedAt: expect.stringMatching(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+      ) as unknown as string,
     });
     await app.close();
   });

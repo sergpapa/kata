@@ -176,6 +176,52 @@ export function loadReleaseSummary(db: Db, releaseRowId: number): StoredReleaseS
   };
 }
 
+/** What a previous/next link needs and nothing more: where it points and what to call it. */
+export interface StoredNeighbour {
+  readonly order: number;
+  readonly candidateLessonId: string;
+  readonly displayTitle: string;
+}
+
+/**
+ * The lessons directly before and after a stored position, by `display_order` — the manifest's own
+ * order, which is the only order this application recognises (spec P5).
+ */
+export function loadNeighbours(
+  db: Db,
+  releaseRowId: number,
+  displayOrder: number,
+): { previous: StoredNeighbour | null; next: StoredNeighbour | null } {
+  const one = (comparison: '<' | '>', direction: 'DESC' | 'ASC'): StoredNeighbour | null => {
+    const row = db
+      .prepare(
+        `SELECT display_order, candidate_lesson_id, display_title
+           FROM content_lesson
+          WHERE release_row_id = ? AND display_order ${comparison} ?
+          ORDER BY display_order ${direction} LIMIT 1`,
+      )
+      .get(releaseRowId, displayOrder) as
+      { display_order: number; candidate_lesson_id: string; display_title: string } | undefined;
+    if (!row) return null;
+    return {
+      order: row.display_order,
+      candidateLessonId: row.candidate_lesson_id,
+      displayTitle: row.display_title,
+    };
+  };
+
+  return { previous: one('<', 'DESC'), next: one('>', 'ASC') };
+}
+
+/** Whether the release carries the lesson, without lifting its text off disk. */
+export function lessonExists(db: Db, releaseRowId: number, candidateLessonId: string): boolean {
+  return (
+    db
+      .prepare('SELECT 1 FROM content_lesson WHERE release_row_id = ? AND candidate_lesson_id = ?')
+      .get(releaseRowId, candidateLessonId) !== undefined
+  );
+}
+
 /**
  * One lesson of one release, with the authored text and front matter the reader needs.
  *

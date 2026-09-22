@@ -1,7 +1,10 @@
+import { useCallback, useEffect } from 'react';
 import { useApi, type ApiResult } from './api.js';
-import { LessonMarkdown } from './markdown/LessonMarkdown.js';
+import { twoDigits } from './format.js';
+import { LessonMarkdown, type OutlineEntry } from './markdown/LessonMarkdown.js';
+import { lessonHref } from './route.js';
 import { RouteLink } from './RouteLink.js';
-import { useReportPageName } from './Shell.js';
+import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import type { ImportFailure, LessonSummary } from './releaseTypes.js';
 
 /** One lesson to read: the authored title, the facts a learner is shown, and the body. */
@@ -19,12 +22,21 @@ export interface LessonDetail extends LessonSummary {
   readonly bodyMarkdown: string;
 }
 
+/** Where a previous/next link points and what to call it — named by the server, which owns order. */
+export interface LessonNeighbour {
+  readonly order: number;
+  readonly candidateLessonId: string;
+  readonly displayTitle: string;
+}
+
 type LessonView =
   | { readonly state: 'reading' }
   | {
       readonly state: 'lesson';
       readonly release: { readonly releaseId: string; readonly version: string };
       readonly lesson: LessonDetail;
+      readonly previous: LessonNeighbour | null;
+      readonly next: LessonNeighbour | null;
     }
   /** The release was refused whole. Said in the server's own words, not translated. */
   | { readonly state: 'failed'; readonly failure: ImportFailure }
@@ -107,6 +119,40 @@ function FactList({ facts }: { readonly facts: readonly LessonFact[] }) {
   );
 }
 
+/**
+ * The way on and the way back, at the foot of the lesson where a reader finishes. An absent
+ * neighbour is an absent control: the first lesson simply has no "Previous", rather than a
+ * disabled button that promises nothing (visual-design decision 5).
+ */
+function NeighbourNav({
+  previous,
+  next,
+}: {
+  readonly previous: LessonNeighbour | null;
+  readonly next: LessonNeighbour | null;
+}) {
+  if (!previous && !next) return null;
+
+  const link = (neighbour: LessonNeighbour, label: 'Previous' | 'Next') => (
+    <RouteLink
+      href={lessonHref(neighbour.candidateLessonId)}
+      className={`neighbour neighbour-${label.toLowerCase()}`}
+    >
+      <span className="neighbour-kicker">
+        {label} · Lesson {twoDigits(neighbour.order)}
+      </span>
+      <span className="neighbour-title">{neighbour.displayTitle}</span>
+    </RouteLink>
+  );
+
+  return (
+    <nav className="lesson-neighbours" aria-label="Between lessons">
+      {previous && link(previous, 'Previous')}
+      {next && link(next, 'Next')}
+    </nav>
+  );
+}
+
 export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: string }) {
   const view = toLessonView(
     useApi(`/api/lessons/${encodeURIComponent(candidateLessonId)}`),
@@ -116,6 +162,30 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
   // The top bar's trail ends in this page's name, and the authored title is content only this
   // request has seen. Reported before any early return, because a hook cannot be conditional.
   useReportPageName(view.state === 'lesson' ? view.lesson.displayTitle : null);
+
+  // The sidebar's contents list, reported the same way. Cleared when this lesson leaves the page
+  // or another is asked for, so no outline outlives the body it describes.
+  const reportOutline = useReportLessonOutline();
+  const handleOutline = useCallback(
+    (entries: readonly OutlineEntry[]) => reportOutline(entries),
+    [reportOutline],
+  );
+  useEffect(() => {
+    return () => reportOutline(null);
+  }, [reportOutline, candidateLessonId]);
+
+  // The resume point: recorded only once the lesson actually answered, silently (ADR 0010). No
+  // state, no retry, no message — a failed write leaves the previous record standing, and the next
+  // lesson open corrects it.
+  const openedLesson = view.state === 'lesson' ? view.lesson.candidateLessonId : null;
+  useEffect(() => {
+    if (!openedLesson) return;
+    void fetch('/api/resume-point', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ candidateLessonId: openedLesson }),
+    }).catch(() => {});
+  }, [openedLesson]);
 
   if (view.state === 'reading') return <p role="status">Reading the lesson…</p>;
 
@@ -170,7 +240,8 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
         · release {release.releaseId} {release.version}
       </p>
       <FactList facts={lesson.facts} />
-      <LessonMarkdown markdown={lesson.bodyMarkdown} />
+      <LessonMarkdown markdown={lesson.bodyMarkdown} onOutline={handleOutline} />
+      <NeighbourNav previous={view.previous} next={view.next} />
     </article>
   );
 }

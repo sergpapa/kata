@@ -69,6 +69,12 @@ lessons in manifest order, and a resume point the dashboard's primary card retur
   (spec-driven, same as earlier config-flip slices), and the dashboard records-card test
   (`says plainly that nothing is recorded yet`) is re-aimed at the new truthful wording, because
   the sentence it pins — nothing is recorded — stops being true the moment this slice lands.
+- One further re-aim surfaced at green, declared here: `apps/web/src/App.test.tsx`'s
+  app-not-answering test asserted `/api/release` was the _first_ `fetch` call. The dashboard now
+  also asks `/api/resume-point`, and React runs the child's effect first, so the assertion became
+  "the release was asked for" by URL rather than by call position — the claim is unchanged, the
+  incidental ordering pin is gone. Flagged for test-guardian POST, which runs because test files
+  moved after PRE.
 - A PUT that lands after the reader has already moved on may record the earlier lesson. Accepted:
   the pointer is a convenience, the window is milliseconds, and the next lesson open corrects it.
 - Anchor jumps use the browser's own fragment navigation — no smooth scrolling, no scroll-spy.
@@ -125,7 +131,7 @@ lessons in manifest order, and a resume point the dashboard's primary card retur
       THE RELEASE**, the first lesson, **Start lesson** (visual-design D1 stands).
 - [ ] R4. With a resume point, the primary card names the last-opened lesson by two-digit number
       and authored title, its action reads **Continue lesson** and links there, and its kicker
-      says the lesson was last *opened* — no page element ever claims read, studied or completed,
+      says the lesson was last _opened_ — no page element ever claims read, studied or completed,
       and no progress bar or ratio appears (D3 stands).
 - [ ] R5. A resume record naming a lesson absent from the imported release: the API answers
       `state: 'none'`, the card shows **Start lesson**, and the stored row is untouched.

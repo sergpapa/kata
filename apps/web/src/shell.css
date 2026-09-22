@@ -319,3 +319,47 @@
     display: none;
   }
 }
+
+/* --- The open lesson's contents -------------------------------------------------------------- */
+
+/* Reported by the lesson page, rendered under the release block; the sidebar already scrolls
+   within itself when the column outgrows the viewport (criterion G4). Bottom padding so the last
+   entry is not flush against the drawer's edge. */
+.sidebar-contents {
+  margin: 0 0 1.5rem;
+  padding: 0 0.9rem;
+}
+
+.contents-list {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contents-list a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-control);
+  color: var(--nav-ink);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-decoration: none;
+  transition:
+    background var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.contents-list a:visited {
+  color: var(--nav-ink);
+}
+
+.contents-list a:hover,
+.contents-list a:focus-visible {
+  background: var(--sidebar-accent);
+  box-shadow: inset 3px 0 var(--sidebar-marker);
+  color: var(--sidebar-foreground);
+}

@@ -238,7 +238,10 @@ describe('the contents anchors across the fifteen lessons', () => {
   it.each(lessonFiles)('agrees with the rendered sections of %s, one entry each', (file) => {
     const entries: { id: string; text: string }[][] = [];
     const { container } = render(
-      <LessonMarkdown markdown={bodyOf(file)} onOutline={(outline) => entries.push([...outline])} />,
+      <LessonMarkdown
+        markdown={bodyOf(file)}
+        onOutline={(outline) => entries.push([...outline])}
+      />,
     );
 
     const sections = [...container.querySelectorAll('h2')];

@@ -1,16 +1,18 @@
+import { useApi, type ApiResult } from './api.js';
+import { twoDigits } from './format.js';
 import { ArrowRightIcon, ChevronRightIcon } from './icons.js';
 import { RouteLink } from './RouteLink.js';
 import { lessonHref } from './route.js';
 import type { LessonSummary, ReleaseView } from './releaseTypes.js';
 
 /**
- * The page that answers "where do I begin?". Criteria D1–D6 in
- * docs/specs/visual-design-integration.md.
+ * The page that answers "where do I begin?" — or, once a lesson has been opened, "where was I?".
+ * Criteria D1–D6 in docs/specs/visual-design-integration.md and R3–R5 in
+ * docs/specs/reader-navigation-and-resume.md.
  *
- * It answers out of the release and out of nothing else. This application records nothing about
- * what has been read, so the action is **Start** rather than Continue, there is no ratio and no
- * bar anywhere on it, and the neighbouring card says plainly that nothing is kept yet. A number
- * here that nothing backs is the failure this page is shaped to avoid.
+ * It answers out of the release and the resume point, and out of nothing else. The one recorded
+ * fact is which lesson was last *opened* — so that is the word the card uses, never read, studied
+ * or completed, and there is still no ratio and no bar anywhere on the page.
  */
 
 /** Manifest order, not array order: the release decides the sequence, not the JSON's shape. */
@@ -18,8 +20,16 @@ function inOrder(lessons: readonly LessonSummary[]): readonly LessonSummary[] {
   return [...lessons].sort((a, b) => a.order - b.order);
 }
 
-function twoDigits(order: number): string {
-  return String(order).padStart(2, '0');
+/**
+ * What the resume answer amounts to. Anything that is not a well-formed `set` — none, an old
+ * server, a refusal, a request still in flight — reads as "nothing recorded", because the only
+ * honest fallback is the start of the release.
+ */
+function resumeLessonId(result: ApiResult): string | null {
+  if (result.state !== 'answered' || result.status !== 200) return null;
+  const body = result.body as { state?: unknown; candidateLessonId?: unknown } | null;
+  if (body?.state !== 'set' || typeof body.candidateLessonId !== 'string') return null;
+  return body.candidateLessonId;
 }
 
 function ReleaseDetails({
@@ -57,6 +67,9 @@ function ReleaseDetails({
 }
 
 export function DashboardPage({ view }: { readonly view: ReleaseView }) {
+  // Asked before any early return, because a hook cannot be conditional.
+  const resumeId = resumeLessonId(useApi('/api/resume-point'));
+
   if (view.state === 'reading') return <p role="status">Reading the release…</p>;
 
   if (view.state === 'unavailable') {
@@ -83,13 +96,19 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
 
   const lessons = inOrder(view.lessons);
   const first = lessons[0];
+  // The guard against a stale pointer runs here too: a resume point naming a lesson this release
+  // does not carry falls back to the start, rather than linking to a page that would say 404.
+  const resumeLesson = resumeId
+    ? lessons.find((entry) => entry.candidateLessonId === resumeId)
+    : undefined;
+  const current = resumeLesson ?? first;
 
   return (
     <>
       <header className="page-title">
         <div>
           <p className="eyebrow">YOUR LEARNING PLAN</p>
-          <h1>Start with the first lesson.</h1>
+          <h1>{resumeLesson ? 'Pick up where you left off.' : 'Start with the first lesson.'}</h1>
           <p className="lede">
             The release fixes the order. Each lesson is here as its author wrote it, checked against
             the hash the release publishes.
@@ -106,20 +125,24 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
       )}
 
       <div className="overview-grid">
-        {first && (
+        {current && (
           <section className="continue-card" data-testid="current-lesson">
             {/* Ornament, not information: the same two digits the LESSON line announces, at card
                 scale behind the content. Hidden from readers so nothing is said twice. */}
             <span className="continue-ghost" aria-hidden="true">
-              {twoDigits(first.order)}
+              {twoDigits(current.order)}
             </span>
             <p className="card-kicker">
-              <span className="pill lime">FIRST IN THE RELEASE</span>
+              {/* "Last opened" is the whole recorded fact — the card claims nothing about how far
+                  it was followed, because the app cannot know. */}
+              <span className="pill lime">
+                {resumeLesson ? 'LAST OPENED' : 'FIRST IN THE RELEASE'}
+              </span>
             </p>
-            <p className="lesson-number">LESSON {twoDigits(first.order)}</p>
-            <h2>{first.displayTitle}</h2>
-            <RouteLink className="lime-button" href={lessonHref(first.candidateLessonId)}>
-              Start lesson
+            <p className="lesson-number">LESSON {twoDigits(current.order)}</p>
+            <h2>{current.displayTitle}</h2>
+            <RouteLink className="lime-button" href={lessonHref(current.candidateLessonId)}>
+              {resumeLesson ? 'Continue lesson' : 'Start lesson'}
               <ArrowRightIcon />
             </RouteLink>
           </section>
@@ -128,12 +151,12 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
         <section className="card records-card">
           <h2>Your records</h2>
           <p>
-            Nothing is recorded yet. This application does not keep what you read or write — your
-            notes, your predictions and where you stopped all arrive with acknowledged saving, in
-            Milestone 2.
+            The lesson you last open is kept, so the app can offer the way back to it. Your notes,
+            predictions and observations are not recorded yet — they arrive with acknowledged
+            saving, in Milestone 2.
           </p>
           <p className="fine">
-            Until then nothing here would survive a refresh, so nothing pretends to.
+            Until then nothing you type would survive a refresh, so nothing here asks you to type.
           </p>
         </section>
       </div>

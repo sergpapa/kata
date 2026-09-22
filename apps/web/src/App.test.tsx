@@ -158,7 +158,10 @@ describe('the page when the local app does not answer', () => {
 
     expect(await screen.findByText(/connection refused/)).toBeDefined();
     expect(within(screen.getByRole('main')).queryAllByRole('listitem')).toHaveLength(0);
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/release');
+    // The release was asked for — by URL, not by call position: since slice 4 the dashboard also
+    // asks for the resume point, and effect order between the two is not this test's claim.
+    // Declared in docs/specs/reader-navigation-and-resume.md.
+    expect(vi.mocked(fetch).mock.calls.map((call) => call[0])).toContain('/api/release');
   });
 });
 

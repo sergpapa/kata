@@ -16,7 +16,13 @@ import { importRelease } from './modules/content/service.js';
  */
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const releaseDir = path.join(repoRoot, 'content', 'releases', 'http-first-fifteen-v1_0_1', 'content');
+const releaseDir = path.join(
+  repoRoot,
+  'content',
+  'releases',
+  'http-first-fifteen-v1_0_1',
+  'content',
+);
 
 interface Neighbour {
   order: number;

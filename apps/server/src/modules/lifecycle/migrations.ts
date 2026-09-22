@@ -84,4 +84,20 @@ export const migrations: readonly Migration[] = [
       UPDATE schema_meta SET value = '2' WHERE key = 'app_schema_version';
     `,
   },
+  {
+    id: 3,
+    name: 'resume_point',
+    sql: `
+      -- One row, by construction: the resume point is a pointer, not a history (ADR 0010). It
+      -- deliberately has no content_version column — work is pinned to the version it answered,
+      -- but a pointer follows the lesson across an authorized correction.
+      CREATE TABLE resume_point (
+        id                  INTEGER PRIMARY KEY CHECK (id = 1),
+        candidate_lesson_id TEXT NOT NULL,
+        recorded_at         TEXT NOT NULL
+      );
+
+      UPDATE schema_meta SET value = '3' WHERE key = 'app_schema_version';
+    `,
+  },
 ];
