@@ -5,10 +5,12 @@ import type { Db } from './modules/lifecycle/database.js';
 import { readSchemaVersion } from './modules/lifecycle/database.js';
 import {
   lessonExists,
+  loadActivitySetText,
   loadLesson,
   loadNeighbours,
   loadReleaseSummary,
 } from './modules/content/repository.js';
+import { activitiesForLesson, parseActivitySet } from './modules/content/activitySet.js';
 import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
 import { loadResumePoint, saveResumePoint } from './modules/learner/resumeRepository.js';
 import type { ReleaseState } from './modules/content/types.js';
@@ -26,6 +28,34 @@ export interface AppDeps {
  * Dependencies are required rather than defaulted: a default would let an unwired composition
  * start and fail at runtime instead of at the type level.
  */
+/**
+ * One lesson's activities, derived from the release's stored activity file.
+ *
+ * Throws rather than answering an empty list if the stored text no longer parses: the import
+ * refuses an unreadable set by name, so reaching here means the record store was changed under a
+ * running process, and a lesson that silently lost its activities would look identical to a lesson
+ * that never had any.
+ */
+function activitiesOf(deps: AppDeps, candidateLessonId: string) {
+  if (deps.release.state === 'failed') return [];
+
+  const sourceText = loadActivitySetText(deps.db, deps.release.releaseRowId);
+  if (sourceText === undefined) {
+    throw new Error(
+      `Release row ${deps.release.releaseRowId} has no stored activity set, and every imported release stores one.`,
+    );
+  }
+
+  const parsed = parseActivitySet(sourceText);
+  if (!parsed.ok) {
+    throw new Error(
+      `The stored activity set no longer reads as one (${parsed.detail}). It was verified at import, so the record store has changed since.`,
+    );
+  }
+
+  return activitiesForLesson(parsed.activities, candidateLessonId);
+}
+
 export function buildApp(deps: AppDeps): FastifyInstance {
   const app = Fastify({ logger: false });
 
@@ -88,6 +118,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
           facts: learnerFacingFacts(frontMatter),
           bodyMarkdown: lessonBodyBelowTitle(sourceText),
         },
+        // The author's own placement instructions for this lesson. The import refused any set that
+        // could not be read, so a failure here means the stored row was changed underneath a
+        // running app — said out loud rather than served as a lesson that quietly lost its
+        // activities.
+        activities: activitiesOf(deps, candidateLessonId),
         // Manifest order, answered by the side that stores it, so previous/next can never disagree
         // with the list the dashboard shows.
         ...loadNeighbours(deps.db, deps.release.releaseRowId, stored.order),

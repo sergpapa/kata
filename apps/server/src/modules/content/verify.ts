@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseActivitySet } from './activitySet.js';
 import { firstHeadingOneText, splitFrontMatter } from './frontMatter.js';
 import { readManifest, type Manifest, type ManifestLessonEntry } from './manifest.js';
 import {
@@ -79,6 +80,51 @@ function checkManifestConsistency(manifest: Manifest): void {
         code: 'lab_lesson_mismatch',
         message: `Lab kit ${lab.labId} says it is for ${declared.join(', ') || 'no lessons'}, but the lessons asking for it are ${pointingAtIt.join(', ') || 'none'}.`,
         file: null,
+      });
+    }
+  }
+}
+
+/**
+ * The activity file, judged against the lessons this release actually carries.
+ *
+ * A file that cannot be read at all is a refusal, not a page that quietly shows no activities: the
+ * views are derived at request time, so an unparseable set would otherwise throw on every lesson
+ * where the app promises a named refusal once. A heading an activity cannot find is a different
+ * matter entirely and is *not* checked here — the lesson still reads, and the reader is told at the
+ * foot of it (docs/specs/activity-placement.md, decision 3).
+ */
+function checkActivitySet(
+  sourceText: string,
+  sourcePath: string,
+  candidateLessonIds: readonly string[],
+): void {
+  const parsed = parseActivitySet(sourceText);
+  if (!parsed.ok) {
+    refuse({
+      code: 'activity_set_invalid',
+      message: `${sourcePath} could not be read as an activity set: ${parsed.detail}`,
+      file: sourcePath,
+    });
+  }
+
+  const lessons = new Set(candidateLessonIds);
+  const seen = new Set<string>();
+  for (const activity of parsed.activities) {
+    if (seen.has(activity.activityId)) {
+      refuse({
+        code: 'duplicate_activity_id',
+        message: `${sourcePath} lists activity ${activity.activityId} more than once. An activity ID identifies one activity.`,
+        file: sourcePath,
+      });
+    }
+    seen.add(activity.activityId);
+
+    if (!lessons.has(activity.lessonId)) {
+      refuse({
+        code: 'activity_lesson_mismatch',
+        message: `Activity ${activity.activityId} is for lesson ${activity.lessonId}, and the release does not carry that lesson.`,
+        file: sourcePath,
       });
     }
   }
@@ -237,6 +283,11 @@ export function verifyRelease(releaseDir: string): VerificationOutcome {
       releaseRealDir,
       manifest.activities.path,
       manifest.activities.sha256,
+    );
+    checkActivitySet(
+      activityBytes.toString('utf8'),
+      manifest.activities.path,
+      lessons.map((lesson) => lesson.candidateLessonId),
     );
 
     const release: VerifiedRelease = {

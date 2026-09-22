@@ -39,3 +39,18 @@ export type ReleaseView =
     }
   | { readonly state: 'failed'; readonly failure: ImportFailure }
   | { readonly state: 'unavailable'; readonly reason: string };
+
+/**
+ * One activity the author wrote for a lesson, as `GET /api/lessons/:id` answers it. `sourceHeading`
+ * is the placement instruction: the panel goes at the end of the section with that heading.
+ */
+export interface LessonActivity {
+  readonly activityId: string;
+  readonly lessonId: string;
+  readonly kind: string;
+  readonly title: string;
+  readonly sourceHeading: string;
+  readonly responseFields: readonly string[];
+  /** Rendered only where the named section is absent, so the excerpt is never shown twice. */
+  readonly promptMarkdown: string;
+}

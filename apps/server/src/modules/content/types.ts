@@ -23,7 +23,10 @@ export type ImportFailureCode =
   | 'title_missing'
   | 'lab_not_found'
   | 'duplicate_lab_id'
-  | 'lab_lesson_mismatch';
+  | 'lab_lesson_mismatch'
+  | 'activity_set_invalid'
+  | 'duplicate_activity_id'
+  | 'activity_lesson_mismatch';
 
 export interface ImportFailure {
   readonly code: ImportFailureCode;

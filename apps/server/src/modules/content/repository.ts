@@ -260,3 +260,15 @@ export function loadLesson(
     sourceText: row.source_text,
   };
 }
+
+/**
+ * The activity file's stored bytes, for one release. Derived into activities on the way out rather
+ * than at import time (ADR 0005): the stored text stays canonical, so changing how an activity is
+ * presented never requires re-importing a release.
+ */
+export function loadActivitySetText(db: Db, releaseRowId: number): string | undefined {
+  const row = db
+    .prepare('SELECT source_text FROM content_activity_set WHERE release_row_id = ?')
+    .get(releaseRowId) as { source_text: string } | undefined;
+  return row?.source_text;
+}

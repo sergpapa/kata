@@ -1,11 +1,13 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useApi, type ApiResult } from './api.js';
 import { twoDigits } from './format.js';
 import { LessonMarkdown, type OutlineEntry } from './markdown/LessonMarkdown.js';
 import { lessonHref } from './route.js';
 import { RouteLink } from './RouteLink.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
-import type { ImportFailure, LessonSummary } from './releaseTypes.js';
+import { ActivityPanel } from './activities/ActivityPanel.js';
+import type { UnplacedActivity } from './activities/placeActivities.js';
+import type { ImportFailure, LessonActivity, LessonSummary } from './releaseTypes.js';
 
 /** One lesson to read: the authored title, the facts a learner is shown, and the body. */
 
@@ -22,6 +24,55 @@ export interface LessonDetail extends LessonSummary {
   readonly bodyMarkdown: string;
 }
 
+/**
+ * Whether two reports name the same activities, unplaced for the same reasons. The renderer hands
+ * back a fresh array every pass, so without this the page would store each one and re-render for
+ * ever.
+ */
+function sameActivities(
+  left: readonly UnplacedActivity[],
+  right: readonly UnplacedActivity[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every(
+      (entry, index) =>
+        entry.activity.activityId === right[index]?.activity.activityId &&
+        entry.reason === right[index]?.reason,
+    )
+  );
+}
+
+/**
+ * The activities the body could not carry, at the foot of the lesson rather than dropped.
+ *
+ * This is the guard path, not the expected one: all 45 activities in the shipped release name a
+ * heading their lesson has. A release that renames one still reads, and the reader is told which
+ * section the activity was written for (docs/specs/activity-placement.md, U1–U3).
+ */
+function UnplacedActivities({ unplaced }: { readonly unplaced: readonly UnplacedActivity[] }) {
+  if (unplaced.length === 0) return null;
+
+  return (
+    <section className="activity-foot" aria-label="Activities with no section on this page">
+      {unplaced.map(({ activity, reason }) => (
+        <ActivityPanel
+          key={activity.activityId}
+          activity={activity}
+          headingText={null}
+          notPlaced={reason}
+        >
+          {/* The one place the prompt is rendered: the authored section it belongs beside is not
+              on this page, so this is a first showing rather than a second. */}
+          <div className="activity-prompt">
+            <LessonMarkdown markdown={activity.promptMarkdown} />
+          </div>
+        </ActivityPanel>
+      ))}
+    </section>
+  );
+}
+
 /** Where a previous/next link points and what to call it — named by the server, which owns order. */
 export interface LessonNeighbour {
   readonly order: number;
@@ -35,6 +86,7 @@ type LessonView =
       readonly state: 'lesson';
       readonly release: { readonly releaseId: string; readonly version: string };
       readonly lesson: LessonDetail;
+      readonly activities: readonly LessonActivity[];
       readonly previous: LessonNeighbour | null;
       readonly next: LessonNeighbour | null;
     }
@@ -174,6 +226,13 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
     return () => reportOutline(null);
   }, [reportOutline, candidateLessonId]);
 
+  // Which activities the body could not place. Kept only when the answer actually changed: the
+  // renderer reports a fresh array on every pass, and storing each one would set state in a loop.
+  const [unplaced, setUnplaced] = useState<readonly UnplacedActivity[]>([]);
+  const handleUnplaced = useCallback((reported: readonly UnplacedActivity[]) => {
+    setUnplaced((current) => (sameActivities(current, reported) ? current : reported));
+  }, []);
+
   // The resume point: recorded only once the lesson actually answered, silently (ADR 0010). No
   // state, no retry, no message — a failed write leaves the previous record standing, and the next
   // lesson open corrects it.
@@ -240,7 +299,13 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
         · release {release.releaseId} {release.version}
       </p>
       <FactList facts={lesson.facts} />
-      <LessonMarkdown markdown={lesson.bodyMarkdown} onOutline={handleOutline} />
+      <LessonMarkdown
+        markdown={lesson.bodyMarkdown}
+        activities={view.activities}
+        onOutline={handleOutline}
+        onUnplacedActivities={handleUnplaced}
+      />
+      <UnplacedActivities unplaced={unplaced} />
       <NeighbourNav previous={view.previous} next={view.next} />
     </article>
   );

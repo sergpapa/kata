@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -7,6 +7,14 @@ import type { Element, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 import { MermaidDiagram } from './MermaidDiagram.js';
+import { ActivityPanel } from '../activities/ActivityPanel.js';
+import {
+  ACTIVITY_HEADING_ATTRIBUTE,
+  ACTIVITY_ID_ATTRIBUTE,
+  rehypePlaceActivities,
+  type UnplacedActivity,
+} from '../activities/placeActivities.js';
+import type { LessonActivity } from '../releaseTypes.js';
 
 /**
  * Renders an authored lesson body. The contract is docs/specs/markdown-rendering.md.
@@ -147,19 +155,56 @@ const components: Components = {
 
 export function LessonMarkdown({
   markdown,
+  activities,
   onOutline,
+  onUnplacedActivities,
 }: {
   readonly markdown: string;
+  /** The lesson's activities, each placed at the end of the section its heading names. */
+  readonly activities?: readonly LessonActivity[];
   /** Called after render with the section outline of exactly what rendered. */
   readonly onOutline?: (entries: readonly OutlineEntry[]) => void;
+  /** Called after render with the activities whose section this body does not carry. */
+  readonly onUnplacedActivities?: (unplaced: readonly UnplacedActivity[]) => void;
 }) {
   // Written by the collector plugin during the synchronous Markdown pass, read by the effect after
   // commit — a callback fired mid-render would be a state write inside someone else's render.
   const box = useRef<{ entries: OutlineEntry[] }>({ entries: [] });
+  const placement = useRef<{ unplaced: UnplacedActivity[] }>({ unplaced: [] });
 
   useEffect(() => {
     onOutline?.(box.current.entries);
   }, [markdown, onOutline]);
+
+  useEffect(() => {
+    onUnplacedActivities?.(placement.current.unplaced);
+  }, [markdown, activities, onUnplacedActivities]);
+
+  // The placed panels are looked up by the marker the plugin left behind, so the component map has
+  // to know this lesson's activities. Everything else in it is static.
+  const withActivities: Components = useMemo(() => {
+    if (!activities || activities.length === 0) return components;
+    const byId = new Map(activities.map((activity) => [activity.activityId, activity]));
+
+    return {
+      ...components,
+      div({ node, children, ...rest }) {
+        const activityId = node?.properties?.[ACTIVITY_ID_ATTRIBUTE];
+        if (typeof activityId !== 'string') {
+          return <div {...rest}>{children}</div>;
+        }
+        const activity = byId.get(activityId);
+        if (!activity) return null;
+        const heading = node?.properties?.[ACTIVITY_HEADING_ATTRIBUTE];
+        return (
+          <ActivityPanel
+            activity={activity}
+            headingText={typeof heading === 'string' ? heading : null}
+          />
+        );
+      },
+    };
+  }, [activities]);
 
   return (
     <div className="lesson-body">
@@ -175,8 +220,11 @@ export function LessonMarkdown({
           rehypeSlug,
           rehypeSanitize,
           () => rehypeCollectOutline(box.current),
+          // Last of all, and after the outline is settled: the panels are the app's own furniture,
+          // so they can neither be stripped by the sanitizer nor appear in the contents list.
+          () => rehypePlaceActivities(activities ?? [], markdown, placement.current),
         ]}
-        components={components}
+        components={withActivities}
       >
         {markdown}
       </Markdown>
