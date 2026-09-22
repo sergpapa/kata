@@ -24,22 +24,22 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   help_used: 'Whether you used help',
 };
 
-export function fieldLabel(fieldName: string): string {
+function fieldLabel(fieldName: string): string {
   return FIELD_LABELS[fieldName] ?? fieldName;
 }
 
 /**
  * What the reader is told, per state.
  *
- * The failed and conflict lines state what happened rather than negating what did not. "Not
- * stored" and "Not saved" are both true there, but a reader skimming a column of twelve states
- * reads the word before they read the "not" — and the two states where that misreading is
- * expensive are exactly these two.
+ * The failed and conflict lines state what happened rather than negating what did not. "Not stored"
+ * and "Not saved" are both true there, but a reader skimming a column of twelve states reads the
+ * word before they read the "not" — and these are the two states where that misreading is
+ * expensive.
  */
 function stateWords(state: FieldState, savedAt: string | null): string {
   switch (state) {
     case 'saved':
-      return savedAt ? `Saved at ${savedAt}` : 'Saved';
+      return savedAt ? `Saved ${savedAt}` : 'Saved';
     case 'saving':
       return 'Saving…';
     case 'failed':
@@ -51,17 +51,40 @@ function stateWords(state: FieldState, savedAt: string | null): string {
   }
 }
 
-/** Local clock time, because a reader checking "did that land?" is asking about the last minute. */
-function atTime(iso: string): string | null {
+/**
+ * When the acknowledged text was stored, in the reader's own locale.
+ *
+ * A clock time alone is right for a save just made and wrong for one made last week, and the same
+ * line serves both: a field filled on first paint can carry any age at all, because rows outlive
+ * the release they were written against. So anything that is not today says which day it was.
+ */
+function savedWhen(iso: string, now = new Date()): string | null {
   const when = new Date(iso);
   if (Number.isNaN(when.getTime())) return null;
-  return when.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const time = when.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const sameDay =
+    when.getFullYear() === now.getFullYear() &&
+    when.getMonth() === now.getMonth() &&
+    when.getDate() === now.getDate();
+  if (sameDay) return `at ${time}`;
+  const day = when.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+  return `on ${day} at ${time}`;
 }
 
+/**
+ * What the server holds for this field, as a refusal reported it.
+ *
+ * `text` is null when the server said it holds **nothing** — a different fact from holding an empty
+ * answer, and the one place this component could most easily invent a save that never happened.
+ */
 interface ConflictRecord {
-  readonly text: string;
+  readonly text: string | null;
   readonly revision: number;
-  readonly updatedAt: string;
+  readonly updatedAt: string | null;
 }
 
 export function ResponseField({
@@ -79,6 +102,8 @@ export function ResponseField({
   // field name once on an activity. `useId` spells its values with colons, which are legal in an
   // `id` but break any CSS selector built from one — including the one a label lookup uses.
   const boxId = `response-${activityId}-${fieldName}`;
+  /** Every control and announcement names the activity too: a lesson carries three of each. */
+  const scope = `${label}, ${activityId}`;
 
   const [text, setText] = useState(stored?.text ?? '');
   /** The text and revision the server last acknowledged. The whole state machine hangs off this. */
@@ -94,12 +119,15 @@ export function ResponseField({
   const matchesAcknowledged = text === acknowledged.text;
   const savedSomething = acknowledged.at !== null;
 
+  // A failure outranks an open conflict. A save made from the conflict panel can fail like any
+  // other, and while `conflict` won this the page did not change at all when it did: the reader
+  // pressed Keep mine, the request left, nothing came back, and nothing on screen said so.
   const state: FieldState = inFlight
     ? 'saving'
-    : conflict
-      ? 'conflict'
-      : failure
-        ? 'failed'
+    : failure
+      ? 'failed'
+      : conflict
+        ? 'conflict'
         : matchesAcknowledged && savedSomething
           ? 'saved'
           : 'unsaved';
@@ -118,7 +146,10 @@ export function ResponseField({
     setInFlight(true);
     setFailure(null);
     try {
-      const response = await fetch(`/api/activities/${activityId}/responses/${fieldName}`, {
+      // Encoded, because an activity id and a field name are both content: nothing in the release
+      // format promises either is free of a `/` or a space. The same reason `lessonHref` encodes.
+      const url = `/api/activities/${encodeURIComponent(activityId)}/responses/${encodeURIComponent(fieldName)}`;
+      const response = await fetch(url, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ text: body, expectedRevision }),
@@ -129,21 +160,38 @@ export function ResponseField({
         updatedAt?: string;
         error?: string;
         message?: string;
+        failure?: { message?: string };
         stored?: { text: string; revision: number; updatedAt: string } | null;
       };
 
       if (response.status === 409 && answer.error === 'revision_conflict') {
         // Not a failure the reader can retry past: retrying is the one thing that must not
         // silently work here. Both texts stay on screen until they choose.
-        setConflict({
-          text: answer.stored?.text ?? '',
-          revision: answer.stored?.revision ?? 0,
-          updatedAt: answer.stored?.updatedAt ?? new Date().toISOString(),
-        });
+        //
+        // `stored: null` is an answer, not a missing one — the server is saying it holds nothing
+        // for this field. Filling that gap with an empty string, revision 0 and a timestamp of our
+        // own would let Use stored hand the reader a "Saved" for a record that does not exist.
+        // Found twice over in review, by `/code-review` and by test-guardian POST independently.
+        setConflict(
+          answer.stored
+            ? {
+                text: answer.stored.text,
+                revision: answer.stored.revision,
+                updatedAt: answer.stored.updatedAt,
+              }
+            : { text: null, revision: 0, updatedAt: null },
+        );
         return;
       }
       if (!response.ok || answer.state !== 'saved' || typeof answer.revision !== 'number') {
-        setFailure(answer.message ?? `The app answered with status ${response.status}.`);
+        // A refused release answers 200 with the importer's own words under `failure`, which is
+        // the shape every other endpoint uses. Reading only `message` finds nothing there, and
+        // tells the reader the app answered with status 200 — true, and useless.
+        setFailure(
+          answer.failure?.message ??
+            answer.message ??
+            `The app answered with status ${response.status}.`,
+        );
         return;
       }
 
@@ -168,25 +216,28 @@ export function ResponseField({
   /** Take what is stored, at the revision it is stored at. No request: nothing has changed. */
   function useStored(): void {
     if (!conflict) return;
-    setText(conflict.text);
-    // The stored record's own time, not now: the reader did not save this, they accepted it, and
-    // the page must not claim a save that never happened at this clock.
-    setAcknowledged({ text: conflict.text, revision: conflict.revision, at: conflict.updatedAt });
     setConflict(null);
     setFailure(null);
+    setText(conflict.text ?? '');
+    setAcknowledged({
+      text: conflict.text ?? '',
+      revision: conflict.revision,
+      // The stored record's own time, never now: the reader did not save this, they accepted it.
+      // And null where the server holds nothing, which leaves the field unsaved rather than
+      // claiming a save for a record that is not there.
+      at: conflict.updatedAt,
+    });
   }
-
-  const savedAt = acknowledged.at ? atTime(acknowledged.at) : null;
 
   return (
     <div className="response-field" data-field-name={fieldName} data-state={state}>
       <div className="response-head">
         <label htmlFor={boxId}>{label}</label>
-        {/* Polite, and it names its own field: twelve regions on a lesson page announcing a bare
-            "Saved" would say nothing about which box just landed. */}
+        {/* Polite, and it names its own field and activity: a lesson page carries three regions
+            that would otherwise announce the identical words. */}
         <p className="response-state" role="status">
-          <span className="visually-hidden">{label}: </span>
-          {stateWords(state, savedAt)}
+          <span className="visually-hidden">{scope}: </span>
+          {stateWords(state, acknowledged.at ? savedWhen(acknowledged.at) : null)}
         </p>
       </div>
 
@@ -205,19 +256,28 @@ export function ResponseField({
       )}
 
       {conflict && (
-        <ConflictPanel stored={conflict.text} onUseStored={useStored} onKeepMine={save} />
+        <ConflictPanel
+          stored={conflict.text}
+          scope={scope}
+          onUseStored={useStored}
+          onKeepMine={save}
+        />
       )}
 
       {!conflict && (
         <p className="response-actions">
-          {/* Named from the author's own field token rather than from the label. Twelve buttons
-              reading "Save" are twelve identical entries in a screen reader's control list, and
-              repeating the label instead would give the box and its button the same name. */}
           <button
             type="button"
             className="response-save"
+            // Filled only while there is a write waiting to happen. Twelve solid buttons on a
+            // lesson are louder than the lesson's own actions, and a field with nothing to save
+            // has no business looking urgent.
+            data-pending={matchesAcknowledged ? 'false' : 'true'}
             onClick={save}
-            aria-label={`Save ${fieldName.replace(/_/g, ' ')}`}
+            // Focusable on purpose while saving: `disabled` would drop the focus of whoever just
+            // pressed it. `aria-disabled` says the same thing without moving anybody.
+            aria-disabled={inFlight}
+            aria-label={`Save ${fieldName.replace(/_/g, ' ')}, ${activityId}`}
           >
             {inFlight ? 'Saving…' : 'Save'}
           </button>
@@ -231,13 +291,20 @@ export function ResponseField({
  * Both texts, side by side, and the reader decides. Keep mine re-sends against the revision the
  * conflict reported — a deliberate overwrite they asked for, which is not the silent one ADR 0004
  * forbids. Nothing here discards either text on its own.
+ *
+ * The two actions carry equal weight. Decision 3 treats them as two legitimate choices, and making
+ * the overwrite the confident-looking one would be the app leaning on a decision that is the
+ * reader's to make.
  */
 function ConflictPanel({
   stored,
+  scope,
   onUseStored,
   onKeepMine,
 }: {
-  readonly stored: string;
+  /** null when the server reported holding nothing at all for this field. */
+  readonly stored: string | null;
+  readonly scope: string;
   readonly onUseStored: () => void;
   readonly onKeepMine: () => void;
 }) {
@@ -249,15 +316,31 @@ function ConflictPanel({
       </p>
 
       <p className="response-conflict-label">Saved elsewhere</p>
-      <pre className="response-conflict-stored">{stored}</pre>
+      {stored === null ? (
+        <p className="response-conflict-empty">
+          Nothing is stored for this field now. Taking it would leave the box empty and unsaved.
+        </p>
+      ) : (
+        <pre className="response-conflict-stored">{stored}</pre>
+      )}
 
       <p className="response-conflict-label">What you typed here, still in the box above</p>
 
       <p className="response-actions">
-        <button type="button" className="response-save" onClick={onKeepMine}>
+        <button
+          type="button"
+          className="response-secondary"
+          onClick={onKeepMine}
+          aria-label={`Keep mine, ${scope}`}
+        >
           Keep mine
         </button>
-        <button type="button" className="response-secondary" onClick={onUseStored}>
+        <button
+          type="button"
+          className="response-secondary"
+          onClick={onUseStored}
+          aria-label={`Use stored, ${scope}`}
+        >
           Use stored
         </button>
       </p>

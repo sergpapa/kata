@@ -35,8 +35,9 @@ export function RouteLink({
       return;
     }
     event.preventDefault();
-    navigate(href);
-    onNavigate?.();
+    // Only when the move actually happened. A navigation the guard refused leaves the reader on
+    // this page, and closing the drawer for it would hide the very link they just tapped.
+    if (navigate(href)) onNavigate?.();
   }
 
   return (

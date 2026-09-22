@@ -49,10 +49,6 @@ export function setUnsaved(key: string, field: UnsavedField | null): void {
   publish();
 }
 
-export function unsavedEntries(): readonly UnsavedEntry[] {
-  return snapshot;
-}
-
 export function hasUnsaved(): boolean {
   return entries.size > 0;
 }
@@ -84,10 +80,6 @@ function publishPending(): void {
 export function holdNavigation(href: string): void {
   pending = href;
   publishPending();
-}
-
-export function pendingNavigation(): string | null {
-  return pending;
 }
 
 export function releaseNavigation(): void {

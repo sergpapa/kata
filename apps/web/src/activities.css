@@ -45,23 +45,6 @@
   color: var(--foreground);
 }
 
-.activity-asks {
-  margin: 0;
-  color: var(--foreground);
-}
-
-/*
- * The one sentence that must not be missable: there is nowhere to write, and nothing is stored.
- *
- * It was set smaller and dimmer than the line above it, which is the visual grammar a reader uses
- * to mean "small print, skip this" — the design review's finding, and the opposite of what this
- * rule's own comment claimed. It now carries the same weight as the rest of the panel.
- */
-.activity-no-store {
-  margin: 0;
-  color: var(--foreground);
-}
-
 .activity-not-placed {
   margin: 0;
   color: var(--muted-foreground);
@@ -99,7 +82,7 @@
 .response-state {
   margin: 0;
   font-family: var(--font-mono);
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 
 .response-field[data-state='saved'] .response-state {
@@ -139,17 +122,14 @@
   margin: 0.55rem 0 0;
 }
 
-.response-save {
-  padding: 0.4rem 0.9rem;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-control);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
+/*
+ * Outlined until there is something to save.
+ *
+ * This is the only place in the app that fills a button with --primary, and twelve of them on one
+ * lesson were louder than the lesson's own navigation. The fill now tracks the one thing it should
+ * mean — a write is waiting — so a field that is empty, untouched or already saved sits quiet.
+ */
+.response-save,
 .response-secondary {
   padding: 0.4rem 0.9rem;
   background: var(--card);
@@ -158,6 +138,42 @@
   border-radius: var(--radius-control);
   font: inherit;
   cursor: pointer;
+  transition:
+    background var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out);
+}
+
+.response-save[data-pending='true'] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.response-save:hover,
+.response-secondary:hover {
+  background: var(--row-hover);
+  border-color: var(--foreground);
+}
+
+.response-save[data-pending='true']:hover {
+  background: var(--primary);
+  border-color: var(--foreground);
+}
+
+/* Saving is not a control the reader can press again, and the button says so to everybody. */
+.response-save[aria-disabled='true'],
+.response-save[aria-disabled='true']:hover {
+  cursor: default;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border-color: var(--input);
+  font-weight: inherit;
+}
+
+.response-conflict-empty {
+  margin: 0;
+  color: var(--foreground);
 }
 
 /* Both texts at once, so nothing is discarded before the reader has seen what they are choosing

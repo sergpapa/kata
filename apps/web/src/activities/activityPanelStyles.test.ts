@@ -49,6 +49,9 @@ const textPairs: readonly (readonly [string, string, number])[] = [
 const controlPairs: readonly (readonly [string, string, number])[] = [
   ['--foreground', '--card', 4.5],
   ['--primary-foreground', '--primary', 4.5],
+  // A hovered control keeps its label on a different fill, which is a pair nobody had measured.
+  ['--foreground', '--row-hover', 4.5],
+  ['--muted-foreground', '--card', 4.5],
 ];
 
 /**
@@ -61,7 +64,7 @@ const controlPairs: readonly (readonly [string, string, number])[] = [
 const edgeTokens = ['--border', '--quote-rule', '--input'] as const;
 
 /** Fills the panel paints that are not its own. */
-const surfaceTokens = ['--card', '--primary'] as const;
+const surfaceTokens = ['--card', '--primary', '--row-hover'] as const;
 
 const colourProperties =
   /(?:^|[;{])\s*(color|background|background-color|border|border-color|border-left|border-left-color|border-top|outline|outline-color|box-shadow|fill|stroke)\s*:\s*([^;}]+)/g;
@@ -174,8 +177,15 @@ describe('what the panel emphasises', () => {
     // "the app cannot store any of it yet", set smaller and dimmer than the line above it, which is
     // the visual grammar a reader uses to mean "skip this". That sentence is gone; the save state
     // is now the panel's one load-bearing claim, and it inherits the rule.
+    //
+    // **Both halves of it.** The first version of this re-aim kept only the font-size half and
+    // dropped the dim-ink half, and the implementation then set the line in exactly the ink the
+    // dropped half forbade. `/code-review` caught it. The finding is worth the extra sentence: a
+    // re-aim that keeps the test's name and drops one of its two assertions reads, in a diff, like
+    // the same test.
     const state = declarationsOf('.response-state');
 
+    expect(state).not.toContain('--muted-foreground');
     expect(state).not.toMatch(/font-size:\s*0\.[0-8]\d*rem/);
   });
 

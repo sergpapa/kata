@@ -1,9 +1,8 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
-import { announceRoute, navigate, setNavigationGuard, usePathname } from './route.js';
+import { navigate, setNavigationGuard } from './route.js';
 import {
   hasUnsaved,
   holdNavigation,
-  pendingNavigation,
   releaseNavigation,
   usePendingNavigation,
   useUnsavedEntries,
@@ -21,15 +20,12 @@ import {
 export function UnsavedDialog() {
   const entries = useUnsavedEntries();
   const pending = usePendingNavigation();
-  const pathname = usePathname();
   const titleId = useId();
   const dialog = useRef<HTMLDivElement>(null);
   /** Where the reader was when the dialog took focus, so Stay can put them back. */
   const cameFrom = useRef<HTMLElement | null>(null);
-  /** The address the reader is on, so `popstate` knows what to restore. */
-  const here = useRef(typeof window === 'undefined' ? '/' : window.location.pathname);
 
-  // The link path: `navigate` asks, and a veto holds the href for the dialog to act on.
+  // The router asks; a veto holds the href for this dialog to act on.
   //
   // The cleanup drops a held navigation as well as the guard. A navigation held by a dialog that is
   // no longer on the page is a question nobody can answer, and the next thing to mount would find
@@ -45,32 +41,6 @@ export function UnsavedDialog() {
       releaseNavigation();
     };
   }, []);
-
-  // The back and forward path. `popstate` fires after the browser has already changed the address,
-  // so the guard puts it back and then asks — the alternative is a reader who is on another page
-  // before being told what they lost.
-  useEffect(() => {
-    function onPopState(): void {
-      const wanted = window.location.pathname;
-      if (wanted === here.current) return;
-      if (!hasUnsaved()) {
-        here.current = wanted;
-        return;
-      }
-      window.history.pushState({}, '', here.current);
-      announceRoute();
-      holdNavigation(wanted);
-    }
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-
-  // Keeps `here` honest for every navigation the guard let through. A held navigation is excluded:
-  // during one, the address has deliberately been put back, and recording it would make the dialog
-  // agree that the reader is already where they were trying to go.
-  useEffect(() => {
-    if (pendingNavigation() === null) here.current = pathname;
-  }, [pathname]);
 
   // The refresh and tab-close path, registered only while there is something to lose. An always-on
   // handler makes every ordinary page reload ask a question with no answer behind it.
@@ -98,11 +68,8 @@ export function UnsavedDialog() {
   function leave(): void {
     const target = pending;
     releaseNavigation();
-    if (target !== null) {
-      here.current = target;
-      // Forced, because this *is* the guard's answer: the reader was asked and said go.
-      navigate(target, true);
-    }
+    // Forced, because this *is* the guard's answer: the reader was asked and said go.
+    if (target !== null) navigate(target, true);
   }
 
   // Escape listens on the document rather than on the dialog, the way the drawer's does: focus can

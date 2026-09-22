@@ -23,6 +23,8 @@ screenshots/
 
 # Editor and OS artifacts
 .vscode/
+# Kilo Code keeps scratch worktrees here; each is its own git repo
+.kilo/
 .idea/
 *.swp
 .DS_Store

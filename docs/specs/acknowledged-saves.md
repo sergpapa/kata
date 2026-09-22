@@ -126,7 +126,14 @@ code as it stands at commit `3edefec`:
 Recorded here before the red commit, because the standing rule is that a test is never changed to
 make an implementation pass. These four are changed because **the spec deliberately removes the
 behaviour they pinned** — F9 takes the panel's two sentences away — and each one's underlying claim
-is named below with where it now lives. None of them is weakened.
+is named below with where it now lives.
+
+**Correction, written after `/code-review`:** the sentence that stood here said "None of them is
+weakened", and for re-aim 4 that was false. Its replacement kept the font-size half of the retired
+assertion and dropped the `--muted-foreground` half, and the implementation then set the line in
+exactly the ink the dropped half forbade. A re-aim that keeps a test's name and drops one of its two
+assertions reads, in a diff, like the same test - which is the whole reason this list exists, and
+the reason a list alone is not enough. Both halves are restored and the implementation is fixed.
 
 1. `ActivityPanelCopy.test.tsx` — _"names what the activity asks for, in the file's own order"_.
    **Re-aimed, claim strengthened.** The prose sentence goes; the claim it protected (the author's
@@ -185,147 +192,247 @@ recorded here before the red commit and nowhere else.
 
 ### S — Storage and the compare-and-set contract
 
-- [ ] S1. Migration 4 creates `learner_response` and sets `app_schema_version` to `4`. Migrations
+- [x] S1. Migration 4 creates `learner_response` and sets `app_schema_version` to `4`. Migrations
       1–3 are not edited. `GET /api/health` reports `4`.
-- [ ] S2. A record is unique on `(activity_id, field_name)` and carries `text`, `revision`,
+- [x] S2. A record is unique on `(activity_id, field_name)` and carries `text`, `revision`,
       `updated_at`, and the `candidate_lesson_id`, `content_version` and `release_id` the latest
       accepted write was made under.
-- [ ] S3. The first accepted write for a field inserts at revision 1. Each accepted write after it
+- [x] S3. The first accepted write for a field inserts at revision 1. Each accepted write after it
       stores the new text at exactly one revision higher.
-- [ ] S4. A write whose expected revision does not equal the stored revision is **refused** and
+- [x] S4. A write whose expected revision does not equal the stored revision is **refused** and
       changes nothing: the stored text and revision are byte-identical afterwards.
-- [ ] S5. The compare-and-set is atomic in SQL — a conditional write whose own report of how many
+- [x] S5. The compare-and-set is atomic in SQL — a conditional write whose own report of how many
       rows it changed decides the outcome. A read-then-write with a gap between them fails this
       criterion even if it passes every other test.
-- [ ] S6. A write for a field with no stored record and an expected revision other than 0 is
+- [x] S6. A write for a field with no stored record and an expected revision other than 0 is
       refused, not silently inserted.
-- [ ] S7. Acknowledged work survives process restart: written through one database handle to a real
+- [x] S7. Acknowledged work survives process restart: written through one database handle to a real
       file, read back through a second handle opened on the same file after the first is closed.
-- [ ] S8. The repository module is the only place that speaks SQL about learner responses (ADR
+- [x] S8. The repository module is the only place that speaks SQL about learner responses (ADR
       0002).
 
 ### A — The HTTP contract
 
-- [ ] A1. `GET /api/lessons/:candidateLessonId` answers a `responses` array carrying, for every
+- [x] A1. `GET /api/lessons/:candidateLessonId` answers a `responses` array carrying, for every
       stored field of that lesson's activities, the `activityId`, `fieldName`, `text`, `revision`
       and `updatedAt`. A field never saved is absent from the array rather than present and empty.
-- [ ] A2. A lesson's answer carries responses for its own activities only, including activities
+- [x] A2. A lesson's answer carries responses for its own activities only, including activities
       shown at the lesson's foot. A response stored against another lesson's activity never appears.
-- [ ] A3. `PUT /api/activities/:activityId/responses/:fieldName` with `{ text, expectedRevision }`
+- [x] A3. `PUT /api/activities/:activityId/responses/:fieldName` with `{ text, expectedRevision }`
       stores the text and answers `{ state: 'saved', revision, updatedAt }` on acceptance.
-- [ ] A4. A revision mismatch answers **409** with `error: 'revision_conflict'` and the **current**
+- [x] A4. A revision mismatch answers **409** with `error: 'revision_conflict'` and the **current**
       stored `text`, `revision` and `updatedAt`, so the page can show the reader what is there
       without a second request.
-- [ ] A5. An `activityId` the imported release does not carry answers 404 `activity_not_found`.
-- [ ] A6. A `fieldName` the activity does not declare in its own `response_fields` answers 404
+- [x] A5. An `activityId` the imported release does not carry answers 404 `activity_not_found`.
+- [x] A6. A `fieldName` the activity does not declare in its own `response_fields` answers 404
       `field_not_declared`, naming the fields it does declare.
-- [ ] A7. A non-string `text`, or an `expectedRevision` that is not a non-negative integer, answers
+- [x] A7. A non-string `text`, or an `expectedRevision` that is not a non-negative integer, answers
       400 `response_invalid` — each naming which part was wrong. No coercion.
-- [ ] A8. Text longer than 100,000 characters answers 400 `response_too_long`, naming the limit and
+- [x] A8. Text longer than 100,000 characters answers 400 `response_too_long`, naming the limit and
       the length received, and stores nothing.
-- [ ] A9. While the release stands refused, the PUT answers the refusal in the server's own words
+- [x] A9. While the release stands refused, the PUT answers the refusal in the server's own words
       and writes nothing — the same shape the other endpoints already use.
-- [ ] A10. The provenance stored is the server's: the lesson key, content version and release ID it
+- [x] A10. The provenance stored is the server's: the lesson key, content version and release ID it
       reads from the imported release for that activity, regardless of anything in the request body.
-- [ ] A11. Two writes racing on the same field leave the store consistent — one accepted, one
+- [x] A11. Two writes racing on the same field leave the store consistent — one accepted, one
       refused with the conflict, and the stored text is the accepted one.
 
 ### F — The field on the page
 
-- [ ] F1. Every placed panel renders one labelled writing surface per declared response field, in
+- [x] F1. Every placed panel renders one labelled writing surface per declared response field, in
       the author's own field order, each with a visible label a reader can click to focus the box.
-- [ ] F2. A field with stored text renders it, already in the box, on first paint of the lesson —
+- [x] F2. A field with stored text renders it, already in the box, on first paint of the lesson —
       never empty-then-filled.
-- [ ] F3. **Saved** is shown only while the text in the box is character-for-character the text the
+- [x] F3. **Saved** is shown only while the text in the box is character-for-character the text the
       server acknowledged. Typing one character after a save moves the field to unsaved, with no
       request sent.
-- [ ] F4. Pressing Save moves the field to **saving** while the request is in flight, and the Save
+- [x] F4. Pressing Save moves the field to **saving** while the request is in flight, and the Save
       action cannot be fired again from that state.
-- [ ] F5. An acknowledged save moves the field to **saved** and records the revision the server
+- [x] F5. An acknowledged save moves the field to **saved** and records the revision the server
       returned, so the next save carries it.
-- [ ] F6. A failed request — network refusal, 5xx, or a refusal from A5–A9 — moves the field to
+- [x] F6. A failed request — network refusal, 5xx, or a refusal from A5–A9 — moves the field to
       **failed to save**, names the reason in the server's own words where there is one, **leaves
       the reader's text in the box**, and offers Save again. The word "saved" appears nowhere in
       that state.
-- [ ] F7. A save that is refused for any reason leaves the field's stored revision untouched, so a
+- [x] F7. A save that is refused for any reason leaves the field's stored revision untouched, so a
       later successful save is still a compare-and-set against what the server actually holds.
-- [ ] F8. Each field's state is announced politely to assistive technology, and names the field it
+- [x] F8. Each field's state is announced politely to assistive technology, and names the field it
       is about — a bare "Saved" beside twelve boxes names nothing.
-- [ ] F9. The panel no longer claims the app cannot store an answer, and no longer lists what the
+- [x] F9. The panel no longer claims the app cannot store an answer, and no longer lists what the
       activity asks for in prose.
-- [ ] F10. An activity shown at the lesson's foot (its section absent or ambiguous) gets the same
+- [x] F10. An activity shown at the lesson's foot (its section absent or ambiguous) gets the same
       writing surfaces. Work is recorded against the activity, not against where the panel landed.
-- [ ] F11. Fields are independent: saving one leaves every other field on the page in the state it
+- [x] F11. Fields are independent: saving one leaves every other field on the page in the state it
       was in, and a conflict on one does not block a save on another.
 
 ### C — The conflict path
 
-- [ ] C1. A 409 moves that field to a **conflict** state that is visibly distinct from failed to
+- [x] C1. A 409 moves that field to a **conflict** state that is visibly distinct from failed to
       save, and is announced as an alert rather than politely.
-- [ ] C2. The conflict state shows the stored text and the reader's text at the same time, each
+- [x] C2. The conflict state shows the stored text and the reader's text at the same time, each
       labelled for what it is, with neither replacing the other.
-- [ ] C3. **Keep mine** re-sends the reader's current text against the revision the conflict
+- [x] C3. **Keep mine** re-sends the reader's current text against the revision the conflict
       reported. On acceptance the field becomes saved at the new revision.
-- [ ] C4. **Use stored** puts the stored text in the box at the stored revision and the field
+- [x] C4. **Use stored** puts the stored text in the box at the stored revision and the field
       becomes saved, with no further request.
-- [ ] C5. A second conflict during Keep mine is itself a conflict against the newer stored text —
+- [x] C5. A second conflict during Keep mine is itself a conflict against the newer stored text —
       never an overwrite, and never a loop that gives up and writes anyway.
-- [ ] C6. Nothing in the conflict path discards either text without the reader choosing.
-- [ ] C7. End to end against the real app: a second client saves a field, the first client's save is
+- [x] C6. Nothing in the conflict path discards either text without the reader choosing.
+- [x] C7. End to end against the real app: a second client saves a field, the first client's save is
       refused with the current text, and the store holds exactly one of the two texts at every
       point.
 
 ### N — Leaving with unsaved work
 
-- [ ] N1. Following an in-app link while any field on the lesson has unsaved text opens a dialog
+- [x] N1. Following an in-app link while any field on the lesson has unsaved text opens a dialog
       naming what is unsaved, and does not navigate.
-- [ ] N2. **Stay** closes the dialog, leaves the address unchanged, and leaves every field's text
+- [x] N2. **Stay** closes the dialog, leaves the address unchanged, and leaves every field's text
       and state exactly as it was.
-- [ ] N3. **Leave anyway** performs the navigation that was blocked.
-- [ ] N4. Back and forward are guarded the same way: the address the reader left is restored, the
+- [x] N3. **Leave anyway** performs the navigation that was blocked.
+- [x] N4. Back and forward are guarded the same way: the address the reader left is restored, the
       dialog opens, and Leave anyway performs the navigation.
-- [ ] N5. With nothing unsaved, navigation is unchanged — no dialog, no extra click. Saving the last
+- [x] N5. With nothing unsaved, navigation is unchanged — no dialog, no extra click. Saving the last
       unsaved field removes the guard.
-- [ ] N6. A `beforeunload` handler is registered only while something is unsaved, so a refresh or a
+- [x] N6. A `beforeunload` handler is registered only while something is unsaved, so a refresh or a
       tab close warns, and an ordinary page with nothing typed does not.
-- [ ] N7. The dialog is a real modal: focus moves into it, Tab is trapped inside it, Escape is Stay,
+- [x] N7. The dialog is a real modal: focus moves into it, Tab is trapped inside it, Escape is Stay,
       and focus returns to whatever the reader was on.
-- [ ] N8. The dialog names the fields by their label and their activity, not by a count.
+- [x] N8. The dialog names the fields by their label and their activity, not by a count.
 
 ### D — Design and access
 
-- [ ] D1. `--input` is declared in both schemes at values that meet WCAG 1.4.11 (3:1) against every
+- [x] D1. `--input` is declared in both schemes at values that meet WCAG 1.4.11 (3:1) against every
       surface the control sits on: `#767f93` light, `#5c6b94` dark. Asserted numerically in
       `theme.test.ts` against `--card`, `--background` and the panel surface, in both schemes — not
       by eye. The C2 deviation in `docs/specs/visual-design-integration.md` is closed there.
-- [ ] D2. Every state line, label, button and conflict surface uses declared tokens and meets the
+- [x] D2. Every state line, label, button and conflict surface uses declared tokens and meets the
       contrast the existing `theme.test.ts` pairs list enforces, in both schemes.
-- [ ] D3. Every control is reachable and operable by keyboard alone: Tab into each box, Tab to its
+- [x] D3. Every control is reachable and operable by keyboard alone: Tab into each box, Tab to its
       Save, activate by Enter or Space, and the focus ring is visible on all of them.
-- [ ] D4. No page scrolls sideways at 375, 768 or 1440px in either scheme, with every field
+- [x] D4. No page scrolls sideways at 375, 768 or 1440px in either scheme, with every field
       rendered — the existing screenshot-gate check, extended to a lesson with its boxes on screen.
-- [ ] D5. The screenshot gate proves the writing surfaces are actually there: per lesson, per width,
+- [x] D5. The screenshot gate proves the writing surfaces are actually there: per lesson, per width,
       per scheme, the number of response fields on the page equals four times the number of
       activities `GET /api/lessons/:id` says that lesson has, and every one carries a label. The
       expected count is asked of the API, never written down.
-- [ ] D6. The gate check in D5 is proven by sabotage: breaking field rendering fails it by name,
+- [x] D6. The gate check in D5 is proven by sabotage: breaking field rendering fails it by name,
       rather than passing green on zero.
 
 ### R — Nothing already built regresses
 
-- [ ] R1. Every criterion in `docs/specs/activity-placement.md` still holds — in particular that
+- [x] R1. Every criterion in `docs/specs/activity-placement.md` still holds — in particular that
       panels sit at the end of their own sections, that the prompt is never rendered a second time
       where the section is visible, and the placed-versus-foot counts the gate measures.
-- [ ] R2. Every criterion in `docs/specs/reader-navigation-and-resume.md` still holds: the contents
+- [x] R2. Every criterion in `docs/specs/reader-navigation-and-resume.md` still holds: the contents
       list, previous/next, and the resume point, including that a transient Start card cannot record
       over the reader's place.
-- [ ] R3. Every criterion in `docs/specs/markdown-rendering.md` and `docs/specs/mermaid-diagrams.md`
+- [x] R3. Every criterion in `docs/specs/markdown-rendering.md` and `docs/specs/mermaid-diagrams.md`
       still holds. Nothing this slice adds enters the sanitized authored tree as content.
-- [ ] R4. The release-import refusals and the eight-hash verification are untouched; a refused
+- [x] R4. The release-import refusals and the eight-hash verification are untouched; a refused
       release still refuses every page in the server's own words.
-- [ ] R5. `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run format:check`
+- [x] R5. `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run format:check`
       and `npm run screenshots` all pass locally.
 
 ## Slice record
 
-_(appended as the slice runs)_
+**2026-09-22 — built, reviewed and closed.** 810 tests; `npm run lint`, `npm run typecheck`,
+`npm run build`, `npm run format:check` and `npm run screenshots` all pass locally.
+
+### The pipeline
+
+**Stage 0** asked four forks in one batch and took all four defaults: a save covers one field, the
+live record keys on activity and field with the version stamped per write (ADR 0011), a conflict
+shows both texts and the reader chooses, and leaving a lesson with unsaved text stops and asks.
+
+**test-guardian PRE returned FAIL** on seven findings, every one taken before an implementation
+existed. The one that most justified the pass: `/api/health`'s pinned `schemaVersion: '3'` was an
+undeclared re-aim that this spec's own list had missed. Two more were tests that passed against an
+app with nothing built at all — each asserted "no boxes when no fields are declared", which is
+equally true of a page with no boxes anywhere; both now render a companion activity that does
+declare fields. A fourth was F6's word-absence claim, which this spec named as the replacement for a
+retired forbidden-word list and which had no test at all.
+
+**A second instance of the same missed pin** turned up during implementation, in the same file: the
+migration-idempotence test ends with the same assertion. Declared as re-aim 8's second paragraph
+before the line was touched. The lesson is in that paragraph: which tests pin the schema version is
+a grep, not a memory.
+
+**`/code-review` (high) returned 15 findings**, and **test-guardian POST returned PASS** while
+independently finding the same defect as the review's first: a 409 carrying `stored: null` — the
+server's honest answer that it holds nothing — was filled in by the client with an empty string,
+revision 0 and **a timestamp of its own**, so Use stored made the field read "Saved at 14:07" for a
+record that did not exist. That is the exact false save ADR 0004 and this slice exist to prevent,
+and it was reachable in code nobody had tested. Two reviewers arriving at it by different routes is
+the strongest signal either produced.
+
+**The design review returned ship-with-nits**, seven findings.
+
+### Findings taken
+
+From `/code-review`: the fabricated acknowledgement above; a save that failed _from_ the conflict
+panel changed nothing on screen, because `conflict` outranked `failure` in the state derivation; the
+save URL interpolated the activity id and field name raw where every other content key in the repo
+is encoded; the dialog shared a z-index with the drawer and painted underneath it at phone widths,
+untabbable; the back-button guard worked only by an accident of mount order, and now lives in the
+router, which owns one `popstate` listener and consults the guard before anything re-reads the
+address; a refused release answers 200 with its words under `failure`, which the client did not
+read, so it reported "The app answered with status 200"; **the weakened test above**; `RouteLink`
+ran its `onNavigate` for a navigation the guard had refused, closing the drawer around the link the
+reader had just tapped, so `navigate` now answers whether it moved; Fastify's default 1 MiB body
+limit refused the biggest pastes before the handler that names the limit could run; the save control
+and the status region named the field but not the activity, and a lesson carries three of each; dead
+`.activity-asks` and `.activity-no-store` rules survived the JSX that used them, one with a comment
+about a sentence that no longer renders; a refused back press restored the pathname and dropped the
+fragment, so Stay returned the reader to the top of the lesson rather than the section they were in;
+a redundant index duplicating the one the `UNIQUE` constraint already builds; three full passes over
+release data per save, now one summary read and a parse memoised per release row; and a clock-only
+timestamp that made a week-old answer read as this morning.
+
+From the design review: the Save button was the only place in the app filling a button with
+`--primary`, twelve times per lesson — it is now outlined, and fills only while a write is actually
+waiting; none of the six new buttons had a hover state, so the app's newest and most-repeated
+controls were the only ones that answered a mouse with nothing; "Saving…" relabelled the button
+without marking it busy, so it now carries `aria-disabled` while staying focusable; the conflict
+controls did not get the field-scoped naming Save already had; and the conflict panel gave the
+overwrite the confident-looking fill, which is the app leaning on a decision that is the reader's —
+both actions now carry equal weight.
+
+### Findings declined, with reasons
+
+- **The density finding, in part.** The design review is right that twelve boxes inside one lesson's
+  prose is a lot, and its suggested fix — one save action per activity — is the decision the owner
+  was asked about and did not take. Decision 1 is per-field because UX-03 asks for a Save prediction
+  action and AC-03 asks for prediction and reflection to stay distinct, and because the next slice
+  makes a prediction its own immutable revision. What could be done without reopening that was done:
+  the buttons are quiet until they have something to save. The rest is content shape — the release
+  puts three activities under adjacent short headings — and is the owner's to judge in the trial.
+- **`leave()` pushes rather than going back.** After answering "Leave anyway" to a back press, the
+  reader arrives at the right address, but by a push, so their forward button behaves differently
+  from a plain back. Going back properly means disarming the guard and re-entering `history.back()`,
+  which is a second trip through the same listener for the sake of the history stack's shape. The
+  address is right; the stack order is not worth that race.
+- **The ban on the word "stored" in the failed state is broader than F6 asks for.** POST noted it
+  forecloses an honest phrasing like "Your text was not stored". Left as it is, deliberately: it
+  trades some vocabulary for no ambiguity at all about the one word that must never appear beside a
+  failure, and the implementation it forced — stating what happened rather than negating what did
+  not — is better copy than what it rejected.
+- **The locale-mixed timestamp.** `toLocaleTimeString(undefined, …)` renders "Saved at 18:52 μ.μ."
+  on a Greek machine — an English sentence with a native marker in it. Respecting the reader's own
+  locale is right, and forcing one would be this app deciding how somebody reads a clock.
+
+### Known and not fixed
+
+`apps/web/src/activities/realActivityPlacement.test.tsx` — "places all three of LS-M020-02 at the
+end of their own sections" — fails roughly one full-suite run in three, always on a 5000 ms
+**timeout** and never on a wrong value. It passes 10/10 in isolation at 852 ms, and measured 1261 ms
+on the commit before this slice, so this slice made it faster. test-guardian reproduced it over nine
+runs and found it lands only on the two largest lesson bodies in the release. The cause is harness
+saturation — the web project creates 21 jsdom environments costing 50–90 s inside a ~15 s wall
+clock. It is left alone on purpose: the standing rule forbids widening a budget to fit a stress
+level the harness inflicts on itself, and the real fix is a suite-wide concurrency decision that is
+not this slice's to make.
+
+Three test files remain over the ~350-line guidance: `unsavedNavigation.test.tsx` at 487 and
+`responses.test.ts` at 449, both this slice's, and the pre-existing `verify.test.ts` at 846 and
+`app.test.ts` at 601. `ResponseField.test.tsx` reached 768 and **was** split, into the field's own
+states (328), the conflict path and the review findings (368), and a shared harness (122).

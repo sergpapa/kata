@@ -62,9 +62,10 @@ export interface ResponseRouteDeps {
   readonly release: ReleaseState;
   /** The activities of the imported release, derived the same way the lesson view derives them. */
   readonly activitiesOfRelease: () => readonly LessonActivity[];
-  /** The content version of a lesson in the imported release. */
-  readonly contentVersionOf: (candidateLessonId: string) => string | undefined;
-  readonly releaseIdOf: () => string | undefined;
+  /** The version and release a write against this lesson is recorded under (ADR 0011). */
+  readonly provenanceOf: (
+    candidateLessonId: string,
+  ) => { readonly contentVersion: string; readonly releaseId: string } | undefined;
   readonly now: () => string;
 }
 
@@ -112,9 +113,8 @@ export function registerResponseRoutes(app: FastifyInstance, deps: ResponseRoute
         });
       }
 
-      const contentVersion = deps.contentVersionOf(activity.lessonId);
-      const releaseId = deps.releaseIdOf();
-      if (contentVersion === undefined || releaseId === undefined) {
+      const provenance = deps.provenanceOf(activity.lessonId);
+      if (!provenance) {
         throw new Error(
           `Activity ${activityId} names lesson ${activity.lessonId}, which the imported release does not carry. The importer refuses that release by name, so reaching here means the record store changed under a running app.`,
         );
@@ -124,8 +124,8 @@ export function registerResponseRoutes(app: FastifyInstance, deps: ResponseRoute
         activityId,
         fieldName,
         candidateLessonId: activity.lessonId,
-        contentVersion,
-        releaseId,
+        contentVersion: provenance.contentVersion,
+        releaseId: provenance.releaseId,
         text,
         expectedRevision,
         updatedAt: deps.now(),

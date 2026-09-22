@@ -6,12 +6,13 @@ your work anywhere else.
 
 **Current state:** the fifteen-lesson release imports, every lesson is listed and reads at its own
 address inside the Engineering Practice design, and diagrams that parse are drawn. Each lesson
-carries its section contents in the sidebar and previous/next at its foot, and the app keeps one
-recorded fact — the lesson you last opened — so the dashboard can offer Continue after a refresh
-or a restart. The author's 45 practice activities now appear beside the sections they were written
-for, each naming what it asks you for and saying plainly that there is nowhere to write it yet.
-Notes and predictions are not recorded yet, and nothing on a lesson page invites you to type. See
-[docs/roadmap.md](docs/roadmap.md).
+carries its section contents in the sidebar and previous/next at its foot, and the app keeps the
+lesson you last opened, so the dashboard can offer Continue after a refresh or a restart. The
+author's 45 practice activities appear beside the sections they were written for, and **you can now
+write against each of them and have the app keep it**: one box per field the author asked for, each
+saved on its own and each saying whether what is in it is stored. Your work survives a refresh and
+a restart. An acknowledged prediction is not yet kept as its own revision, there is no download of
+unsaved text after a failure, and nothing is exported yet. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
 
@@ -59,10 +60,32 @@ reached with the back button.
 
 The release ships a separate file of practice activities, each naming the lesson section it belongs
 to. The app places every one at the end of its own section, after the author's prose and before the
-next heading, and never repeats the prompt that is already on the page. The panel states what the
-activity asks for and that the app cannot store it yet — so it offers no box to type into, not even
-a disabled one. An activity whose section a future release renames is shown at the foot of the
-lesson, with its prompt, saying which section it was written for.
+next heading, and never repeats the prompt that is already on the page. An activity whose section a
+future release renames is shown at the foot of the lesson, with its prompt, saying which section it
+was written for.
+
+## Writing, and what "saved" means here
+
+Each activity carries one box per field its author asked for — prediction, what you observed, your
+explanation, whether you used help — and each box saves on its own, when you ask it to. There is no
+autosave.
+
+Beside every box is one line saying where that text is. It reads **Saved**, with when, only after
+the app's own server has written it and said so; the moment you type another character it goes back
+to **Not saved yet**. If a save does not go through, the line says so, your text stays exactly where
+it is, and Save is still there to press again.
+
+If the same field was saved somewhere else — a second tab, another window — your save is refused
+rather than allowed to overwrite it. Both texts are then shown together, yours still in the box and
+theirs beside it, and you choose: keep yours, or take what is stored. Neither is thrown away without
+you saying so.
+
+Leaving a lesson with something typed but not saved stops and asks first, naming what is unsaved.
+That covers a link, the back button and a refresh.
+
+What is stored is recorded against the activity, the lesson, the content version and the release it
+was written under, so a later correction to a lesson never quietly re-labels an answer you gave to
+an earlier wording.
 
 Lesson text is data, never markup that runs. Markdown becomes React elements directly; no HTML
 string exists anywhere in the application. Anything that must not render is turned into visible

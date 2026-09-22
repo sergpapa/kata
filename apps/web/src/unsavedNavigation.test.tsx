@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from './App.js';
@@ -390,5 +393,95 @@ describe('the dialog itself', () => {
     const labelledBy = dialog().getAttribute('aria-labelledby');
     expect(labelledBy).toBeTruthy();
     expect(document.getElementById(labelledBy as string)?.textContent?.trim()).not.toBe('');
+  });
+});
+
+/**
+ * The cases `/code-review` found in the guard after the implementation landed.
+ */
+describe('the review findings in the guard', () => {
+  it('leaves the drawer open when it refuses the link that was tapped inside it', async () => {
+    // `navigate` now returns without navigating, but it returned `void`, so `RouteLink` ran its
+    // `onNavigate` anyway — which on a phone closes the drawer. The dialog then opened over a
+    // sidebar that had shut, and Stay handed focus back to a link inside a hidden element.
+    answerEverything();
+    await typeWithoutSaving();
+    const trigger = screen.getByRole('button', { name: /navigation/i });
+    fireEvent.click(trigger);
+    await waitFor(() => expect(trigger.getAttribute('aria-expanded')).toBe('true'));
+
+    const sidebar = document.querySelector('.sidebar') as HTMLElement;
+    fireEvent.click(within(sidebar).getByRole('link', { name: 'Practice' }));
+
+    expect(dialog()).toBeTruthy();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('hands focus back to the link that was refused, not to the page behind it', async () => {
+    answerEverything();
+    await typeWithoutSaving();
+    const link = nextLink();
+    link.focus();
+    fireEvent.click(link);
+    await waitFor(() => expect(dialog().contains(document.activeElement)).toBe(true));
+
+    fireEvent.click(within(dialog()).getByRole('button', { name: /stay/i }));
+
+    await waitFor(() => expect(document.activeElement).toBe(link));
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
+  it('keeps the section the reader was in when it refuses a back press', async () => {
+    // `here` was recorded from `pathname` alone, so restoring it dropped the fragment. A reader
+    // who jumped to a section, typed into it and pressed Back was returned to the top of the
+    // lesson by their own Stay.
+    answerEverything();
+    window.history.replaceState({}, '', '/lessons/LS-M020-01#practice-a');
+    render(<App />);
+    const box = await screen.findByLabelText(/your prediction/i);
+    fireEvent.change(box, { target: { value: 'typed inside a section' } });
+
+    window.history.pushState({}, '', '/');
+    fireEvent.popState(window);
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeNull());
+    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.hash).toBe('#practice-a');
+  });
+});
+
+/**
+ * The dialog has to be on top of everything it can open over, and at 375px the sidebar is a fixed
+ * overlay of its own. Read from the stylesheets, because jsdom applies neither.
+ */
+describe('the dialog stacks above what it opens over', () => {
+  const read = (file: string) =>
+    readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), file), 'utf8');
+
+  /**
+   * The highest stacking this selector ever reaches. Every rule for it counts, not the first: the
+   * sidebar is a static column on a desktop and a fixed overlay at 767px, and only the second one
+   * — inside a media query — declares a z-index at all.
+   */
+  function highestZIndex(css: string, selector: string): number {
+    const found: number[] = [];
+    let at = css.indexOf(`${selector} {`);
+    if (at === -1) throw new Error(`no ${selector} rule`);
+    while (at !== -1) {
+      const block = css.slice(at, css.indexOf('}', at));
+      const match = /z-index:\s*(\d+)/.exec(block);
+      if (match) found.push(Number(match[1]));
+      at = css.indexOf(`${selector} {`, at + 1);
+    }
+    if (found.length === 0) throw new Error(`${selector} declares no z-index`);
+    return Math.max(...found);
+  }
+
+  it('sits above the drawer, which is a fixed overlay at phone widths', () => {
+    // Equal z-index and the sidebar wins, because it comes later in the DOM. The reader then has a
+    // dialog they can neither see nor reach: the drawer traps Tab inside itself.
+    expect(highestZIndex(read('./unsaved.css'), '.unsaved-scrim')).toBeGreaterThan(
+      highestZIndex(read('./shell.css'), '.sidebar'),
+    );
   });
 });

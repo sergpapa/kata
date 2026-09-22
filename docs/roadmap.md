@@ -2,32 +2,40 @@
 
 ## Current state
 
-Last updated 2026-09-22. **Milestone 1 is complete and Milestone 2 has its first slice.** The app
-imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021, five
-lab kits, 45 activity entries — from `content/releases/http-first-fifteen-v1_0_1/content`, serves
-all of it inside the Engineering Practice shell (Swiss-revival direction, spec and dial sheet in
-`docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, and since slice 9
-places the author's activities beside the sections they were written for.
+Last updated 2026-09-22. **Milestone 1 is complete and Milestone 2 has its first two slices.** The
+app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021,
+five lab kits, 45 activity entries — from
+`content/releases/http-first-fifteen-v1_0_1/content`, serves all of it inside the Engineering
+Practice shell (Swiss-revival direction, spec and dial sheet in
+`docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, places the author's
+activities beside the sections they were written for, and **since slice 10 keeps what the owner
+writes against them**.
 
 Every lesson page carries an **IN THIS LESSON** contents list in the sidebar, **previous/next**
 links at its foot answered by the server from `display_order`, and a **resume point** — the lesson
-last opened, one silently written SQLite row (schema version 3, ADR 0010). The dashboard's card
-reads Continue lesson naming the last-opened lesson, or Start lesson when nothing is recorded, and
-renders only once the resume answer settles.
+last opened, one silently written SQLite row (schema version 4, ADR 0010). The dashboard's card
+reads Continue lesson naming the last-opened lesson, or Start lesson when nothing is recorded.
 
-**Activity placement (slice 9)** reads `trial-activities.json`, whose bytes the importer has hashed
-since slice 1 and never opened. Each of the 45 activities is placed at the end of the section its
-`source_heading` names — after the author's prose, before the next heading a reader sees as a peer -
-and the prompt that is already on the page is never repeated. The panel names the activity's kind
-and id, says what it asks for in the author's own field order, and states that the app cannot store
-any of it yet. **There is no writing surface, not even a disabled one**: acknowledged saves are the
-next slice, and a box that keeps nothing is the exact dishonesty Milestone 2 exists to prevent. The
-import now refuses three further ways for a release to be wrong, each by name -
-`activity_set_invalid`, `duplicate_activity_id`, `activity_lesson_mismatch`. No migration: the
-schema stays 3, because `content_activity_set` has held the file since schema 2 and the activities
-are derived on the way out (ADR 0005). An activity whose heading a future release renames is shown
-at the lesson's foot with its prompt, naming the section it was written for, rather than refusing
-the release or being dropped.
+**Acknowledged saves (slice 10)** give each of the 45 panels one box per field its author declared —
+`prediction`, `observation`, `explanation`, `help_used`, so twelve on a lesson. Each saves on its
+own, on an explicit press, with no autosave anywhere. **"Saved" appears only while the text in the
+box is character for character what the server acknowledged**, so typing one more character returns
+the field to unsaved without a request. A save the server refuses leaves the text in the box, names
+the reason in the server's own words, and offers Save again. A save refused because the field moved
+elsewhere opens the conflict path instead: both texts on screen at once, Keep mine and Use stored,
+neither discarded without a click. Leaving a lesson with unsaved text stops and names what is
+unsaved — for a link, for back and forward, and for a refresh.
+
+Storage is `learner_response`, one row per `(activity_id, field_name)`, schema 4. The write decides
+its own outcome: the expected revision goes into the `WHERE` clause and the statement's own change
+count is the answer, so a refusal is a refusal rather than a read that lost a race. Every accepted
+write stamps the lesson, content version and release **the server reads off the imported release**,
+never anything the request claimed — ADR 0011 records why the version is stamped per write rather
+than keyed on, which is what keeps an authorized correction from presenting as an empty box where
+the owner's answer was. `--input` arrives with the first textarea at `#767f93` / `#5c6b94` rather
+than the published `#c8d1e4`, closing the C2 deviation in `docs/specs/visual-design-integration.md`;
+three save-state inks join it, light values from the design package's own destructive and note
+colours, dark derived, every pair measured in `theme.test.ts`.
 
 CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to the
 author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
@@ -36,30 +44,33 @@ the app's 8317 and the gate's 8318. The diagram census stays five of five in rea
 11.17.2); Markdown still parses straight to React elements, raw HTML still becomes visible text, and
 the sandboxed-iframe exception still grants nothing.
 
-`npm test` (651 passing across 28 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. The gate now also proves, per
-lesson per width per scheme, that the number of panels **beside their sections** equals what the app
-says that lesson has, that none sits at the lesson's foot, that none sits under no heading, and that
-none offers anywhere to type — the expected count asked of `GET /api/lessons/:id` rather than
-written down. That check was rewritten under review: as first built it counted placed and foot
-panels together, so a release where every heading stopped matching would have passed green with
-nothing placed. It is now proven by sabotage — breaking heading matching fails 96 of the gate's
-checks by name.
+`npm test` (810 passing across 35 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The gate's activity check now
+also proves, per lesson per width per scheme, that the number of writing surfaces on the page equals
+the total of every activity's own `responseFields` as `GET /api/lessons/:id` reports them, that each
+carries a label of its own, and that each has a way to save what is typed in it — the expected count
+asked of the API rather than written down. Proven by sabotage: making `ResponseField` render nothing
+fails 90 checks by name.
 
-Known and not fixed: the design package's published `--input` border measures 1.53:1 on white where
-WCAG 1.4.11 asks 3:1, so it is still not ported; the acknowledged-saves slice adds the first
-textarea and `docs/specs/visual-design-integration.md` C2 names darker values that pass. Deferred
-with reasons in `docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px
-(lesson 13), and open-disclosure captures missing from the screenshot gate. Declined with reasons in
-`docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links) and
-`docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release; the
-unreachable 500 message in `activitiesOf` still reaches nobody). Two test files remain over the
-~350-line guidance — `apps/server/src/modules/content/verify.test.ts` at 846 and
-`apps/server/src/app.test.ts` at 598 — both pre-existing and both grown by this slice's describes;
-splitting them is a change to suites this slice does not own.
+**Known and not fixed.** `realActivityPlacement.test.tsx`'s LS-M020-02 case fails about one
+full-suite run in three, always on a 5000 ms **timeout**, never on a wrong value; 10/10 in isolation
+at 852 ms, and 1261 ms on the commit before slice 10, so the slice made it faster. Two independent
+reviewers diagnosed harness saturation — 21 jsdom environments costing 50–90 s inside a ~15 s wall
+clock. Not widened and not skipped: the standing rule forbids widening a budget to fit a stress the
+harness inflicts on itself, and the real fix is a suite-wide concurrency decision nobody has made
+yet. That decision is the first thing worth taking to the next slice. Deferred with reasons in
+`docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px (lesson 13), and
+open-disclosure captures missing from the screenshot gate. Declined with reasons in
+`docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links),
+`docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release) and
+`docs/specs/acknowledged-saves.md` (the density of twelve boxes, which is decision 1's cost and the
+owner's to judge in the trial; a Leave-anyway that pushes rather than going back). Four test files
+sit over the ~350-line guidance: `verify.test.ts` at 846 and `app.test.ts` at 601, both
+pre-existing, and `unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 449 from slice 10.
 
-Next action: Milestone 2, acknowledged saves — compare-and-set writes with the four states and a
-visible conflict path. That is where the first textarea, and the C2 input-border values, come due.
+Next action: Milestone 2, prediction history — an acknowledged prediction becomes its own revision,
+and a later correction appends rather than replaces. The per-field records and the per-write version
+stamp this slice built are what that appends to.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -137,8 +148,17 @@ visible conflict path. That is where the first textarea, and the C2 input-border
       taken) and POST (pass), `/code-review` (five confirmed findings taken, two declined with
       reasons, one plausible taken), design review (ship-with-nits, all four taken). Criteria and
       slice record in `docs/specs/activity-placement.md`.
-- [ ] **Acknowledged saves.** Compare-and-set writes with the four states — unsaved, saving, saved,
-      failed to save — and a visible conflict path rather than a silent overwrite.
+- [x] **Acknowledged saves.** Done 2026-09-22. One box per field the author declared, one stored
+      record per (activity, field), and a compare-and-set whose own change count decides the
+      outcome. Five visible states — unsaved, saving, saved, failed to save, and a conflict showing
+      both texts where the reader chooses. Leaving a lesson with unsaved text stops and names it,
+      for a link, for back and forward, and for a refresh. test-guardian PRE (FAIL on seven
+      findings, all taken before any implementation) and POST (pass), `/code-review` at high (15
+      findings, 13 taken, two declined with reasons), design review (ship-with-nits, five of seven
+      taken). The defect that mattered was found by the review and POST independently: a 409
+      carrying `stored: null` was filled in with a client-invented timestamp, so Use stored read
+      "Saved" for a record that did not exist. Criteria and slice record in
+      `docs/specs/acknowledged-saves.md`; the key decision in ADR 0011.
 - [ ] **Prediction history.** An acknowledged prediction is its own revision; a later correction
       appends and never replaces it.
 - [ ] **Save failure recovery.** A failed save keeps the text present and recoverable, and the
@@ -169,6 +189,56 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-22, slice 10 — acknowledged saves (Milestone 2 slice 2).** Built to
+  `docs/specs/acknowledged-saves.md`: 810 tests, test-guardian PRE and POST, `/code-review` at high,
+  design review, `/hygiene`. The first writing surface in the app, and the first thing it keeps.
+
+  Four forks were asked in one Stage-0 batch and all four defaults taken: a save covers one field
+  rather than an activity, the live record keys on `(activity_id, field_name)` with the content
+  version stamped per write (ADR 0011), a conflict shows both texts and the reader chooses, and
+  leaving a lesson with unsaved text stops and asks.
+
+  **PRE failed the tests on seven findings, all taken before any implementation existed** — and the
+  process failure of the previous slice was not repeated: nothing was built until the pass came
+  back. The finding that most justified the pass was one this spec's own re-aim list had missed:
+  `/api/health` pinned `schemaVersion: '3'`, which migration 4 moves. Two more were tests that
+  passed against an app with nothing built at all, each asserting "no boxes when no fields are
+  declared" — equally true of a page with no boxes anywhere. **A second instance of that same missed
+  pin surfaced during implementation, in the same file**, and was declared before the line was
+  touched. The lesson, written into the spec: which tests pin a constant is a grep, not a memory.
+
+  **The defect that mattered was found twice, independently.** `/code-review` and test-guardian POST
+  both reached it: a 409 carrying `stored: null` — the server saying honestly that it holds nothing
+  — was filled in by the client with an empty string, revision 0 and **a timestamp of its own**, so
+  Use stored made the field read "Saved at 14:07" for a record that did not exist. The exact false
+  save ADR 0004 exists to forbid, in code no test touched. Two reviewers arriving by different
+  routes is the strongest signal either produced.
+
+  `/code-review` returned 15 findings in all, 13 taken. The one worth naming beside the false save
+  is that **a test had been weakened and the spec claimed otherwise**: re-aim 4 kept the font-size
+  half of a retired assertion and dropped its `--muted-foreground` half, and the implementation then
+  set the line in exactly the ink the dropped half forbade. A re-aim that keeps a test's name and
+  drops one of its two assertions reads, in a diff, like the same test — which is why the list
+  exists, and why a list alone is not enough. The spec's "None of them is weakened" sentence is
+  corrected in place rather than removed.
+
+  The design review returned ship-with-nits, five of seven taken. Its sharpest was that the Save
+  button was the only place in the whole app filling a button with `--primary`, twelve times per
+  lesson, louder than the lesson's own navigation; it is now outlined and fills only while a write
+  is actually waiting. Its density finding is declined in the spec with reasons: the suggested fix —
+  one save per activity — is the fork the owner was asked about and did not take.
+
+  Two implementation choices a test drove, both recorded rather than worked around: the textarea id
+  is built from the activity and field instead of `useId`, whose colons are legal in an `id` but
+  break any selector built from one; and the failed and conflict lines state what happened rather
+  than negating what did not, because a reader skimming twelve states reads the word before the
+  "not".
+
+  **An environment fact, not a code change:** `better-sqlite3`'s binding on disk was built for
+  NODE_MODULE_VERSION 127 while the only installed Node is now 24.12.0 (137). 97 server tests failed
+  on it mid-slice until `npm rebuild better-sqlite3`. Worth knowing on the next machine or the next
+  Node bump.
 
 - **2026-09-22, slice 9 — activity placement (Milestone 2 slice 1).** Built to
   `docs/specs/activity-placement.md`: 651 tests, test-guardian PRE and POST, `/code-review`, design

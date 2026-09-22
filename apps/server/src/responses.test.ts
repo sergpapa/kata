@@ -339,6 +339,23 @@ describe('a save the server will not make', () => {
     expect((await lessonBody(app)).responses).toEqual([]);
   });
 
+  it('still names the refusal for a paste far past the limit, rather than a transport error', async () => {
+    // Fastify's default body limit is 1 MiB, which sits between the 100,000-character limit this
+    // app names and the size of an actual paste accident. Left at the default, the biggest pastes
+    // — the case the limit was written for — were refused by the framework with a generic 413
+    // before the handler that knows how to explain it ever ran.
+    const app = appWith(oneActivity);
+
+    const response = await put(app, 'ACT-FIX-01', 'prediction', {
+      text: 'x'.repeat(2_000_000),
+      expectedRevision: 0,
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toMatchObject({ error: 'response_too_long' });
+    expect((await lessonBody(app)).responses).toEqual([]);
+  });
+
   it('accepts text exactly at the limit, so the boundary is not off by one', async () => {
     const app = appWith(oneActivity);
 

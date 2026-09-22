@@ -50,8 +50,14 @@ export function lessonHref(candidateLessonId: string): string {
 }
 
 /**
- * `popstate` covers the back and forward buttons, but the browser fires nothing for a `pushState`
- * the app itself makes — so navigations are announced here as well.
+ * One `popstate` listener for the whole app, and one place a navigation can be refused.
+ *
+ * The listener lives here rather than in whatever component cares, because ordering is the whole
+ * problem: `popstate` fires after the browser has already moved, so the address has to be put back
+ * before anything re-reads it. A listener registered by a component competes with the ones this
+ * module's own subscribers add, and which of them runs first is an accident of mount order — get
+ * it wrong and the lesson page unmounts, every field clears its unsaved mark, and the guard finds
+ * nothing to protect.
  */
 const listeners = new Set<() => void>();
 
@@ -69,34 +75,67 @@ export function setNavigationGuard(check: ((href: string) => boolean) | null): v
   guard = check;
 }
 
-/** Tells every subscriber to re-read the address. For anything that changes it without `navigate`. */
-export function announceRoute(): void {
+function currentHref(): string {
+  return `${window.location.pathname}${window.location.hash}`;
+}
+
+/** The address the app believes it is on, kept whole so a refused move restores the section too. */
+let here = typeof window === 'undefined' ? '/' : currentHref();
+
+function announce(): void {
+  // Recorded here rather than only in `navigate`, because the address can change without one: the
+  // first paint, a `replaceState`, a hash the browser followed. Whatever has just settled is where
+  // a later refused move has to put the reader back.
+  here = currentHref();
   for (const listener of [...listeners]) listener();
 }
 
-export function navigate(href: string, force = false): void {
-  if (href === window.location.pathname) return;
+function onPopState(): void {
+  const wanted = currentHref();
+  // A hash-only move is not leaving the page, so it is never refused: the reader jumping back from
+  // a contents-list anchor has not asked to abandon anything.
+  const leavingPage = window.location.pathname !== here.split('#')[0];
+  if (leavingPage && guard && !guard(wanted)) {
+    window.history.pushState({}, '', here);
+    announce();
+    return;
+  }
+  here = wanted;
+  announce();
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', onPopState);
+}
+
+/**
+ * Moves to `href`, or refuses to. Answers whether it moved, so a caller that does something on the
+ * way out — closing the drawer, say — does not do it for a move that never happened.
+ */
+export function navigate(href: string, force = false): boolean {
+  if (href === currentHref()) return false;
   // `force` is the reader having been asked and having said go. It is not a way around the guard;
   // it is the guard's own answer coming back.
-  if (!force && guard && !guard(href)) return;
+  if (!force && guard && !guard(href)) return false;
+  here = href;
   window.history.pushState({}, '', href);
   // A new page starts at its top. Without this, following a lesson from halfway down the list
   // opens that lesson already scrolled past its title. Going *back* is left alone on purpose: the
   // browser restores the previous scroll position itself, which is what a reader expects.
   window.scrollTo(0, 0);
-  for (const listener of [...listeners]) listener();
+  announce();
+  return true;
 }
 
 function subscribe(onChange: () => void): () => void {
+  // Something has started reading the address, so this is where the app believes it is.
+  here = currentHref();
   listeners.add(onChange);
-  window.addEventListener('popstate', onChange);
   return () => {
     listeners.delete(onChange);
-    window.removeEventListener('popstate', onChange);
   };
 }
 
-/** The address itself, as a stable string — an effect can depend on this; a parsed Route cannot. */
 export function usePathname(): string {
   return useSyncExternalStore(
     subscribe,

@@ -9,7 +9,9 @@
 .unsaved-scrim {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /* Above the sidebar, which is its own fixed overlay at phone widths. At an equal z-index the
+     sidebar wins on DOM order, and the reader gets a dialog they can neither see nor tab to. */
+  z-index: 60;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,4 +87,24 @@
   border-radius: var(--radius-control);
   font: inherit;
   cursor: pointer;
+}
+
+/*
+ * The hover vocabulary every other control in this app already has. Without it the newest and
+ * most consequential buttons in the app are the only ones that answer a mouse with nothing.
+ */
+.unsaved-stay,
+.unsaved-leave {
+  transition:
+    background var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out);
+}
+
+.unsaved-stay:hover {
+  border-color: var(--foreground);
+}
+
+.unsaved-leave:hover {
+  background: var(--row-hover);
+  border-color: var(--state-failed);
 }

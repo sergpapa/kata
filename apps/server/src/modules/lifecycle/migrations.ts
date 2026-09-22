@@ -124,8 +124,8 @@ export const migrations: readonly Migration[] = [
         UNIQUE (activity_id, field_name)
       );
 
-      -- A lesson page asks for every field of several activities at once.
-      CREATE INDEX idx_learner_response_activity ON learner_response (activity_id);
+      -- No separate index on activity_id: the UNIQUE constraint above already builds a B-tree
+      -- whose leftmost column is activity_id, which is what a WHERE activity_id IN (...) needs.
 
       UPDATE schema_meta SET value = '4' WHERE key = 'app_schema_version';
     `,

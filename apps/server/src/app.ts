@@ -10,7 +10,11 @@ import {
   loadNeighbours,
   loadReleaseSummary,
 } from './modules/content/repository.js';
-import { activitiesForLesson, parseActivitySet } from './modules/content/activitySet.js';
+import {
+  activitiesForLesson,
+  parseActivitySet,
+  type LessonActivity,
+} from './modules/content/activitySet.js';
 import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
 import { loadResumePoint, saveResumePoint } from './modules/learner/resumeRepository.js';
 import { loadResponsesForActivities } from './modules/learner/responseRepository.js';
@@ -38,8 +42,22 @@ export interface AppDeps {
  * running process, and a lesson that silently lost its activities would look identical to a lesson
  * that never had any.
  */
-function allActivities(deps: AppDeps) {
+/**
+ * The parsed activity set, kept per release row.
+ *
+ * The rows are append-only and a release row never changes once written (ADR 0006), so a parse of
+ * its stored bytes cannot go stale. Without this, every lesson view and every save re-read and
+ * re-parsed all 45 activities — twelve saves on one lesson was twelve full parses.
+ */
+const parsedActivitySets = new WeakMap<Db, Map<number, readonly LessonActivity[]>>();
+
+function allActivities(deps: AppDeps): readonly LessonActivity[] {
   if (deps.release.state === 'failed') return [];
+
+  const forDb = parsedActivitySets.get(deps.db) ?? new Map<number, readonly LessonActivity[]>();
+  parsedActivitySets.set(deps.db, forDb);
+  const already = forDb.get(deps.release.releaseRowId);
+  if (already) return already;
 
   const sourceText = loadActivitySetText(deps.db, deps.release.releaseRowId);
   if (sourceText === undefined) {
@@ -55,6 +73,7 @@ function allActivities(deps: AppDeps) {
     );
   }
 
+  forDb.set(deps.release.releaseRowId, parsed.activities);
   return parsed.activities;
 }
 
@@ -63,7 +82,14 @@ function activitiesOf(deps: AppDeps, candidateLessonId: string) {
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
-  const app = Fastify({ logger: false });
+  const app = Fastify({
+    logger: false,
+    // Above the 100,000 characters a response may hold, so the refusal the reader meets is this
+    // app's own — naming the limit and the length it got — rather than Fastify's generic 413.
+    // A UTF-8 character can take four bytes and JSON escaping can double it again, so the ceiling
+    // is set well clear of the limit it exists to let through to the handler.
+    bodyLimit: 4 * 1024 * 1024,
+  });
 
   app.get('/api/health', async () => ({
     status: 'ok',
@@ -190,15 +216,14 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     db: deps.db,
     release: deps.release,
     activitiesOfRelease: () => allActivities(deps),
-    contentVersionOf: (candidateLessonId) => {
+    // One read of the release summary, not one per field of it: it loads every lesson row, and a
+    // save asked for two fields of the same object moments apart.
+    provenanceOf: (candidateLessonId) => {
       if (deps.release.state === 'failed') return undefined;
-      return loadReleaseSummary(deps.db, deps.release.releaseRowId)?.lessons.find(
-        (lesson) => lesson.candidateLessonId === candidateLessonId,
-      )?.contentVersion;
-    },
-    releaseIdOf: () => {
-      if (deps.release.state === 'failed') return undefined;
-      return loadReleaseSummary(deps.db, deps.release.releaseRowId)?.releaseId;
+      const summary = loadReleaseSummary(deps.db, deps.release.releaseRowId);
+      const lesson = summary?.lessons.find((one) => one.candidateLessonId === candidateLessonId);
+      if (!summary || !lesson) return undefined;
+      return { contentVersion: lesson.contentVersion, releaseId: summary.releaseId };
     },
     now: () => new Date().toISOString(),
   });
