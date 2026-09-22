@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { blockAfter, contrast, dark, light, themeCss } from './testkit/themeTokens.js';
 
 /**
  * Criteria C1–C3 in docs/specs/visual-design-integration.md.
@@ -12,55 +10,6 @@ import { describe, expect, it } from 'vitest';
  * the design package supplies no dark values, so ours are derived, and a derived palette that
  * nobody measured is a guess with a hex code.
  */
-
-// Spelled out rather than `new URL('./theme.css', import.meta.url)`: Vite rewrites that exact
-// pattern into a served asset URL, and the test then reads the bundler's path instead of the file.
-const css = readFileSync(
-  path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'theme.css'),
-  'utf8',
-);
-
-/** The custom properties of one block, as declared. */
-function tokensIn(block: string): Record<string, string> {
-  const tokens: Record<string, string> = {};
-  for (const [, name, value] of block.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
-    tokens[name as string] = (value as string).trim();
-  }
-  return tokens;
-}
-
-function blockAfter(marker: RegExp): string {
-  const start = css.search(marker);
-  if (start === -1) throw new Error(`theme.css has no block matching ${marker}`);
-  const open = css.indexOf('{', start);
-  return css.slice(open + 1, css.indexOf('}', open));
-}
-
-const light = tokensIn(blockAfter(/^:root\s*\{/m));
-const darkOverrides = tokensIn(blockAfter(/prefers-color-scheme:\s*dark[\s\S]{0,80}?:root/));
-const dark = { ...light, ...darkOverrides };
-
-/** WCAG 2.1 relative luminance, then the contrast ratio of two opaque colours. */
-function luminance(hex: string): number {
-  const channels = [1, 3, 5]
-    .map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
-    .map((value) => (value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
-  return (
-    0.2126 * (channels[0] as number) +
-    0.7152 * (channels[1] as number) +
-    0.0722 * (channels[2] as number)
-  );
-}
-
-function contrast(scheme: Record<string, string>, foreground: string, background: string): number {
-  const [lighter, darker] = [scheme[foreground], scheme[background]].map((value) => {
-    if (value === undefined) throw new Error(`theme.css declares no ${foreground}/${background}`);
-    if (!/^#[0-9a-f]{6}$/i.test(value)) throw new Error(`${value} is not an opaque hex colour`);
-    return luminance(value);
-  });
-  const [high, low] = [lighter as number, darker as number].sort((a, b) => b - a);
-  return ((high as number) + 0.05) / ((low as number) + 0.05);
-}
 
 /**
  * Every pair the stylesheet actually puts on top of each other. Text needs 4.5:1; the focus ring
@@ -224,7 +173,7 @@ describe('the edge type and motion vocabulary', () => {
   it('declares no second easing in the token file', () => {
     // "One easing" made literal for this file; the stylesheets that consume it are the design
     // review's beat. `ease`-keyword drift there cannot be seen from here.
-    expect(css.match(/cubic-bezier\(/g)).toHaveLength(1);
+    expect(themeCss.match(/cubic-bezier\(/g)).toHaveLength(1);
   });
 });
 

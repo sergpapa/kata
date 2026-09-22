@@ -169,6 +169,46 @@ try {
           if (contents !== 'ok') {
             failures.push(`${route.name} (${scheme}) at ${size.width}px: ${contents}`);
           }
+
+          // Criteria V1/V3 in docs/specs/activity-placement.md. Every lesson in this release
+          // carries three activities, so a lesson page with fewer than three panels means the
+          // placement silently lost one — which no vitest run against jsdom can see laid out.
+          // Each placed panel must also follow a heading and offer nowhere to type.
+          const panels = await page.evaluate(() => {
+            const all = [...document.querySelectorAll('.activity-panel')];
+            if (all.length !== 3) return `${all.length} activity panels, expected 3`;
+
+            const typeable = all.filter(
+              (panel) =>
+                panel.querySelectorAll('input, textarea, select, button, [contenteditable]')
+                  .length > 0,
+            );
+            if (typeable.length > 0) {
+              return `${typeable.length} panels offer somewhere to type, and nothing is saved yet`;
+            }
+
+            const unmoored = all
+              .filter((panel) => panel.closest('.lesson-body'))
+              .filter((panel) => {
+                let previous = panel.previousElementSibling;
+                while (previous && !/^H[1-6]$/.test(previous.tagName)) {
+                  previous = previous.previousElementSibling;
+                }
+                return previous === null;
+              });
+            if (unmoored.length > 0) {
+              return `${unmoored.length} panels sit under no heading`;
+            }
+
+            const invisible = all.filter((panel) => {
+              const box = panel.getBoundingClientRect();
+              return box.width === 0 || box.height === 0;
+            });
+            return invisible.length > 0 ? `${invisible.length} panels render with no box` : 'ok';
+          });
+          if (panels !== 'ok') {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${panels}`);
+          }
         }
 
         const overflow = await sidewaysScroll(page);

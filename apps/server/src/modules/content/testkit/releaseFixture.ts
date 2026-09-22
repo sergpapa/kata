@@ -147,6 +147,16 @@ export function replaceLessonFile(fixture: Fixture, relativePath: string, source
   entry.sha256 = sha256(bytes);
 }
 
+/**
+ * Replaces the activity file's bytes and re-hashes the manifest entry, so a test can break what
+ * the file *says* without breaking the hash and being refused for the wrong reason.
+ */
+export function replaceActivitySet(fixture: Fixture, sourceText: string): void {
+  const bytes = Buffer.from(sourceText, 'utf8');
+  fixture.files.set(fixture.manifest.activities.path, bytes);
+  fixture.manifest.activities.sha256 = sha256(bytes);
+}
+
 export function writeFixture(dir: string, fixture: Fixture): string {
   for (const [relativePath, bytes] of fixture.files) {
     const target = path.join(dir, relativePath);

@@ -9,6 +9,7 @@ import {
   makeFixture,
   makeTempDir,
   removeDir,
+  replaceActivitySet,
   replaceLessonFile,
   sha256,
   writeFixture,
@@ -747,4 +748,99 @@ describe('the superseded releases, still beside the corrected fifteen', () => {
       }
     },
   );
+});
+
+/**
+ * Criteria I2–I5 in docs/specs/activity-placement.md. The activity file's bytes have been hash
+ * verified since slice 1 and never read. Reading it makes three new ways for a release to be
+ * wrong, and each is refused by name rather than discovered later as an activity nobody can see.
+ */
+describe('the activity set', () => {
+  const activity = (over: Record<string, unknown> = {}) => ({
+    activity_id: 'ACT-FIX-01-01',
+    lesson_id: 'FIX-LS-01',
+    lesson_version: '1.0.0-draft',
+    kind: 'interpretation',
+    title: 'Practice A',
+    source_heading: 'Practice A',
+    prompt_markdown: 'Explain the exchange.',
+    response_fields: ['prediction'],
+    ...over,
+  });
+
+  const withActivities = (activities: unknown[]): Fixture => {
+    const fixture = makeFixture();
+    replaceActivitySet(fixture, JSON.stringify({ schema_version: '1.0.0', activities }));
+    return fixture;
+  };
+
+  it('verifies a release whose activities all name lessons it carries', () => {
+    const release = releaseOf(
+      verifyRelease(
+        releaseDirFrom(
+          withActivities([
+            activity(),
+            activity({ activity_id: 'ACT-FIX-02-01', lesson_id: 'FIX-LS-02' }),
+          ]),
+        ),
+      ),
+    );
+
+    expect(release.lessons).toHaveLength(2);
+    expect(release.activitySet.sourceText).toContain('ACT-FIX-02-01');
+  });
+
+  it('refuses an activity file that is not readable JSON, naming the file', () => {
+    const fixture = makeFixture();
+    replaceActivitySet(fixture, '{ "activities": [ ');
+
+    const failure = refusalOf(verifyRelease(releaseDirFrom(fixture)));
+
+    expect(failure.code).toBe('activity_set_invalid');
+    expect(failure.file).toBe('trial-activities.json');
+  });
+
+  it('refuses an activity file whose top level carries no activities array', () => {
+    const fixture = makeFixture();
+    replaceActivitySet(fixture, '{"schema_version": "1.0.0"}');
+
+    expect(refusalOf(verifyRelease(releaseDirFrom(fixture))).code).toBe('activity_set_invalid');
+  });
+
+  it('refuses an activity whose fields are not the shape they must be', () => {
+    const failure = refusalOf(
+      verifyRelease(releaseDirFrom(withActivities([activity({ source_heading: 42 })]))),
+    );
+
+    expect(failure.code).toBe('activity_set_invalid');
+    expect(failure.message).toContain('source_heading');
+  });
+
+  it('refuses an activity naming a lesson the release does not carry', () => {
+    const failure = refusalOf(
+      verifyRelease(releaseDirFrom(withActivities([activity({ lesson_id: 'FIX-LS-99' })]))),
+    );
+
+    expect(failure.code).toBe('activity_lesson_mismatch');
+    expect(failure.message).toContain('FIX-LS-99');
+    expect(failure.message).toContain('ACT-FIX-01-01');
+  });
+
+  it('refuses a repeated activity id', () => {
+    const failure = refusalOf(
+      verifyRelease(
+        releaseDirFrom(withActivities([activity(), activity({ lesson_id: 'FIX-LS-02' })])),
+      ),
+    );
+
+    expect(failure.code).toBe('duplicate_activity_id');
+    expect(failure.message).toContain('ACT-FIX-01-01');
+  });
+
+  it('still refuses a tampered activity file by its hash, before it is ever read', () => {
+    const fixture = makeFixture();
+    fixture.files.set('trial-activities.json', Buffer.from('{"activities": []}\n\n', 'utf8'));
+
+    expect(refusalOf(verifyRelease(releaseDirFrom(fixture))).code).toBe('hash_mismatch');
+  });
 });

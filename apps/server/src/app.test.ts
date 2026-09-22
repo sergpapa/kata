@@ -9,6 +9,7 @@ import {
   makeFixture,
   makeTempDir,
   removeDir,
+  replaceActivitySet,
   sha256,
   writeFixture,
 } from './modules/content/testkit/releaseFixture.js';
@@ -466,5 +467,132 @@ describe('the resume point', () => {
     };
     expect(row.candidate_lesson_id).toBe('OLD-LS-77');
     await app.close();
+  });
+});
+
+/**
+ * Criteria A1–A5 in docs/specs/activity-placement.md: the lesson answer now carries the activities
+ * the author wrote for that lesson, and nothing else from the activity file.
+ */
+describe('the activities in a lesson answer', () => {
+  const activity = (over: Record<string, unknown> = {}) => ({
+    activity_id: 'ACT-FIX-01-01',
+    lesson_id: 'FIX-LS-01',
+    lesson_version: '1.0.0-draft',
+    kind: 'prediction_and_observation',
+    title: 'Practice A',
+    source_heading: 'Practice A',
+    prompt_markdown: 'Predict, then look.',
+    prompt_scope: 'Exact authored section excerpt.',
+    feedback_source_heading: 'Practice explanations',
+    response_fields: ['prediction', 'observation', 'explanation', 'help_used'],
+    response_fields_required: false,
+    grading: null,
+    formal_evidence_award: null,
+    ...over,
+  });
+
+  function dirWith(activities: unknown[]): string {
+    return releaseDir((fixture) =>
+      replaceActivitySet(fixture, JSON.stringify({ schema_version: '1.0.0', activities })),
+    );
+  }
+
+  async function lessonAnswer(dir: string, lessonId: string) {
+    db = openDatabase(':memory:');
+    const app = buildApp({ db, release: importRelease(db, dir) });
+    const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+    const body = response.json() as Record<string, unknown>;
+    await app.close();
+    return body;
+  }
+
+  it('answers the lesson’s own activities, in file order, in the fields the reader is shown', async () => {
+    const body = await lessonAnswer(
+      dirWith([
+        activity(),
+        activity({
+          activity_id: 'ACT-FIX-01-02',
+          title: 'Practice B',
+          source_heading: 'Practice B',
+        }),
+      ]),
+      'FIX-LS-01',
+    );
+
+    expect(body.activities).toEqual([
+      {
+        activityId: 'ACT-FIX-01-01',
+        lessonId: 'FIX-LS-01',
+        kind: 'prediction_and_observation',
+        title: 'Practice A',
+        sourceHeading: 'Practice A',
+        promptMarkdown: 'Predict, then look.',
+        responseFields: ['prediction', 'observation', 'explanation', 'help_used'],
+      },
+      {
+        activityId: 'ACT-FIX-01-02',
+        lessonId: 'FIX-LS-01',
+        kind: 'prediction_and_observation',
+        title: 'Practice B',
+        sourceHeading: 'Practice B',
+        promptMarkdown: 'Predict, then look.',
+        responseFields: ['prediction', 'observation', 'explanation', 'help_used'],
+      },
+    ]);
+  });
+
+  it('never carries another lesson’s activity', async () => {
+    const body = await lessonAnswer(
+      dirWith([activity(), activity({ activity_id: 'ACT-FIX-02-01', lesson_id: 'FIX-LS-02' })]),
+      'FIX-LS-02',
+    );
+
+    expect((body.activities as { activityId: string }[]).map((a) => a.activityId)).toEqual([
+      'ACT-FIX-02-01',
+    ]);
+  });
+
+  it('answers an empty list, not a missing field, for a lesson with no activities', async () => {
+    const body = await lessonAnswer(dirWith([activity()]), 'FIX-LS-02');
+
+    expect(body.activities).toEqual([]);
+  });
+
+  it('carries no scoping, grading or provenance field into the client', async () => {
+    const body = await lessonAnswer(dirWith([activity()]), 'FIX-LS-01');
+
+    expect(body.activities, 'the answer must carry the activity at all').toHaveLength(1);
+    const asJson = JSON.stringify(body.activities);
+    for (const hidden of [
+      'prompt_scope',
+      'promptScope',
+      'grading',
+      'formal_evidence_award',
+      'formalEvidenceAward',
+      'attempt_provenance',
+      'attemptProvenance',
+      'feedback_source_heading',
+      'feedbackSourceHeading',
+      'response_fields_required',
+      'lesson_version',
+    ]) {
+      expect(asJson, `${hidden} must not travel to the client`).not.toContain(hidden);
+    }
+  });
+
+  it('leaves every field the reader navigation slice pinned exactly as it was', async () => {
+    const body = await lessonAnswer(dirWith([activity()]), 'FIX-LS-01');
+
+    expect(body).toMatchObject({
+      state: 'lesson',
+      release: { releaseId: 'FIX-RELEASE', version: '1.0.0-draft' },
+      lesson: { order: 1, candidateLessonId: 'FIX-LS-01', contentVersion: '1.0.0-draft' },
+      previous: null,
+      next: { order: 2, candidateLessonId: 'FIX-LS-02' },
+    });
+    expect((body.lesson as { bodyMarkdown: string }).bodyMarkdown).toContain(
+      'Authored prose for lesson 1.',
+    );
   });
 });

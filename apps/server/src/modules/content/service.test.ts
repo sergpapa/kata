@@ -4,7 +4,13 @@ import { importRelease } from './service.js';
 import { loadReleaseSummary } from './repository.js';
 import { openDatabase, type Db } from '../lifecycle/database.js';
 import { loadConfig, repoRoot } from '../../config.js';
-import { makeFixture, makeTempDir, removeDir, writeFixture } from './testkit/releaseFixture.js';
+import {
+  makeFixture,
+  makeTempDir,
+  removeDir,
+  replaceActivitySet,
+  writeFixture,
+} from './testkit/releaseFixture.js';
 
 const tempDirs: string[] = [];
 let db: Db | undefined;
@@ -116,5 +122,63 @@ describe('importing a release into the record store', () => {
 
     // Verify-on-every-start stays cheap: the identical release lands on its existing row.
     expect(importRelease(db, loadConfig({}).releaseDir)).toEqual(corrected);
+  });
+});
+
+/**
+ * Criterion I5 in docs/specs/activity-placement.md. The three new refusals must behave like every
+ * other one: nothing of the release reaches the store, so a restart cannot find half of it there.
+ */
+describe('a release refused over its activity file', () => {
+  const badSets: readonly (readonly [string, string])[] = [
+    ['unreadable JSON', '{ "activities": [ '],
+    ['no activities array', '{"schema_version": "1.0.0"}'],
+    [
+      'the same activity id twice',
+      JSON.stringify({
+        activities: [1, 2].map(() => ({
+          activity_id: 'ACT-FIX-01-01',
+          lesson_id: 'FIX-LS-01',
+          kind: 'interpretation',
+          title: 'Practice A',
+          source_heading: 'Practice A',
+          prompt_markdown: 'Explain it.',
+          response_fields: ['prediction'],
+        })),
+      }),
+    ],
+    [
+      'an activity naming a lesson the release has not got',
+      JSON.stringify({
+        activities: [
+          {
+            activity_id: 'ACT-FIX-99-01',
+            lesson_id: 'FIX-LS-99',
+            kind: 'interpretation',
+            title: 'Practice A',
+            source_heading: 'Practice A',
+            prompt_markdown: 'Explain it.',
+            response_fields: ['prediction'],
+          },
+        ],
+      }),
+    ],
+  ];
+
+  it.each(badSets)('stores no lesson, lab or activity set when the file has %s', (_name, text) => {
+    db = openDatabase(':memory:');
+    const dir = makeTempDir();
+    tempDirs.push(dir);
+    const fixture = makeFixture();
+    replaceActivitySet(fixture, text);
+    writeFixture(dir, fixture);
+
+    const state = importRelease(db, dir);
+
+    expect(state.state).toBe('failed');
+    for (const table of ['content_release', 'content_lesson', 'content_activity_set']) {
+      const rows = db.prepare(`SELECT count(*) AS n FROM ${table}`).get() as { n: number };
+      expect(rows.n, `${table} must be empty`).toBe(0);
+    }
   });
 });
