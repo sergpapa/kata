@@ -36,6 +36,14 @@ const pairs: readonly (readonly [string, string, number])[] = [
   ['--ring', '--background', 3],
   ['--ring', '--card', 3],
   ['--ring', '--sidebar', 3],
+  // The save states (docs/specs/acknowledged-saves.md D2). Each is read as text, so 4.5:1, on both
+  // the card and the activity panel's own surface — which is --background, not --card.
+  ['--state-saved', '--background', 4.5],
+  ['--state-saved', '--card', 4.5],
+  ['--state-failed', '--background', 4.5],
+  ['--state-failed', '--card', 4.5],
+  ['--state-conflict', '--background', 4.5],
+  ['--state-conflict', '--card', 4.5],
 ];
 
 describe.each([
@@ -203,5 +211,66 @@ describe('the reduced-motion floor', () => {
     expect(block).toContain('animation: none !important');
     expect(block).toContain('transition: none !important');
     expect(block).toContain('scroll-behavior: auto !important');
+  });
+});
+
+/**
+ * Criterion D1 in docs/specs/acknowledged-saves.md, and the closing of C2 in
+ * docs/specs/visual-design-integration.md.
+ *
+ * This is the one place the app knowingly departs from the published palette. The package's
+ * `--input` is `#c8d1e4`, which measures 1.53:1 on white where WCAG 1.4.11 asks 3:1 of a control's
+ * visual boundary. Until this slice there was nothing to type into, so the token was left out
+ * rather than ported broken. The first textarea arrives here, and with it the darker value.
+ *
+ * The box sits inside an activity panel, whose surface is `--background`, and its own fill is
+ * `--card`, so the border is between those two and has to clear 3:1 against both.
+ */
+describe('the input border, which is the one departure from the published palette', () => {
+  it('does not ship the published value, which fails 1.4.11', () => {
+    expect(light['--input']).not.toBe('#c8d1e4');
+  });
+
+  it.each([
+    ['light', light],
+    ['dark', dark],
+  ] as const)('clears 3:1 against the card and the panel surface in %s', (name, scheme) => {
+    expect(contrast(scheme, '--input', '--card')).toBeGreaterThanOrEqual(3);
+    expect(contrast(scheme, '--input', '--background')).toBeGreaterThanOrEqual(3);
+  });
+
+  it('uses the values the deviation was recorded with, so the record and the code agree', () => {
+    expect(light['--input']?.toLowerCase()).toBe('#767f93');
+    expect(dark['--input']?.toLowerCase()).toBe('#5c6b94');
+  });
+});
+
+/**
+ * The save states take their light values from the design package's own note and destructive
+ * colours rather than from anything invented here — the same rule the rest of the palette follows.
+ * The dark values are derived, hue held, and measured above with every other pair.
+ */
+describe('the save-state inks', () => {
+  it.each([
+    ['--state-failed', '#b12d3f'],
+    ['--state-saved', '#2e664b'],
+    ['--state-conflict', '#7b561e'],
+  ])('takes %s from the package value %s in light', (token, value) => {
+    expect(light[token]?.toLowerCase()).toBe(value);
+  });
+
+  it('gives each state a different ink, so colour is never the only difference by accident', () => {
+    for (const scheme of [light, dark]) {
+      const inks = ['--state-saved', '--state-failed', '--state-conflict'].map(
+        (token) => scheme[token],
+      );
+      expect(new Set(inks).size).toBe(3);
+    }
+  });
+
+  it('re-maps every state ink for dark rather than leaving a light value on a dark surface', () => {
+    for (const token of ['--state-saved', '--state-failed', '--state-conflict']) {
+      expect(dark[token]).not.toBe(light[token]);
+    }
   });
 });

@@ -67,9 +67,9 @@ describe('the walking skeleton', () => {
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(200);
-    // '3' since slice 4 added the resume_point table; declared in
-    // docs/specs/reader-navigation-and-resume.md.
-    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '3' });
+    // '4' since slice 10 added the learner_response table; declared in
+    // docs/specs/acknowledged-saves.md (re-aim 8). It was '3' from slice 4's resume_point.
+    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '4' });
     await app.close();
   });
 

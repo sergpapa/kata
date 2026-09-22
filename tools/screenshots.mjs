@@ -147,11 +147,22 @@ try {
     const lessonKey = route.path.startsWith('/lessons/')
       ? decodeURIComponent(route.path.slice('/lessons/'.length))
       : null;
-    let expectedActivities = 0;
+    let expectedActivities = { activities: 0, fields: 0 };
     if (lessonKey) {
       const answer = await fetch(`${baseUrl}/api/lessons/${encodeURIComponent(lessonKey)}`);
       const body = await answer.json();
-      expectedActivities = Array.isArray(body.activities) ? body.activities.length : 0;
+      const activities = Array.isArray(body.activities) ? body.activities : [];
+      expectedActivities = {
+        activities: activities.length,
+        // Every field the author declared on this lesson's activities, summed. Not `× 4`: the
+        // count is the author's, and a release that declares three fields on one activity must
+        // still be measured against what it declares.
+        fields: activities.reduce(
+          (total, one) =>
+            total + (Array.isArray(one.responseFields) ? one.responseFields.length : 0),
+          0,
+        ),
+      };
     }
 
     for (const size of widths) {

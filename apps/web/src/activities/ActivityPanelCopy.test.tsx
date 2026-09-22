@@ -24,20 +24,23 @@ describe('what the panel says', () => {
     expect(text).toContain('ACT-A');
   });
 
-  it('names what the activity asks for, in the file’s own order', () => {
+  it('puts a box for each field the activity asks for, in the file’s own order', () => {
+    // Re-aimed by docs/specs/acknowledged-saves.md F1. It asserted the order of a sentence listing
+    // the fields; that sentence is gone, and the claim lands on the labelled controls the reader
+    // actually meets, which is where the order matters.
     const { container } = render(
       <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
     );
 
-    const text = panelOf(container, 'ACT-A').textContent ?? '';
-    const positions = [
+    const labels = [...panelOf(container, 'ACT-A').querySelectorAll('.response-field label')].map(
+      (label) => (label.textContent ?? '').trim().toLowerCase(),
+    );
+    expect(labels).toEqual([
       'your prediction',
       'what you observed',
       'your explanation',
       'whether you used help',
-    ].map((phrase) => text.indexOf(phrase));
-    expect(positions.every((at) => at >= 0)).toBe(true);
-    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    ]);
   });
 
   it('shows an unrecognised kind or field as the author’s own token', () => {
@@ -55,34 +58,38 @@ describe('what the panel says', () => {
     expect(text).toContain('sketch');
   });
 
-  it('says the app cannot record it yet, and claims nothing about saving', () => {
+  it('claims nothing about submitting, completing or grading the work', () => {
+    // What survives of the retired "says the app cannot record it yet" test. Its ban on the word
+    // *saved* is exactly what this slice makes obsolete, and F3/F5/F6 replace it with something
+    // stronger: the word is tied to a server acknowledgement rather than forbidden outright. The
+    // other words stay forbidden — nothing in this app submits, completes or grades anything.
     const { container } = render(
       <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
     );
 
     const text = panelOf(container, 'ACT-A').textContent ?? '';
-    expect(text).toContain('cannot store');
-    expect(text).toMatch(/nowhere/i);
     for (const forbidden of [
-      /\bsaved\b/i,
       /\bsubmitted\b/i,
       /\bcompleted?\b/i,
-      /\bkept\b/i,
-      /\brecorded\b/i,
+      /\bgraded\b/i,
+      /\bmarked\b/i,
+      /\bpassed\b/i,
     ]) {
       expect(text, `the panel must not say ${forbidden}`).not.toMatch(forbidden);
     }
   });
 
-  it('offers nowhere to type, not even a disabled box', () => {
+  it('offers somewhere to type for every field, which is what slice 9 deliberately withheld', () => {
+    // The inverse of what this file asserted through slice 9, and the point of this one. A box that
+    // keeps nothing was the dishonesty worth refusing; a box backed by an acknowledged write is the
+    // thing Milestone 2 exists to build.
     const { container } = render(
       <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
     );
 
     const panel = panelOf(container, 'ACT-A');
-    expect(
-      panel.querySelectorAll('input, textarea, select, button, [contenteditable]'),
-    ).toHaveLength(0);
+    expect(panel.querySelectorAll('textarea')).toHaveLength(4);
+    expect(panel.querySelectorAll('[contenteditable]')).toHaveLength(0);
   });
 
   it('does not repeat the title when it is the heading the panel sits under', () => {
@@ -144,7 +151,9 @@ describe('the review findings in the panel', () => {
     expect(panelOf(container, 'ACT-RAW').textContent).not.toContain('What kind of action?');
   });
 
-  it('says nothing about what an activity asks for when it asks for nothing', () => {
+  it('offers nowhere to write when the activity declares no fields', () => {
+    // Re-aimed by F1. The sentence whose absence this asserted is gone; the absence that matters
+    // now is the boxes themselves.
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
@@ -152,9 +161,9 @@ describe('the review findings in the panel', () => {
       />,
     );
 
-    const text = panelOf(container, 'ACT-NONE').textContent ?? '';
-    expect(text).not.toContain('asks for');
-    expect(text).toContain('cannot store');
+    const panel = panelOf(container, 'ACT-NONE');
+    expect(panel.querySelectorAll('.response-field')).toHaveLength(0);
+    expect(panel.querySelectorAll('textarea')).toHaveLength(0);
   });
 
   it('names each panel for a screen reader, so three of them are not three unnamed regions', () => {

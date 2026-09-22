@@ -26,15 +26,42 @@ const activitiesCss = readFileSync(
 /** The panel's own fill. Its text sits on this, and it sits on the lesson card. */
 const PANEL_FILL = '--background';
 
-/** Every colour the panel puts on its own fill, and the ratio WCAG asks of it. */
+/**
+ * Every colour the panel puts on its own fill, and the ratio WCAG asks of it.
+ *
+ * The three save-state inks joined this list with the writing surfaces
+ * (docs/specs/acknowledged-saves.md D2). They are read as words, so 4.5:1 — colour alone never
+ * carries a state here, but a state line nobody can read is no better than one that lies.
+ */
 const textPairs: readonly (readonly [string, string, number])[] = [
   ['--eyebrow', PANEL_FILL, 4.5],
   ['--foreground', PANEL_FILL, 4.5],
   ['--muted-foreground', PANEL_FILL, 4.5],
+  ['--state-saved', PANEL_FILL, 4.5],
+  ['--state-failed', PANEL_FILL, 4.5],
+  ['--state-conflict', PANEL_FILL, 4.5],
 ];
 
-/** The tokens the panel draws edges with. A border is not text; 3:1 is its floor (WCAG 1.4.11). */
-const edgeTokens = ['--border', '--quote-rule'] as const;
+/**
+ * Pairs the panel's controls put on a surface that is not the panel's own fill: the text inside a
+ * box, and the label on the save action.
+ */
+const controlPairs: readonly (readonly [string, string, number])[] = [
+  ['--foreground', '--card', 4.5],
+  ['--primary-foreground', '--primary', 4.5],
+];
+
+/**
+ * The tokens the panel draws edges with. A border is not text; 3:1 is its floor (WCAG 1.4.11).
+ *
+ * `--input` is here rather than forbidden, which is the change this slice makes: the panel now has
+ * controls, so the boundary token is needed — at the darker value theme.test.ts pins, never the
+ * published one.
+ */
+const edgeTokens = ['--border', '--quote-rule', '--input'] as const;
+
+/** Fills the panel paints that are not its own. */
+const surfaceTokens = ['--card', '--primary'] as const;
 
 const colourProperties =
   /(?:^|[;{])\s*(color|background|background-color|border|border-color|border-left|border-left-color|border-top|outline|outline-color|box-shadow|fill|stroke)\s*:\s*([^;}]+)/g;
@@ -77,7 +104,9 @@ describe('the activity panel’s styles', () => {
   it('paints nothing this file has not named as a measured pair or edge', () => {
     const named = new Set<string>([
       ...textPairs.map(([foreground]) => foreground),
+      ...controlPairs.flatMap(([foreground, background]) => [foreground, background]),
       ...edgeTokens,
+      ...surfaceTokens,
       PANEL_FILL,
     ]);
     const unmeasured = paintedWith()
@@ -87,10 +116,12 @@ describe('the activity panel’s styles', () => {
     expect(unmeasured, 'a new colour here needs a new measured pair below').toEqual([]);
   });
 
-  it('does not reach for the input border the design package ships broken', () => {
-    // docs/specs/visual-design-integration.md C2: the published `--input` measures 1.53:1 on white
-    // and is deliberately not ported. This slice has nothing to type into, so nothing may use it.
-    expect(activitiesCss).not.toContain('var(--input)');
+  it('draws the boxes with the theme’s input border rather than a border of its own', () => {
+    // The inverse of what this test asserted through slice 9, and deliberately so. Until this
+    // slice there was nothing to type into, so `--input` was left undeclared rather than ported at
+    // the published 1.53:1 (docs/specs/visual-design-integration.md C2). The first textarea arrives
+    // here, and the token arrives with it at a value theme.test.ts measures.
+    expect(activitiesCss).toContain('var(--input)');
   });
 });
 
@@ -115,6 +146,17 @@ describe.each([
   it('draws the unplaced panel’s rule strongly enough to be seen against it', () => {
     expect(contrast(scheme, '--quote-rule', PANEL_FILL)).toBeGreaterThanOrEqual(1.15);
   });
+
+  it.each(controlPairs)('reads %s on %s at %s:1 or better', (foreground, background, minimum) => {
+    expect(contrast(scheme, foreground, background)).toBeGreaterThanOrEqual(minimum);
+  });
+
+  it('draws a box boundary at 3:1 against both the panel and the box', () => {
+    // WCAG 1.4.11. The border is between the panel's fill outside it and the box's fill inside it,
+    // so both sides count.
+    expect(contrast(scheme, '--input', PANEL_FILL)).toBeGreaterThanOrEqual(3);
+    expect(contrast(scheme, '--input', '--card')).toBeGreaterThanOrEqual(3);
+  });
 });
 
 /**
@@ -127,14 +169,14 @@ describe('what the panel emphasises', () => {
     return activitiesCss.slice(at, activitiesCss.indexOf('}', at));
   }
 
-  it('does not style the no-store sentence more quietly than the line above it', () => {
-    // It was --muted-foreground at 0.925rem while "This activity asks for…" had --foreground at
-    // 1rem: smaller and dimmer, which is the visual grammar a reader uses to mean "skip this".
-    // It is the one claim on the panel that has to land.
-    const noStore = declarationsOf('.activity-no-store');
+  it('does not set the save state as small print', () => {
+    // The design review's finding from slice 9, transferred with its subject. There it was
+    // "the app cannot store any of it yet", set smaller and dimmer than the line above it, which is
+    // the visual grammar a reader uses to mean "skip this". That sentence is gone; the save state
+    // is now the panel's one load-bearing claim, and it inherits the rule.
+    const state = declarationsOf('.response-state');
 
-    expect(noStore).not.toContain('--muted-foreground');
-    expect(noStore).not.toMatch(/font-size:\s*0\.\d+rem/);
+    expect(state).not.toMatch(/font-size:\s*0\.[0-8]\d*rem/);
   });
 
   it('keeps the activity id from breaking across lines', () => {
