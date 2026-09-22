@@ -7,17 +7,18 @@ proposed teaching change to the owner with the exact original and proposed text.
 where those accumulate between reviews, so the handover is a copy of this file rather than a
 reconstruction from four slice logs.
 
-**Nothing here has been applied.** The release is the source of truth and every lesson's SHA-256 is
-pinned in `content/learning-release.json`; the application reads the content it was given and
-changes none of it. Accepting any entry below requires a reissued release — see _What accepting
-costs_ at the bottom.
+**Nothing here is ever applied by this repo.** The release is the source of truth and every
+lesson's SHA-256 is pinned in `content/learning-release.json`; the application reads the content it
+was given and changes none of it. Accepting an entry requires a reissued release from the author —
+see _What accepting costs_ at the bottom. The `1.0.1-draft` reissue (2026-09-21) accepted both
+entries below; they stay here as the record of the loop closing.
 
 ## Status
 
-| ID     | Lesson | Kind             | One line                                                             | Status               |
-| ------ | ------ | ---------------- | -------------------------------------------------------------------- | -------------------- |
-| CF-001 | 2      | Diagram (breaks) | `;` in a Mermaid message stops the diagram drawing                   | Open — owner to rule |
-| CF-002 | 7      | Teaching         | A prerequisite names `LS-M020-06` where the learner reads "Lesson 6" | Open — owner to rule |
+| ID     | Lesson | Kind             | One line                                                             | Status                                             |
+| ------ | ------ | ---------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
+| CF-001 | 2      | Diagram (breaks) | `;` in a Mermaid message stops the diagram drawing                   | **Accepted** in `1.0.1-draft`, imported 2026-09-21 |
+| CF-002 | 7      | Teaching         | A prerequisite names `LS-M020-06` where the learner reads "Lesson 6" | **Accepted** in `1.0.1-draft`, imported 2026-09-21 |
 
 Kinds: **breaks** — the reader sees a degraded page until it is fixed. **teaching** — the page
 renders, but the content could read better. **cosmetic** — presentation only.
@@ -31,7 +32,7 @@ renders, but the content could read better. **cosmetic** — presentation only.
 fence that opens at line 410 (§10, "Follow the file and process over time")
 **Kind:** breaks — the reader gets the diagram's source code where the picture should be
 **Found:** 2026-09-11, Milestone 1 slice 3
-**Status:** open
+**Status:** accepted in `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`, imported 2026-09-21
 
 Exact original:
 
@@ -70,6 +71,12 @@ line saying the diagram could not be drawn, the diagram's source in a labelled b
 parser's reason behind a disclosure. Lessons 1 and 5 draw their diagrams normally — this is the
 only one of the three affected.
 
+**2026-09-21, accepted.** `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` ships the proposed comma
+(`Stopped, the file remains`), lesson version `1.0.1-draft`, with the nested kit copy and both
+hashes advanced together — exactly the four-part move "What accepting costs" describes, authorized
+in the package's `content-corrections.json`. Verified drawn in real Chromium (Mermaid 11.17.2) at
+three widths in both schemes by the screenshot gate.
+
 ---
 
 ## CF-002 — Lesson 7's prerequisite speaks in stable IDs
@@ -79,7 +86,7 @@ only one of the three affected.
 `prerequisites` list (thirteen-release copy; the same bytes ship in the 6–8 release)
 **Kind:** teaching — the page renders, but the learner is shown an internal identifier
 **Found:** 2026-09-21, Milestone 1 slice 5
-**Status:** open
+**Status:** accepted in `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`, imported 2026-09-21
 
 Exact original:
 
@@ -102,6 +109,10 @@ prose. A learner has no way to resolve it.
 **What the reader sees until then.** The facts panel shows the line as authored, ID included. The
 app deliberately does not rewrite it: showing the author's own words is the rendering contract,
 and this register is where the wording question goes instead.
+
+**2026-09-21, accepted.** `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` ships the proposed wording
+("Lesson 6"), lesson version `1.0.1-draft`; the facts panel now shows it, pinned by a test in
+`apps/server/src/modules/content/lessonView.test.ts`.
 
 ---
 

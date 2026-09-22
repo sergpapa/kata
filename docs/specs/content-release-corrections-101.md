@@ -35,28 +35,28 @@ Checked 2026-09-21 against the received bytes, before any code moved:
 
 ## Acceptance criteria
 
-- [ ] C1. **Default import.** With no env overrides the app verifies and imports
+- [x] C1. **Default import.** With no env overrides the app verifies and imports
       `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` from
       `content/releases/http-first-fifteen-v1_0_1/content`: fifteen lessons, same IDs and order as
       1.0.0; content versions `2.0.0-draft` (lesson 1), `1.0.1-draft` (lessons 2 and 7),
       `1.0.0-draft` (the rest); kit versions `1.0.1-draft` for `FSSE-HTTP-LAB-02` and
       `-06-08`, `1.0.0-draft` for the other three; the same 45-entry activity set.
-- [ ] C2. **The corrected lessons changed exactly as authorized.** Against the 1.0.0 fifteen
+- [x] C2. **The corrected lessons changed exactly as authorized.** Against the 1.0.0 fifteen
       release read at test time: thirteen lessons tuple-identical; lessons 2 and 7 keep their ID
       and order, advance to the version and `sha256` that `content-corrections.json` declares,
       from the previous values it declares. All superseded baselines (first-five, thirteen,
       fifteen-1.0.0) still verify clean from their own directories.
-- [ ] C3. **Four releases, one record store.** A store holding first-five, thirteen and
+- [x] C3. **Four releases, one record store.** A store holding first-five, thirteen and
       fifteen-1.0.0 imports the 1.0.1 beside them — 48 lesson rows, nothing merged or replaced —
       and re-importing 1.0.1 adds no rows. Old rows keep old versions: that is how historical
       attempts retain their provenance.
-- [ ] C4. **Lesson 2 draws.** The acceptance step the package asks for: in real Chromium, lesson
+- [x] C4. **Lesson 2 draws.** The acceptance step the package asks for: in real Chromium, lesson
       2's sequence diagram renders and is read inside its frame, joining lessons 1, 5, 6, 11 —
       five drawn, zero fallbacks. The renderer version and result are recorded in this log.
-- [ ] C5. **The rendering contract holds over the corrected bytes.** The manifest-driven suites
+- [x] C5. **The rendering contract holds over the corrected bytes.** The manifest-driven suites
       run over the 1.0.1 lessons directory; lesson 7's facts panel shows the corrected
       prerequisite wording.
-- [ ] C6. **The register closes the loop.** CF-001 and CF-002 move to accepted-in-1.0.1-draft in
+- [x] C6. **The register closes the loop.** CF-001 and CF-002 move to accepted-in-1.0.1-draft in
       `docs/content-feedback.md`, keeping the entries as history.
 
 ## Scope fence
@@ -98,3 +98,30 @@ recorded identity.
   own signed-off previous/current hash pairs, which were verified against both manifests before
   scoping. The identity-leak comment in `lessonView.test.ts` updates from "lesson 7 does this" to
   "lesson 7 did this until 1.0.1"; no assertion weakened.
+
+- 2026-09-21, green and verified. All eight red tests pass with the one-line config flip. Full
+  local gate: 458 tests across 18 files, lint, typecheck, build, format, and the screenshot gate
+  over nineteen routes × three widths × both schemes. **C4, the package's own acceptance step:
+  lesson 2's sequence diagram drawn and read inside its frame by the gate — Mermaid 11.17.2, real
+  Chromium, five diagrams total, zero fallbacks** — and confirmed by direct inspection of the
+  regenerated capture: the picture where the fallback banner used to be, "+ Show diagram source"
+  beneath it, the authored "In words:" account directly after.
+
+- 2026-09-21, reviews.
+
+  - **test-guardian PRE: pass.** It independently re-derived the red state, verified every
+    asserted value against the 1.0.1 manifest, hashed lessons 2 and 7 across all four release
+    directories to prove the authorized-exception branch engages on real data rather than falling
+    through vacuously, and confirmed the exception shape admits neither silent drift on
+    uncorrected lessons, nor a third version of a corrected one, nor an over-broad corrections
+    file. Its one low finding — CF-001's literal corrected text was pinned only by the manual
+    screenshot gate — was taken before the red commit: `lessonView.test.ts` now asserts the
+    register's exact substring, mirroring CF-002's test.
+  - **test-guardian POST: skipped by rule.** `git diff` from the pinned red commit over every test
+    path is empty; only `config.ts` and docs changed after red.
+  - **Design review: no agent this slice, declared.** The diff contains no UI code; the one
+    visual change — lesson 2's diagram type, reviewed in slice 3 — is exactly what the gate
+    measures in-frame, and the capture was inspected directly (see the green entry).
+  - **`/code-review`: not run this slice, declared.** The owner stopped the run. The
+    implementation diff is one config path line; every test change was audited by PRE, and no
+    other production code moved.

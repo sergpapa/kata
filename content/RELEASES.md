@@ -5,15 +5,16 @@ the package's inner folder. Never edit anything under `releases/` — each packa
 (`package-manifest.json` and `learning-release.json` carry a SHA-256 per file) and the importer
 verifies those hashes. Proposed content changes go to `docs/content-feedback.md` for the owner.
 
-**Current release: `releases/http-lessons-14-15-release-v1/`** — the app's default
+**Current release: `releases/http-first-fifteen-v1_0_1/`** — the app's default
 `releaseDir` in `apps/server/src/config.ts` points at its `content/` directory.
 
-| Directory                                   | Package / release ID                                        | Received   | Status                                                                                                                                       |
-| ------------------------------------------- | ----------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `releases/http-lessons-14-15-release-v1/`   | `FSSE-HTTP-INVESTIGATION-14-15` / `FSSE-HTTP-FIRST-FIFTEEN` | 2026-09-21 | **Current.** Lessons 1–15, five lab kits, 45 activities; the investigation kit ships deliberately faulty starter code — that is the exercise |
-| `releases/http-lessons-09-13-release-v1/`   | `FSSE-HTTP-CACHING-09-13` / `FSSE-HTTP-FIRST-THIRTEEN`      | 2026-09-21 | Superseded; verified baseline for lessons 1–13 continuity                                                                                    |
-| `releases/http-depth-and-lessons-06-08-v1/` | `FSSE-HTTP-FIRST-EIGHT` chain                               | 2026-09-21 | Superseded content; current curriculum specifications (v1_1) and the Lesson-08 owner review                                                  |
-| `releases/vs-code-first-five-v1/`           | `FSSE-VSCODE-FIRST-FIVE-HANDOFF` / `FSSE-HTTP-FIRST-FIVE`   | 2026-09-11 | Superseded; holds the app/architecture handoff that governs this build                                                                       |
+| Directory                                   | Package / release ID                                                    | Received   | Status                                                                                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `releases/http-first-fifteen-v1_0_1/`       | `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`                                   | 2026-09-21 | **Current.** Lessons 1–15 with CF-001/CF-002 accepted (lessons 2 and 7 at 1.0.1-draft); the investigation kit still ships deliberately faulty starter code — that is the exercise |
+| `releases/http-lessons-14-15-release-v1/`   | `FSSE-HTTP-INVESTIGATION-14-15` / `FSSE-HTTP-FIRST-FIFTEEN@1.0.0-draft` | 2026-09-21 | Superseded; verified baseline, and the pre-correction bytes `content-corrections.json` names as previous                                                                          |
+| `releases/http-lessons-09-13-release-v1/`   | `FSSE-HTTP-CACHING-09-13` / `FSSE-HTTP-FIRST-THIRTEEN`                  | 2026-09-21 | Superseded; verified baseline for lessons 1–13 continuity                                                                                                                         |
+| `releases/http-depth-and-lessons-06-08-v1/` | `FSSE-HTTP-FIRST-EIGHT` chain                                           | 2026-09-21 | Superseded content; current curriculum specifications (v1_1) and the Lesson-08 owner review                                                                                       |
+| `releases/vs-code-first-five-v1/`           | `FSSE-VSCODE-FIRST-FIVE-HANDOFF` / `FSSE-HTTP-FIRST-FIVE`               | 2026-09-11 | Superseded; holds the app/architecture handoff that governs this build                                                                                                            |
 
 Releases are cumulative: each re-ships everything before it so it verifies stand-alone. The
 duplication across directories is deliberate and cheap — git stores identical bytes once — and

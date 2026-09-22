@@ -98,7 +98,8 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | `docs/adr/`                                         | Why the stack and the data rules are what they are                                         |
 | `data/`                                             | Your work. Not committed. Delete the directory to start clean.                             |
 | `content/releases/`                                 | Every received content package, byte-for-byte; `content/RELEASES.md` names the current one |
-| `content/releases/http-lessons-14-15-release-v1/`   | The current package (lessons 1–15); the app imports from it by default                     |
+| `content/releases/http-first-fifteen-v1_0_1/`       | The current package (lessons 1–15, CF-001/CF-002 corrected); the app's default import      |
+| `content/releases/http-lessons-14-15-release-v1/`   | The fifteen-lesson 1.0.0 package: superseded content, kept as a verified baseline          |
 | `content/releases/http-lessons-09-13-release-v1/`   | The lessons 9–13 package: superseded content, kept as a verified baseline                  |
 | `content/releases/http-depth-and-lessons-06-08-v1/` | The lessons 6–8 package: superseded content, current curriculum specifications             |
 | `content/releases/vs-code-first-five-v1/`           | The first content package, and the app/architecture handoff that governs this build        |

@@ -2,36 +2,37 @@
 
 ## Current state
 
-Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-FIFTEEN` — fifteen lessons across
-modules M020 and M021, five lab kits, 45 activity entries — from
-`content/releases/http-lessons-14-15-release-v1/content`, and serves all of it inside the
-Engineering Practice shell unchanged. Lessons 14–15 are the deep-investigation pair: a stale-cache
-incident diagnosis and its repair, backed by a kit whose starter code is deliberately faulty — the
-kit ZIP is stored byte-for-byte and must never be "fixed". All four received packages live
-byte-for-byte under `content/releases/` (ADR 0009); `content/RELEASES.md` names the current one.
-This drop proved the pattern: a directory there, one path flip in `apps/server/src/config.ts`, and
-the manifest-driven suites extended themselves. Lessons 1–13 kept their IDs, versions and bytes,
-verified against both superseded baselines (first-five and thirteen) at test time; all three real
-releases import side by side into one record store, append-only, so nothing a learner ever
-records can be orphaned by a release update.
+Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons
+across modules M020 and M021, five lab kits, 45 activity entries — from
+`content/releases/http-first-fifteen-v1_0_1/content`, and serves all of it inside the Engineering
+Practice shell unchanged. The 1.0.1 reissue accepted both open register entries: **CF-001 and
+CF-002 are closed** — lesson 2's diagram now draws (the semicolon became a comma) and lesson 7's
+facts panel says "Lesson 6" instead of a stable ID. Lessons 2 and 7 advanced to `1.0.1-draft`
+with their two nesting kits; the other thirteen lessons and three kits are byte-identical to
+1.0.0, and the transition is pinned to the author's own `content-corrections.json` authorization
+in `verify.test.ts` — the first legitimate content change in the chain, handled exactly as the
+append-only design intended. All five received packages live byte-for-byte under
+`content/releases/` (ADR 0009); a drop is a directory there plus one path flip in
+`apps/server/src/config.ts`, and the manifest-driven suites extend themselves.
 
-No port moved this slice: the new kit binds 4321/4323 (author's kits now span 4315–4323), clear of
-the app's 8317 and the screenshot runner's 8318. Verified with all three servers answering at
-once. The diagram census is unchanged — lessons 1, 5, 6, 11 draw, lesson 2 keeps its honest
-fallback (CF-001 still needs the next reissue, bytes unchanged again), and lessons 14–15 carry no
-fence and load no Mermaid. CF-002 stands; no new content findings — the new lessons cite
-prerequisites by lesson number, not stable ID. Markdown still parses straight to React elements,
-raw HTML still becomes visible text, and the sandboxed-iframe diagram exception still grants
-nothing. Schema version 2, unchanged again this slice.
+Lessons 14–15 remain the deep-investigation pair: a stale-cache incident diagnosis and its repair,
+backed by a kit whose starter code is deliberately faulty — the kit ZIP is stored byte-for-byte
+and must never be "fixed". Its servers bind 4321/4323 (author's kits span 4315–4323), clear of the
+app's 8317 and the screenshot runner's 8318, verified running beside the app. The diagram census
+is now five of five: lessons 1, 2, 5, 6 and 11 all draw in real Chromium (Mermaid 11.17.2);
+no lesson shows a fallback. Markdown still parses straight to React elements, raw HTML still
+becomes visible text, and the sandboxed-iframe diagram exception still grants nothing. Schema
+version 2, unchanged again this slice.
 
-`npm test` (453 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate now visits
-nineteen routes at three widths in both schemes, plus the 720px zoom pass, the open drawer, and
-pinned navigation 3,000px down a lesson. This slice's `/code-review` also closed two latent
-defects outside the diff: a YAML alias cycle in front matter now gets a named refusal instead of
-crashing the importer, and the shell no longer steals focus on first paint under StrictMode's
-doubled dev effects. Nothing on any page claims progress, because nothing records what has been
-read; that is Milestone 2, and the dashboard says so in words.
+`npm test` (458 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate visits
+nineteen routes at three widths in both schemes — five diagrams opened and read inside their
+frames — plus the 720px zoom pass, the open drawer, and pinned navigation 3,000px down a lesson.
+Slice 6's `/code-review` also closed two latent defects outside its diff: a YAML alias cycle in
+front matter now gets a named refusal instead of crashing the importer, and the shell no longer
+steals focus on first paint under StrictMode's doubled dev effects. Nothing on any page claims
+progress, because nothing records what has been read; that is Milestone 2, and the dashboard says
+so in words.
 
 Known and not fixed: the design package's published `--input` border measures 1.53:1 on white
 where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2 adds the
@@ -97,6 +98,12 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
       near-invisible on the dark surface; it now carries its own shadow ink and width, verified by
       pixel-sampling the regenerated capture). Criteria and slice log in
       `docs/specs/content-release-first-fifteen.md`.
+- [x] **1.0.1 correction import.** Done 2026-09-21. The author's reissue accepting CF-001 and
+      CF-002 — the register's loop closed end to end: proposed in `docs/content-feedback.md`,
+      accepted by the author, verified against `content-corrections.json`'s authorized hash
+      transitions, and lesson 2's diagram proven drawn in real Chromium (Mermaid 11.17.2), five of
+      five. The continuity tests learned to tell an authorized correction from silent drift.
+      Criteria and slice log in `docs/specs/content-release-corrections-101.md`.
 - [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
       resume point the app returns the learner to.
 
@@ -137,6 +144,28 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-21, slice 7 — the 1.0.1 correction import.** Built to
+  `docs/specs/content-release-corrections-101.md`: 458 tests, test-guardian PRE (pass; its one
+  recommendation — pin CF-001's literal corrected substring, mirroring CF-002's test — taken
+  before the red commit), `/code-review`, POST skipped on diff evidence.
+
+  The first release update that legitimately changes shipped lesson bytes, which is what the
+  append-only store and `(candidate_lesson_id, content_version)` keys were built for. The
+  superseded-baselines test changed shape deliberately: strict tuple equality became "identical,
+  or exactly the transition `content-corrections.json` authorizes", with a companion test pinning
+  that file to CF-001 and CF-002 alone — so silent drift on any uncorrected lesson, a third
+  version of a corrected one, or an over-broad corrections file all still fail. PRE independently
+  hashed lessons 2 and 7 across all four release directories to confirm the authorized branch
+  actually engages on real data rather than falling through vacuously.
+
+  Eight red for the one right reason (config), green on the one-line flip. Acceptance was the
+  package's own step 6: lesson 2's sequence diagram drawn and read inside its frame by the
+  screenshot gate — Mermaid 11.17.2, three widths, both schemes, five diagrams total — and
+  confirmed by direct capture inspection: picture where the fallback banner was, "+ Show diagram
+  source" beneath it, the authored "In words:" account beside it. No design review agent this
+  slice: the diff contains no UI code, and the one visual change (a diagram type reviewed in
+  slice 3) is exactly what the gate measures; declared here rather than silently skipped.
 
 - **2026-09-21, slice 6 — fifteen-lesson release import.** Built to
   `docs/specs/content-release-first-fifteen.md`: 453 tests, test-guardian PRE, `/code-review`,
