@@ -2,71 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import type { LessonActivity } from '../releaseTypes.js';
+import { activity, bodyOrder, lessonBody } from '../testkit/activityFixture.js';
 
 /**
- * Criteria P and C in docs/specs/activity-placement.md: an activity's panel lands at the end of
- * the section its `source_heading` names, and says what the activity asks for without offering
- * anywhere to answer it.
+ * Criterion P and U in docs/specs/activity-placement.md: an activity's panel lands at the end of
+ * the section its `source_heading` names, or is reported as unplaceable rather than guessed at.
+ * What the panel says is ActivityPanelCopy.test.tsx's job.
  *
  * Placement is asserted as DOM order rather than by looking the panel up on its own: "after the
  * right heading" is the whole claim, and an element that exists somewhere on the page satisfies
  * nothing.
  */
-
-function activity(over: Partial<LessonActivity> = {}): LessonActivity {
-  return {
-    activityId: 'ACT-FIX-01',
-    lessonId: 'LS-FIX-01',
-    kind: 'interpretation',
-    title: 'Practice A: explain a supplied exchange',
-    sourceHeading: 'Practice A: explain a supplied exchange',
-    responseFields: ['prediction', 'observation', 'explanation', 'help_used'],
-    promptMarkdown: 'The prompt the author wrote, which is already on the page.',
-    ...over,
-  };
-}
-
-const lessonBody = [
-  'Opening prose before any section.',
-  '',
-  '## 9. Try a similar example with less help',
-  '',
-  'Prose inside the ninth section.',
-  '',
-  '### Practice A: explain a supplied exchange',
-  '',
-  'The client sends a request.',
-  '',
-  '### Practice B: repair an explanation',
-  '',
-  'A learner writes something wrong.',
-  '',
-  '### Practice explanations',
-  '',
-  'The worked answers, which stay readable.',
-  '',
-  '## 10. What you should be able to explain now',
-  '',
-  'Closing prose.',
-].join('\n');
-
-/** The body's own children in order, with each activity panel named by the activity it carries. */
-function bodyOrder(container: HTMLElement): string[] {
-  const body = container.querySelector('.lesson-body');
-  if (!body) throw new Error('no lesson body rendered');
-  return [...body.children].map((element) => {
-    if (element.classList.contains('activity-panel')) {
-      return `panel:${element.getAttribute('data-activity-id')}`;
-    }
-    return `${element.tagName.toLowerCase()}:${(element.textContent ?? '').trim()}`;
-  });
-}
-
-function panelOf(container: HTMLElement, activityId: string): HTMLElement {
-  const panel = container.querySelector(`.activity-panel[data-activity-id="${activityId}"]`);
-  if (!panel) throw new Error(`no panel for ${activityId}`);
-  return panel as HTMLElement;
-}
 
 afterEach(cleanup);
 
@@ -310,114 +256,6 @@ describe('an activity whose section is not there', () => {
   });
 });
 
-describe('what the panel says', () => {
-  it('names the kind in words, and the activity by its id', () => {
-    const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        activities={[activity({ activityId: 'ACT-A', kind: 'prediction_and_observation' })]}
-      />,
-    );
-
-    const text = panelOf(container, 'ACT-A').textContent ?? '';
-    expect(text).toContain('Prediction and observation');
-    expect(text).toContain('ACT-A');
-  });
-
-  it('names what the activity asks for, in the file’s own order', () => {
-    const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
-    );
-
-    const text = panelOf(container, 'ACT-A').textContent ?? '';
-    const positions = [
-      'your prediction',
-      'what you observed',
-      'your explanation',
-      'whether you used help',
-    ].map((phrase) => text.indexOf(phrase));
-    expect(positions.every((at) => at >= 0)).toBe(true);
-    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
-  });
-
-  it('shows an unrecognised kind or field as the author’s own token', () => {
-    const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        activities={[
-          activity({ activityId: 'ACT-A', kind: 'sketch_and_defend', responseFields: ['sketch'] }),
-        ]}
-      />,
-    );
-
-    const text = panelOf(container, 'ACT-A').textContent ?? '';
-    expect(text).toContain('sketch_and_defend');
-    expect(text).toContain('sketch');
-  });
-
-  it('says the app cannot record it yet, and claims nothing about saving', () => {
-    const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
-    );
-
-    const text = panelOf(container, 'ACT-A').textContent ?? '';
-    expect(text).toContain('cannot store');
-    expect(text).toMatch(/nowhere/i);
-    for (const forbidden of [
-      /\bsaved\b/i,
-      /\bsubmitted\b/i,
-      /\bcompleted?\b/i,
-      /\bkept\b/i,
-      /\brecorded\b/i,
-    ]) {
-      expect(text, `the panel must not say ${forbidden}`).not.toMatch(forbidden);
-    }
-  });
-
-  it('offers nowhere to type, not even a disabled box', () => {
-    const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
-    );
-
-    const panel = panelOf(container, 'ACT-A');
-    expect(
-      panel.querySelectorAll('input, textarea, select, button, [contenteditable]'),
-    ).toHaveLength(0);
-  });
-
-  it('does not repeat the title when it is the heading the panel sits under', () => {
-    const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
-    );
-
-    expect(panelOf(container, 'ACT-A').textContent).not.toContain(
-      'Practice A: explain a supplied exchange',
-    );
-  });
-
-  it('shows the title when the author gave the activity a different one', () => {
-    const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        activities={[
-          activity({ activityId: 'ACT-A', title: 'Record your reading of the exchange' }),
-        ]}
-      />,
-    );
-
-    expect(panelOf(container, 'ACT-A').textContent).toContain(
-      'Record your reading of the exchange',
-    );
-  });
-});
-
-/**
- * The cases test-guardian's PRE pass found unguarded: a section with more than one block of
- * authored content, and a section with a subsection inside it. In the shipped release 16 of the 45
- * activities sit in multi-block sections, so "insert directly under the heading" and "insert at the
- * section's end" are different pages for a third of the content — and the simple fixtures above
- * cannot tell them apart.
- */
 describe('a section that is more than one paragraph', () => {
   const richBody = [
     '## 4. Read one request, one piece at a time',
@@ -525,5 +363,56 @@ describe('a section that is more than one paragraph', () => {
     expect(container.querySelector('.code-block-text')?.textContent).toContain(
       'Browser->>Server: GET /menu',
     );
+  });
+});
+
+/**
+ * The review findings and the paths the POST pass named as unexercised. Each of these is either a
+ * defect the first implementation had, or logic that existed with nothing watching it.
+ */
+
+describe('the review findings in the renderer', () => {
+  it('stacks two activities naming the same section in the file’s order', () => {
+    const { container } = render(
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[
+          activity({ activityId: 'ACT-SECOND', sourceHeading: 'Practice explanations' }),
+          activity({ activityId: 'ACT-THIRD', sourceHeading: 'Practice explanations' }),
+        ]}
+      />,
+    );
+
+    const order = bodyOrder(container);
+    expect(order.slice(order.indexOf('panel:ACT-SECOND'))).toEqual([
+      'panel:ACT-SECOND',
+      'panel:ACT-THIRD',
+      'h2:10. What you should be able to explain now',
+      'p:Closing prose.',
+    ]);
+  });
+
+  it('places a subsection’s panel before its parent’s when both sections end together', () => {
+    // Both resolve to the end of the document. The deeper section closes first, so its panel must
+    // come first; the reverse would put the parent's panel inside the child's section.
+    const body = ['## Parent', '', 'Parent prose.', '', '### Child', '', 'Child prose.'].join('\n');
+    const { container } = render(
+      <LessonMarkdown
+        markdown={body}
+        activities={[
+          activity({ activityId: 'ACT-PARENT', sourceHeading: 'Parent' }),
+          activity({ activityId: 'ACT-CHILD', sourceHeading: 'Child' }),
+        ]}
+      />,
+    );
+
+    expect(bodyOrder(container)).toEqual([
+      'h2:Parent',
+      'p:Parent prose.',
+      'h3:Child',
+      'p:Child prose.',
+      'panel:ACT-CHILD',
+      'panel:ACT-PARENT',
+    ]);
   });
 });

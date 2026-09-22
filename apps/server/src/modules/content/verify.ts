@@ -284,8 +284,9 @@ export function verifyRelease(releaseDir: string): VerificationOutcome {
       manifest.activities.path,
       manifest.activities.sha256,
     );
+    const activitySetText = activityBytes.toString('utf8');
     checkActivitySet(
-      activityBytes.toString('utf8'),
+      activitySetText,
       manifest.activities.path,
       lessons.map((lesson) => lesson.candidateLessonId),
     );
@@ -303,7 +304,7 @@ export function verifyRelease(releaseDir: string): VerificationOutcome {
       activitySet: {
         sourcePath: manifest.activities.path,
         sha256: manifest.activities.sha256.toLowerCase(),
-        sourceText: activityBytes.toString('utf8'),
+        sourceText: activitySetText,
       },
     };
     return { state: 'verified', release };

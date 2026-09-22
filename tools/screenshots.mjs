@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
+import { checkActivityPanels } from './activity-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -140,6 +141,19 @@ try {
   browser = await chromium.launch();
 
   for (const route of routes) {
+    // How many activities this lesson actually has, asked of the app rather than written down
+    // here. A literal 3 would make the gate a test of this one package: a release shipping none
+    // would fail on all fifteen lessons, and a release shipping four would pass with one lost.
+    const lessonKey = route.path.startsWith('/lessons/')
+      ? decodeURIComponent(route.path.slice('/lessons/'.length))
+      : null;
+    let expectedActivities = 0;
+    if (lessonKey) {
+      const answer = await fetch(`${baseUrl}/api/lessons/${encodeURIComponent(lessonKey)}`);
+      const body = await answer.json();
+      expectedActivities = Array.isArray(body.activities) ? body.activities.length : 0;
+    }
+
     for (const size of widths) {
       for (const scheme of schemes) {
         const context = await browser.newContext({
@@ -170,42 +184,7 @@ try {
             failures.push(`${route.name} (${scheme}) at ${size.width}px: ${contents}`);
           }
 
-          // Criteria V1/V3 in docs/specs/activity-placement.md. Every lesson in this release
-          // carries three activities, so a lesson page with fewer than three panels means the
-          // placement silently lost one — which no vitest run against jsdom can see laid out.
-          // Each placed panel must also follow a heading and offer nowhere to type.
-          const panels = await page.evaluate(() => {
-            const all = [...document.querySelectorAll('.activity-panel')];
-            if (all.length !== 3) return `${all.length} activity panels, expected 3`;
-
-            const typeable = all.filter(
-              (panel) =>
-                panel.querySelectorAll('input, textarea, select, button, [contenteditable]')
-                  .length > 0,
-            );
-            if (typeable.length > 0) {
-              return `${typeable.length} panels offer somewhere to type, and nothing is saved yet`;
-            }
-
-            const unmoored = all
-              .filter((panel) => panel.closest('.lesson-body'))
-              .filter((panel) => {
-                let previous = panel.previousElementSibling;
-                while (previous && !/^H[1-6]$/.test(previous.tagName)) {
-                  previous = previous.previousElementSibling;
-                }
-                return previous === null;
-              });
-            if (unmoored.length > 0) {
-              return `${unmoored.length} panels sit under no heading`;
-            }
-
-            const invisible = all.filter((panel) => {
-              const box = panel.getBoundingClientRect();
-              return box.width === 0 || box.height === 0;
-            });
-            return invisible.length > 0 ? `${invisible.length} panels render with no box` : 'ok';
-          });
+          const panels = await checkActivityPanels(page, expectedActivities);
           if (panels !== 'ok') {
             failures.push(`${route.name} (${scheme}) at ${size.width}px: ${panels}`);
           }

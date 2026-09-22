@@ -114,8 +114,10 @@ Measured against `content/releases/http-first-fifteen-v1_0_1/content`, the impor
 ### I — Import, integrity and refusal
 
 - [ ] I1. The stored activity set parses into activities with `activity_id`, `lesson_id`, `kind`,
-      `title`, `source_heading`, `prompt_markdown` and `response_fields`. A field of the wrong type
-      is a refusal, not a coercion.
+      `title`, `source_heading`, `prompt_markdown` and `response_fields`. A field that is absent,
+      empty or of the wrong type is a refusal, not a coercion. (Wording widened after review: the
+      code rejected `""` as well as a wrong type, and the criterion said only "wrong type". The
+      code is right and the criterion was narrow — see the decline below.)
 - [ ] I2. A set that is not JSON, or whose top level is not an object carrying an `activities`
       array, refuses the release with `activity_set_invalid`, the file named and the parser's own
       message carried.
@@ -166,8 +168,19 @@ Measured against `content/releases/http-first-fifteen-v1_0_1/content`, the impor
 - [ ] U2. An activity whose `source_heading` matches more than one heading appears at the foot the
       same way, saying the lesson has more than one section of that name — it is never placed
       beside a guess. The renderer reports it as `heading_ambiguous`.
-- [ ] U3. An unplaced panel renders its `prompt_markdown`, through the same sanitizing pipeline as
-      the lesson body, so the activity is still readable and doable.
+- [ ] U3. A panel unplaced as `heading_missing` renders its `prompt_markdown`, through the same
+      sanitizing pipeline as the lesson body, so the activity is still readable and doable. A panel
+      unplaced as `heading_ambiguous` does **not**: there the authored section is on the page —
+      twice — so rendering the prompt would put the excerpt there a third time, which is the one
+      thing the activity file's `presentation` rule forbids. (Amended after review; U2 and U3 as
+      first written were in conflict.)
+- [ ] U6. A rendered prompt carries no heading anchor ids. It is a second, independent Markdown
+      pass, and `rehype-slug` only deduplicates within one pass, so a prompt heading matching a body
+      heading would put the same id on the page twice and give a contents anchor two targets.
+- [ ] U7. An activity naming a heading that exists but is nested inside a quote or a list item is
+      reported as `heading_missing` and says "no section with that heading". Such a heading is in
+      the contents list but opens no section, so the app must not tell the reader the lesson has no
+      heading of that name when it plainly does.
 - [ ] U4. A heading inside a rendered `prompt_markdown` never enters the sidebar contents list.
 - [ ] U5. Nothing is dropped: for any release, the number of panels on a lesson page equals the
       number of activities the answer carried for it.
@@ -186,7 +199,11 @@ Measured against `content/releases/http-first-fifteen-v1_0_1/content`, the impor
 - [ ] C5. The panel contains no `input`, `textarea`, `select`, `button` or `contenteditable` — not
       even a disabled one.
 - [ ] C6. The panel repeats the activity's `title` only when it differs from the heading it is
-      placed under.
+      placed under — measured against **both** spellings of that heading, its rendered text and the
+      Markdown the author typed. A title matched by the authored spelling still names the heading
+      it sits beneath, and printing it back would show the reader the raw backticks.
+- [ ] C7. Each panel carries an accessible name (its kind and its activity id), so a reader
+      navigating by landmark does not meet three identical unnamed regions per lesson.
 
 ### V — Visible and responsive
 
@@ -197,9 +214,14 @@ Measured against `content/releases/http-first-fifteen-v1_0_1/content`, the impor
       author — and names no colour of its own: every value comes from a token `theme.css` declares
       and `apps/web/src/theme.test.ts` measures. It does not use `--input`, which is the deviation
       C2 leaves unredeemed.
-- [ ] V3. The screenshot gate fails, per lesson, per width, per scheme, if a lesson does not carry
-      its three panels, if any panel sits under no heading, or if any panel offers somewhere to
-      type.
+- [ ] V3. The screenshot gate fails, per lesson, per width, per scheme, if the number of panels
+      **beside their sections** is not what the app says that lesson has, if any panel is at the
+      lesson's foot, if any placed panel sits under no heading, or if any panel offers somewhere to
+      type. Placed and foot panels are counted separately, and the expected number is asked of
+      `GET /api/lessons/:id` rather than written down: counting them together made the gate blind
+      to every activity falling to the foot at once, and a hard-coded three made it a test of this
+      one package. Proven by sabotage — breaking heading matching fails 96 of the gate's checks by
+      name.
 
 ### G — Nothing regresses
 
@@ -237,6 +259,94 @@ fully readable. Nothing anywhere invites typing. All fifteen lessons carry three
 in total, none at a lesson's foot. At 375px in both schemes the page still does not scroll
 sideways.
 
+## Findings declined, with reasons
+
+- **`/code-review` 6: a malformed activity record blacks out all fifteen lessons.** The reviewer's
+  point is real — one bad character in `response_fields`, or a `""` title, refuses the whole
+  release — and it is in tension with decision 3, where a renamed heading deliberately does _not_
+  refuse anything. Declined, because the two cases are not alike. A renamed heading leaves every
+  field intact and only the anchor missing; the lesson still reads and the activity is still
+  offered in full. A malformed record means the app does not know what the activity is, and the
+  panel would render a blank line or a missing sentence with nothing saying why. The line this
+  slice draws is: **fields the app puts on screen are validated; fields it never reads are not** —
+  which is also why `lesson_version` is left alone. The refusal names the file, the activity and
+  the field, so the author can fix it in one edit. Criterion I1's wording was widened to match what
+  the code actually does, since the reviewer was right that the two disagreed.
+- **`/code-review` 7: the error message in `activitiesOf` reaches nobody.** True — Fastify answers
+  500, `toLessonView` replaces the body with "The app answered with status 500", and the server
+  logs nothing. Declined for this slice, because the same reviewer confirmed the path is
+  unreachable by construction (`content_release` and `content_activity_set` are created in one
+  migration, so no release row can predate the table), and making the client render server error
+  bodies changes the error contract for every endpoint, not just this one. Recorded here rather
+  than silently left: if a later slice gives the client a way to show a server's own words, this
+  message is waiting for it.
+
 ## Slice record
 
-_(appended as the slice runs)_
+**2026-09-22 — built, reviewed and closed.** 651 tests across 27 files (542 before the slice).
+Stage gates: `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally.
+
+**Process deviation, recorded because it changed what the reviews could prove.** Implementation was
+started while the test-guardian PRE pass was still running. PRE then reported FAIL on two critical
+findings, both about test strength, and both were fixed before the implementation was finished — but
+the consequence is that the tests were edited while the implementation existed, so the red commit
+(`b5bcb7f`) is a presentational split rather than a chronological one and
+`git diff <red> <green> -- <tests>` proves nothing. POST was therefore run with the specific edits
+named rather than handed an empty diff, and it verified each one: the `bodyOrder` helper's change
+from a 24-character slice to full text is strictly stronger, the `theme.test.ts` extraction changed
+no threshold or pairing, and the two commits touch disjoint file sets.
+
+**test-guardian PRE — FAIL, two critical findings, both taken.** (1) The real-release placement
+test asserted only that no shallower heading sat between an activity's heading and its panel, which
+a panel inserted directly under the heading satisfies vacuously; 16 of the 45 activities sit in
+multi-block sections where those are different pages. It now computes the section's end and requires
+the panel to be its last element. (2) V1–V3 had no test at all. Also taken: `attempt_provenance` in
+the hidden-field lists, the JSON parser's own message pinned, a stores-nothing test per refusal
+code, the placed/unplaced partition asserted by id, and the reason strings named in this spec.
+
+**test-guardian POST — PASS.** No implementation gaming found; the real-release tests over the
+author's own 45 activities are what makes that checkable. It named three unexercised paths, all now
+covered: two activities naming one section, a subsection and its parent both ending at the document's
+end, and an empty `response_fields`.
+
+**`/code-review` — five confirmed findings taken, two declined (above), one plausible taken.**
+
+- The screenshot gate passed when placement failed completely. It counted placed and foot panels
+  together and filtered to `.lesson-body` before asking whether a panel sat under a heading, so a
+  release where every heading stopped matching showed three panels per lesson and zero unmoored.
+  Fixed and proven by sabotage.
+- The gate's expected count was the literal `3`, making it a test of this one package. It now
+  asks the app.
+- The foot panels were component state with no teardown on a page that is not remounted between
+  lessons, so opening a second lesson drew the first lesson's activity and its whole prompt under
+  the second lesson's title for one commit. `LessonPage` is now keyed by the lesson. The test that
+  catches this had to watch every mutation: the settled DOM is correct, and React reuses the
+  element rather than re-adding it, so neither a settled assertion nor an added-node observer sees
+  it.
+- `heading_ambiguous` rendered the prompt although the section was on the page twice. U2 and U3
+  were in conflict; U3 was amended and the code follows it.
+- A heading matched by its authored Markdown spelling made the panel reprint the section's own
+  name with the backticks showing. Both spellings now travel with the marker.
+- (Plausible, taken) A rendered prompt's heading ids could collide with the body's, since each
+  Markdown pass slugs independently. Prompts now render without heading ids.
+- A heading nested in a quote is in the contents list but opens no section, so an activity naming
+  it was told "this lesson has no heading with that name" — visibly false. The wording is now
+  "no section with that heading".
+
+**Design review — ship with nits, three taken, one taken in spirit.**
+
+- The one sentence that must not be missable was `--muted-foreground` at `0.925rem` while the line
+  above it was `--foreground` at `1rem`: smaller and dimmer, which is the visual grammar for "skip
+  this". It now carries the same weight as the rest of the panel.
+- `ACT-M020-01-01` broke after its last hyphen at 375px. The id is now `white-space: nowrap`.
+- The panel's lime left rule was a fifth use of a spot colour `docs/specs/edge-visual-refinement.md`
+  reserves to four declared echoes, all meaning "you are here". Rather than adding a fifth echo,
+  the lime was removed: the reviewer confirmed the fill and hairline already read as the app's own
+  chrome without it. The unplaced panel keeps its `--quote-rule` edge, because that exception is
+  worth marking.
+- The panel was an unlabelled `<aside>`, so three identical unnamed landmarks per lesson. Each now
+  carries its kind and id as an accessible name, with no visible heading added.
+
+The reviewer also verified 480, 600, 601, 620, 900, 1024 and 1151px — the awkward widths between the
+three standard ones — with no horizontal overflow in either scheme.

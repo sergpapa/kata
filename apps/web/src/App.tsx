@@ -21,7 +21,12 @@ export function App() {
   return (
     <Shell route={route} release={release}>
       {route.kind === 'home' && <DashboardPage view={release} />}
-      {route.kind === 'lesson' && <LessonPage candidateLessonId={route.candidateLessonId} />}
+      {/* Keyed by the lesson, so opening another one builds a new page rather than re-using this
+          one's state. Without it the foot panels survived the change and drew the previous
+          lesson's activity under the new lesson's title for a commit. */}
+      {route.kind === 'lesson' && (
+        <LessonPage key={route.candidateLessonId} candidateLessonId={route.candidateLessonId} />
+      )}
       {route.kind === 'standby' && <StandbyPage section={route.section} />}
       {route.kind === 'unknown' && (
         <>

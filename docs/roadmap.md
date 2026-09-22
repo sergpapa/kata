@@ -2,53 +2,64 @@
 
 ## Current state
 
-Last updated 2026-09-22. **Milestone 1 is complete.** The app imports
-`FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021, five lab
-kits, 45 activity entries — from `content/releases/http-first-fifteen-v1_0_1/content`, serves all
-of it inside the Engineering Practice shell (Swiss-revival direction, spec and dial sheet in
-`docs/specs/edge-visual-refinement.md`), and since slice 4 the reader can navigate and resume:
-every lesson page carries an **IN THIS LESSON** contents list in the sidebar (heading anchors via
-`rehype-slug`, namespaced `user-content-` by the sanitizer's clobber prefix, collected off the
-very tree that renders so list and page cannot drift), **previous/next** links at the lesson's
-foot answered by the server from `display_order`, and a **resume point** — the lesson last opened,
-one silently written SQLite row (schema version 3, ADR 0010) behind its own repository module.
-The dashboard's card reads Continue lesson naming the last-opened lesson, or Start lesson when
-nothing is recorded; it renders only once the resume answer settles, because a transient Start,
-followed fast, would have recorded lesson 1 over the reader's real place (/code-review's one
-finding, fixed test-first). The records card states both truths: the last-opened lesson is kept;
-notes and predictions are not, and arrive with Milestone 2's acknowledged saving. Nothing anywhere
-claims read, studied or completed — "last opened" is the whole recorded fact.
+Last updated 2026-09-22. **Milestone 1 is complete and Milestone 2 has its first slice.** The app
+imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021, five
+lab kits, 45 activity entries — from `content/releases/http-first-fifteen-v1_0_1/content`, serves
+all of it inside the Engineering Practice shell (Swiss-revival direction, spec and dial sheet in
+`docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, and since slice 9
+places the author's activities beside the sections they were written for.
 
-CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to
-the author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
+Every lesson page carries an **IN THIS LESSON** contents list in the sidebar, **previous/next**
+links at its foot answered by the server from `display_order`, and a **resume point** — the lesson
+last opened, one silently written SQLite row (schema version 3, ADR 0010). The dashboard's card
+reads Continue lesson naming the last-opened lesson, or Start lesson when nothing is recorded, and
+renders only once the resume answer settles.
+
+**Activity placement (slice 9)** reads `trial-activities.json`, whose bytes the importer has hashed
+since slice 1 and never opened. Each of the 45 activities is placed at the end of the section its
+`source_heading` names — after the author's prose, before the next heading a reader sees as a peer -
+and the prompt that is already on the page is never repeated. The panel names the activity's kind
+and id, says what it asks for in the author's own field order, and states that the app cannot store
+any of it yet. **There is no writing surface, not even a disabled one**: acknowledged saves are the
+next slice, and a box that keeps nothing is the exact dishonesty Milestone 2 exists to prevent. The
+import now refuses three further ways for a release to be wrong, each by name -
+`activity_set_invalid`, `duplicate_activity_id`, `activity_lesson_mismatch`. No migration: the
+schema stays 3, because `content_activity_set` has held the file since schema 2 and the activities
+are derived on the way out (ADR 0005). An activity whose heading a future release renames is shown
+at the lesson's foot with its prompt, naming the section it was written for, rather than refusing
+the release or being dropped.
+
+CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to the
+author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
 byte-for-byte under `content/releases/` (ADR 0009). The 14–15 kit still binds 4321/4323, clear of
-the app's 8317 and the gate's 8318. The diagram census stays five of five in real Chromium
-(Mermaid 11.17.2); Markdown still parses straight to React elements, raw HTML still becomes
-visible text, and the sandboxed-iframe exception still grants nothing.
+the app's 8317 and the gate's 8318. The diagram census stays five of five in real Chromium (Mermaid
+11.17.2); Markdown still parses straight to React elements, raw HTML still becomes visible text, and
+the sandboxed-iframe exception still grants nothing.
 
-`npm test` (542 passing across 21 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm test` (651 passing across 28 files), `npm run lint`, `npm run typecheck`, `npm run build`,
 `npm run format:check` and `npm run screenshots` all pass locally. The gate now also proves, per
-run: contents anchors resolving exactly once on all fifteen lessons at three widths in both
-schemes, a followed anchor landing clear of the top bar (`scroll-margin-top`), the drawer carrying
-the contents at 375px, the first contents entry on screen at 768/1440 three thousand pixels down a
-lesson, and a real resume round trip (open lesson 7, return home, Continue lesson 07) — and it
-wipes its own data directory per run, since an app that records state would otherwise hand the
-second run different captures. A cold restart over the same database file answers the recorded
-lesson. The server has its first write endpoint (`PUT /api/resume-point`), which refuses an
-unknown lesson by name, a nameless body with `resume_point_invalid`, and stores nothing on any
-refusal; a stale pointer to a lesson the release no longer carries answers `none` without the row
-being deleted or rewritten.
+lesson per width per scheme, that the number of panels **beside their sections** equals what the app
+says that lesson has, that none sits at the lesson's foot, that none sits under no heading, and that
+none offers anywhere to type — the expected count asked of `GET /api/lessons/:id` rather than
+written down. That check was rewritten under review: as first built it counted placed and foot
+panels together, so a release where every heading stopped matching would have passed green with
+nothing placed. It is now proven by sabotage — breaking heading matching fails 96 of the gate's
+checks by name.
 
-Known and not fixed: the design package's published `--input` border measures 1.53:1 on white
-where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2 adds the
-first textarea and `docs/specs/visual-design-integration.md` C2 names darker values that pass.
-Deferred with reasons in `docs/specs/content-release-first-thirteen.md`: content-shaped tall
-tables at 375px (lesson 13), and open-disclosure captures missing from the screenshot gate.
-Declined with reason in `docs/specs/reader-navigation-and-resume.md`: chevrons on the neighbour
-links (the restraint dial; the design review itself called them optional).
+Known and not fixed: the design package's published `--input` border measures 1.53:1 on white where
+WCAG 1.4.11 asks 3:1, so it is still not ported; the acknowledged-saves slice adds the first
+textarea and `docs/specs/visual-design-integration.md` C2 names darker values that pass. Deferred
+with reasons in `docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px
+(lesson 13), and open-disclosure captures missing from the screenshot gate. Declined with reasons in
+`docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links) and
+`docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release; the
+unreachable 500 message in `activitiesOf` still reaches nobody). Two test files remain over the
+~350-line guidance — `apps/server/src/modules/content/verify.test.ts` at 846 and
+`apps/server/src/app.test.ts` at 598 — both pre-existing and both grown by this slice's describes;
+splitting them is a change to suites this slice does not own.
 
-Next action: Milestone 2, activity placement — the 45 activities from `trial-activities.json`
-beside their `source_heading`, which is also where the C2 input-border values come due.
+Next action: Milestone 2, acknowledged saves — compare-and-set writes with the four states and a
+visible conflict path. That is where the first textarea, and the C2 input-border values, come due.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -119,9 +130,13 @@ beside their `source_heading`, which is also where the C2 input-border values co
 
 ## Milestone 2 — Keep the owner's work honestly (goal: work survives a refresh and a restart, and is never falsely labelled saved)
 
-- [ ] **Activity placement.** The 45 activities from `trial-activities.json` (15 original, 24
-      added with lessons 6–13, 6 with lessons 14–15) beside their `source_heading`, without
-      re-rendering the excerpt that is already on the page.
+- [x] **Activity placement.** Done 2026-09-22. The 45 activities from `trial-activities.json` (15
+      original, 24 added with lessons 6–13, 6 with lessons 14–15) at the end of the section each
+      one's `source_heading` names, without re-rendering the excerpt that is already on the page,
+      and with no writing surface at all. test-guardian PRE (FAIL on two critical findings, both
+      taken) and POST (pass), `/code-review` (five confirmed findings taken, two declined with
+      reasons, one plausible taken), design review (ship-with-nits, all four taken). Criteria and
+      slice record in `docs/specs/activity-placement.md`.
 - [ ] **Acknowledged saves.** Compare-and-set writes with the four states — unsaved, saving, saved,
       failed to save — and a visible conflict path rather than a silent overwrite.
 - [ ] **Prediction history.** An acknowledged prediction is its own revision; a later correction
@@ -154,6 +169,46 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-22, slice 9 — activity placement (Milestone 2 slice 1).** Built to
+  `docs/specs/activity-placement.md`: 651 tests, test-guardian PRE and POST, `/code-review`, design
+  review, `/hygiene`. Opens Milestone 2.
+
+  Four forks were asked in one Stage-0 batch and all four defaults taken: no writing surface at all
+  (rather than disabled fields, or folding the saving slice in), the panel at the end of its section
+  (rather than under the heading), an unplaceable activity shown at the lesson's foot (rather than
+  refusing the release), and the sidebar contents list left alone. No ADR: the storage question the
+  slice might have raised was already answered — `content_activity_set` has held the file since
+  schema 2, so there is no migration and nothing new to decide.
+
+  **The process failure worth not repeating: implementation was started while the PRE pass was still
+  running.** PRE then failed the tests on two critical findings, so nothing was built on approved
+  tests, and the red commit became a presentational split rather than a chronological one -
+  `git diff <red> <green> -- <tests>` proves nothing for this slice. POST was run with the specific
+  post-implementation test edits named instead, and verified each one. The cost was real: it removed
+  the cheapest evidence the pipeline has.
+
+  PRE's finding that mattered most was that the real-release placement test could not tell "at the
+  end of the section" from "directly under the heading" — it checked only that no shallower heading
+  sat between them, which an under-the-heading panel satisfies vacuously, and 16 of the 45
+  activities sit in multi-block sections where those are different pages. Its second was that V1–V3
+  had no test at all.
+
+  `/code-review`'s finding that mattered was the same shape one level up: the screenshot gate itself
+  was blind to total placement failure, because it counted placed and foot panels together. It is
+  now proven by sabotage. The other four: the foot panels were component state on a page that is not
+  remounted between lessons, so lesson 2's first commit drew lesson 1's activity under lesson 2's
+  title (the test for it has to watch every mutation — the settled DOM is correct, and React reuses
+  the element rather than re-adding it); `heading_ambiguous` rendered a prompt although the section
+  was on the page twice, which U2 and U3 had contradicted each other about; a heading matched by its
+  authored Markdown spelling made the panel reprint the section's name with backticks showing; and a
+  rendered prompt's heading ids could collide with the body's.
+
+  The design review's sharpest finding was that the one sentence that must not be missable -
+  "The app cannot store any of it yet" — was set smaller and dimmer than the line above it, which is
+  the visual grammar for small print. It also caught the panel's lime left rule as a fifth use of a
+  spot colour the edge spec reserves to four echoes all meaning "you are here"; the lime was removed
+  rather than a fifth echo declared.
 
 - **2026-09-22, slice 8 — reader navigation and resume (Milestone 1 slice 4).** Built to
   `docs/specs/reader-navigation-and-resume.md`: 542 tests, test-guardian PRE and POST,

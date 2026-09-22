@@ -20,7 +20,7 @@ export const themeCss = readFileSync(
 );
 
 /** The custom properties of one block, as declared. */
-export function tokensIn(block: string): Record<string, string> {
+function tokensIn(block: string): Record<string, string> {
   const tokens: Record<string, string> = {};
   for (const [, name, value] of block.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
     tokens[name as string] = (value as string).trim();

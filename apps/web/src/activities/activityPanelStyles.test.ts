@@ -34,7 +34,7 @@ const textPairs: readonly (readonly [string, string, number])[] = [
 ];
 
 /** The tokens the panel draws edges with. A border is not text; 3:1 is its floor (WCAG 1.4.11). */
-const edgeTokens = ['--border', '--lime', '--quote-rule'] as const;
+const edgeTokens = ['--border', '--quote-rule'] as const;
 
 const colourProperties =
   /(?:^|[;{])\s*(color|background|background-color|border|border-color|border-left|border-left-color|border-top|outline|outline-color|box-shadow|fill|stroke)\s*:\s*([^;}]+)/g;
@@ -112,7 +112,40 @@ describe.each([
     expect(separation).toBeGreaterThanOrEqual(1.15);
   });
 
-  it('draws its marker rule strongly enough to be seen against the panel', () => {
-    expect(contrast(scheme, '--lime', PANEL_FILL)).toBeGreaterThanOrEqual(1.15);
+  it('draws the unplaced panel’s rule strongly enough to be seen against it', () => {
+    expect(contrast(scheme, '--quote-rule', PANEL_FILL)).toBeGreaterThanOrEqual(1.15);
+  });
+});
+
+/**
+ * The design review's findings, pinned so they cannot drift back.
+ */
+describe('what the panel emphasises', () => {
+  function declarationsOf(selector: string): string {
+    const at = activitiesCss.indexOf(`${selector} {`);
+    if (at === -1) throw new Error(`activities.css has no ${selector} rule`);
+    return activitiesCss.slice(at, activitiesCss.indexOf('}', at));
+  }
+
+  it('does not style the no-store sentence more quietly than the line above it', () => {
+    // It was --muted-foreground at 0.925rem while "This activity asks for…" had --foreground at
+    // 1rem: smaller and dimmer, which is the visual grammar a reader uses to mean "skip this".
+    // It is the one claim on the panel that has to land.
+    const noStore = declarationsOf('.activity-no-store');
+
+    expect(noStore).not.toContain('--muted-foreground');
+    expect(noStore).not.toMatch(/font-size:\s*0\.\d+rem/);
+  });
+
+  it('keeps the activity id from breaking across lines', () => {
+    // ACT-M020-01-01 wrapped after its last hyphen at 375px. It is an identifier the app is
+    // presenting as an identifier.
+    expect(declarationsOf('.activity-id')).toContain('white-space: nowrap');
+  });
+
+  it('leaves lime as the spot colour it was reserved to be', () => {
+    // docs/specs/edge-visual-refinement.md: "Nothing else is lime." The panel had taken it as a
+    // fifth use, which would have made lime mean both "you are here" and "this is an activity".
+    expect(activitiesCss).not.toContain('var(--lime)');
   });
 });

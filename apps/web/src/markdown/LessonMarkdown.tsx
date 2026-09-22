@@ -9,6 +9,7 @@ import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertN
 import { MermaidDiagram } from './MermaidDiagram.js';
 import { ActivityPanel } from '../activities/ActivityPanel.js';
 import {
+  ACTIVITY_AUTHORED_ATTRIBUTE,
   ACTIVITY_HEADING_ATTRIBUTE,
   ACTIVITY_ID_ATTRIBUTE,
   rehypePlaceActivities,
@@ -156,12 +157,19 @@ const components: Components = {
 export function LessonMarkdown({
   markdown,
   activities,
+  headingIds = true,
   onOutline,
   onUnplacedActivities,
 }: {
   readonly markdown: string;
   /** The lesson's activities, each placed at the end of the section its heading names. */
   readonly activities?: readonly LessonActivity[];
+  /**
+   * Whether headings get anchor ids. False for anything rendered beside the lesson body — a
+   * second pass slugs independently, so a prompt heading matching a body heading would put the
+   * same id on the page twice and give a contents anchor two targets.
+   */
+  readonly headingIds?: boolean;
   /** Called after render with the section outline of exactly what rendered. */
   readonly onOutline?: (entries: readonly OutlineEntry[]) => void;
   /** Called after render with the activities whose section this body does not carry. */
@@ -196,10 +204,12 @@ export function LessonMarkdown({
         const activity = byId.get(activityId);
         if (!activity) return null;
         const heading = node?.properties?.[ACTIVITY_HEADING_ATTRIBUTE];
+        const authored = node?.properties?.[ACTIVITY_AUTHORED_ATTRIBUTE];
         return (
           <ActivityPanel
             activity={activity}
             headingText={typeof heading === 'string' ? heading : null}
+            authoredHeading={typeof authored === 'string' ? authored : null}
           />
         );
       },
@@ -217,7 +227,7 @@ export function LessonMarkdown({
         // last, on the settled tree.
         rehypePlugins={[
           rehypeInertElements,
-          rehypeSlug,
+          ...(headingIds ? [rehypeSlug] : []),
           rehypeSanitize,
           () => rehypeCollectOutline(box.current),
           // Last of all, and after the outline is settled: the panels are the app's own furniture,

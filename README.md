@@ -8,7 +8,10 @@ your work anywhere else.
 address inside the Engineering Practice design, and diagrams that parse are drawn. Each lesson
 carries its section contents in the sidebar and previous/next at its foot, and the app keeps one
 recorded fact — the lesson you last opened — so the dashboard can offer Continue after a refresh
-or a restart. Notes and predictions are not recorded yet. See [docs/roadmap.md](docs/roadmap.md).
+or a restart. The author's 45 practice activities now appear beside the sections they were written
+for, each naming what it asks you for and saying plainly that there is nowhere to write it yet.
+Notes and predictions are not recorded yet, and nothing on a lesson page invites you to type. See
+[docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
 
@@ -53,6 +56,13 @@ read a different one; it is only ever read, never written to.
 
 Each lesson has its own address — `/lessons/LS-M020-03` — so it can be linked, bookmarked, and
 reached with the back button.
+
+The release ships a separate file of practice activities, each naming the lesson section it belongs
+to. The app places every one at the end of its own section, after the author's prose and before the
+next heading, and never repeats the prompt that is already on the page. The panel states what the
+activity asks for and that the app cannot store it yet — so it offers no box to type into, not even
+a disabled one. An activity whose section a future release renames is shown at the foot of the
+lesson, with its prompt, saying which section it was written for.
 
 Lesson text is data, never markup that runs. Markdown becomes React elements directly; no HTML
 string exists anywhere in the application. Anything that must not render is turned into visible

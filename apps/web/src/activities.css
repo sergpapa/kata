@@ -2,9 +2,14 @@
  * The activity panel: the app speaking inside a page of the author's words.
  *
  * It has to read as furniture rather than as prose, so it is an inset box on the lesson card —
- * the page's own background colour, one hairline, and a lime marker borrowed from the sidebar's
- * current-item rule. Every value here is a token theme.css declares and theme.test.ts measures;
- * a literal colour would be one nobody checked, in two schemes at once.
+ * the page's own background colour and one hairline, which the design review confirmed already
+ * reads unmistakably as the app's own chrome at every width and in both schemes. Every value here
+ * is a token theme.css declares and theme.test.ts measures; a literal colour would be one nobody
+ * checked, in two schemes at once.
+ *
+ * No lime. docs/specs/edge-visual-refinement.md reserves it as a spot colour with four declared
+ * echoes, all of which mean "you are here". A fifth use meaning "this is an activity" would have
+ * made the accent mean two things and weakened both.
  *
  * Deliberately absent: --input. Its published value measures 1.53:1 on white where WCAG 1.4.11
  * asks 3:1 (docs/specs/visual-design-integration.md C2), and this slice has nothing to type into.
@@ -15,7 +20,6 @@
   padding: 1rem 1.15rem 1.05rem;
   background: var(--background);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--lime);
   border-radius: var(--radius-control);
 }
 
@@ -26,6 +30,11 @@
 .activity-kind {
   margin: 0;
   color: var(--eyebrow);
+}
+
+/* ACT-M020-01-01 broke after its last hyphen at 375px. It is an identifier, so it stays one. */
+.activity-id {
+  white-space: nowrap;
 }
 
 .activity-title {
@@ -40,11 +49,16 @@
   color: var(--foreground);
 }
 
-/* The one sentence that must not be missable: there is nowhere to write, and nothing is stored. */
+/*
+ * The one sentence that must not be missable: there is nowhere to write, and nothing is stored.
+ *
+ * It was set smaller and dimmer than the line above it, which is the visual grammar a reader uses
+ * to mean "small print, skip this" — the design review's finding, and the opposite of what this
+ * rule's own comment claimed. It now carries the same weight as the rest of the panel.
+ */
 .activity-no-store {
   margin: 0;
-  color: var(--muted-foreground);
-  font-size: 0.925rem;
+  color: var(--foreground);
 }
 
 .activity-not-placed {
@@ -57,8 +71,9 @@
   margin-top: 2rem;
 }
 
+/* The exception is worth marking, so this one keeps a rule down its edge. */
 .activity-panel-unplaced {
-  border-left-color: var(--quote-rule);
+  border-left: 3px solid var(--quote-rule);
 }
 
 /* The prompt, rendered only here. Inset again so it reads as the author's words inside our box. */

@@ -62,11 +62,16 @@ function UnplacedActivities({ unplaced }: { readonly unplaced: readonly Unplaced
           headingText={null}
           notPlaced={reason}
         >
-          {/* The one place the prompt is rendered: the authored section it belongs beside is not
-              on this page, so this is a first showing rather than a second. */}
-          <div className="activity-prompt">
-            <LessonMarkdown markdown={activity.promptMarkdown} />
-          </div>
+          {/* The one place the prompt is rendered, and only when the section is genuinely absent.
+              An ambiguous heading means the section IS on the page — twice — so showing the
+              prompt would put the authored excerpt there a third time, which is exactly what the
+              activity file's own presentation rule forbids. No ids either: a second Markdown pass
+              slugs independently of the body's. */}
+          {reason === 'heading_missing' && (
+            <div className="activity-prompt">
+              <LessonMarkdown markdown={activity.promptMarkdown} headingIds={false} />
+            </div>
+          )}
         </ActivityPanel>
       ))}
     </section>

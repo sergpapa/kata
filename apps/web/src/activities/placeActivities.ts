@@ -23,6 +23,8 @@ export interface UnplacedActivity {
 
 export const ACTIVITY_ID_ATTRIBUTE = 'data-activity-id';
 export const ACTIVITY_HEADING_ATTRIBUTE = 'data-activity-heading';
+/** The Markdown spelling of the same heading, when it differs from the rendered text. */
+export const ACTIVITY_AUTHORED_ATTRIBUTE = 'data-activity-authored';
 
 /**
  * The depth a reader sees, which is not always the depth the tree says: a body-carried `h1` is
@@ -62,13 +64,16 @@ function authoredText(node: Element, markdown: string): string | undefined {
     .trim();
 }
 
-function marker(activity: LessonActivity, headingText: string): Element {
+function marker(activity: LessonActivity, headingText: string, authored: string): Element {
   return {
     type: 'element',
     tagName: 'div',
     properties: {
       [ACTIVITY_ID_ATTRIBUTE]: activity.activityId,
       [ACTIVITY_HEADING_ATTRIBUTE]: headingText,
+      // Both spellings travel, because a title matched by the authored one still names this very
+      // heading and must not be printed back under it.
+      [ACTIVITY_AUTHORED_ATTRIBUTE]: authored,
     },
     children: [],
   };
@@ -81,7 +86,7 @@ export function rehypePlaceActivities(
 ) {
   return (tree: Root): void => {
     const unplaced: UnplacedActivity[] = [];
-    const insertions = new Map<number, Element[]>();
+    const insertions = new Map<number, { depth: number; marker: Element }[]>();
 
     const headings = tree.children
       .map((child, index) => ({ child, index }))
@@ -124,14 +129,23 @@ export function rehypePlaceActivities(
       }
 
       const group = insertions.get(endsAt) ?? [];
-      group.push(marker(activity, opened.rendered));
+      group.push({
+        depth: opened.depth,
+        marker: marker(activity, opened.rendered, opened.authored ?? opened.rendered),
+      });
       insertions.set(endsAt, group);
     }
 
     // Back to front, so an earlier insertion never shifts a later one's index out from under it.
-    // Activities sharing a section keep the file's order within their group.
+    //
+    // Within one insertion point the deeper section's panel comes first: a subsection and its
+    // parent can both end at the same place, and the parent's panel printed above the child's
+    // would sit inside a section it does not belong to. Activities of equal depth keep the file's
+    // order, which is a stable sort's own guarantee.
     for (const at of [...insertions.keys()].sort((left, right) => right - left)) {
-      tree.children.splice(at, 0, ...(insertions.get(at) as Element[]));
+      const group = insertions.get(at) as { depth: number; marker: Element }[];
+      const ordered = [...group].sort((left, right) => right.depth - left.depth);
+      tree.children.splice(at, 0, ...ordered.map((entry) => entry.marker));
     }
 
     box.unplaced = unplaced;
