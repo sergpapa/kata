@@ -173,3 +173,56 @@ describe('fidelity to the supplied design', () => {
     expect(dark[token]).toBe(light[token]);
   });
 });
+
+/**
+ * The edge refinement's own tokens — docs/specs/edge-visual-refinement.md.
+ *
+ * The reading-progress hairline is lime on a navy track, and the track sits on the top bar
+ * (--card). Both relationships are measured here for the same reason the surface suite exists:
+ * the first candidate track (#17233c on the dark top bar) was 1.03:1 — an invisible track that
+ * every text pair would have sailed past.
+ */
+describe.each([
+  ['light', light],
+  ['dark', dark],
+] as const)('the progress hairline in the %s scheme', (name, scheme) => {
+  it('fills lime on its track at 3:1 or better', () => {
+    expect(contrast(scheme, '--lime', '--progress-track')).toBeGreaterThanOrEqual(3);
+  });
+
+  it('separates the track from the top bar it sits under', () => {
+    expect(contrast(scheme, '--progress-track', '--card')).toBeGreaterThanOrEqual(1.15);
+  });
+});
+
+describe('the edge type and motion vocabulary', () => {
+  it('declares the display face as Space Grotesk with the sans stack behind it', () => {
+    expect(light['--font-display']).toMatch(/^'Space Grotesk Variable',/);
+    expect(light['--font-display']).toMatch(/sans-serif$/);
+  });
+
+  it('fronts the mono stack with JetBrains Mono', () => {
+    expect(light['--font-mono']).toMatch(/^'JetBrains Mono Variable',/);
+    expect(light['--font-mono']).toMatch(/monospace$/);
+  });
+
+  it('declares exactly the one easing the spec allows, as quart-out', () => {
+    expect(light['--ease-out']).toBe('cubic-bezier(0.25, 1, 0.5, 1)');
+    expect(light['--dur-quick']).toBeDefined();
+    expect(light['--dur-reveal']).toBeDefined();
+  });
+});
+
+/**
+ * The reduced-motion kill switch is the floor every animation in this slice relies on: the
+ * dashboard entrance and the scrubbed hairline are both `animation`s, so one rule silences both.
+ * Pinned so a future refactor cannot trade it for per-animation opt-outs and miss one.
+ */
+describe('the reduced-motion floor', () => {
+  it('kills animation, transition and smooth scroll globally', () => {
+    const block = blockAfter(/prefers-reduced-motion:\s*reduce[\s\S]{0,40}?\*/);
+    expect(block).toContain('animation: none !important');
+    expect(block).toContain('transition: none !important');
+    expect(block).toContain('scroll-behavior: auto !important');
+  });
+});
