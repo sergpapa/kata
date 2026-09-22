@@ -1,0 +1,141 @@
+/* The current-lesson card: the dashboard's hero surface and its one authored motion moment.
+   Split from dashboard.css along this responsibility line when the edge refinement grew it past
+   the file-size rule. The palette and vocabulary live in theme.css; the rest of the learning plan
+   stays in dashboard.css. */
+
+/* Dark in both schemes, like the sidebar: it is already a dark surface in the reference, and
+   re-tinting it for dark mode would be inventing colour the design package did not supply. */
+.continue-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.75rem 2rem 2rem;
+  border-radius: 10px;
+  background: var(--continue-card);
+  color: var(--continue-foreground);
+  overflow: hidden;
+}
+
+/* The dashboard's one hero moment (Law 1): the card's contents rise into place once, on load,
+   one stagger beat apart. Everything else on the page holds still. The global reduced-motion rule
+   in theme.css removes the animation entirely, and `backwards` fill goes with it, so the card is
+   simply there. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.continue-card > * {
+  animation: rise-in var(--dur-reveal) var(--ease-out) backwards;
+}
+
+.continue-card > :nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.continue-card > :nth-child(3) {
+  animation-delay: 120ms;
+}
+
+.continue-card > :nth-child(4) {
+  animation-delay: 180ms;
+}
+
+.continue-card > :nth-child(5) {
+  animation-delay: 240ms;
+}
+
+/* Ghost numeral, the exposed-structure ornament at card scale: the lesson's own two digits,
+   enormous and nearly not there. Decorative — the same number is announced by the LESSON line —
+   so the markup hides it from readers. In-flow siblings are positioned after it in the DOM, which
+   keeps the card's real content painting above it. */
+.continue-ghost {
+  position: absolute;
+  top: -0.05em;
+  right: 0.5rem;
+  color: var(--continue-foreground);
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 5rem + 6vw, 11rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+
+.continue-card > :not(.continue-ghost) {
+  position: relative;
+}
+
+.card-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+  margin-bottom: 0;
+  font-size: 0.8125rem;
+}
+
+.lesson-number {
+  margin: 1.5rem 0 0.4rem;
+  color: var(--continue-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.continue-card h2 {
+  max-width: 29rem;
+  margin-bottom: 1.2rem;
+  font-size: clamp(1.75rem, 1.1rem + 2.2vw, 2.6rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.lime-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* 2.75rem, not the reference's 2.65rem: 44px is the target-size floor, and the primary action
+     holds itself to the same line the sidebar trigger was already raised to. */
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--lime);
+  color: var(--lime-ink);
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: background var(--dur-quick) var(--ease-out);
+}
+
+.lime-button:visited {
+  color: var(--lime-ink);
+}
+
+.lime-button:hover {
+  background: var(--lime-hover);
+}
+
+.lime-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.lime-button:hover svg {
+  transform: translateX(3px);
+}
+
+/* --- Narrower ---------------------------------------------------------------------------- */
+
+@media (max-width: 1150px) {
+  .continue-card {
+    padding: 1.5rem 1.5rem 1.75rem;
+  }
+}

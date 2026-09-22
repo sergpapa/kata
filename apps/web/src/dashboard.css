@@ -1,5 +1,5 @@
-/* The learning plan: page title, the current-lesson card beside the records card, the lesson rows,
-   and the release disclosure under them.
+/* The learning plan: page title, the records card, the lesson rows, and the release disclosure
+   under them. The current-lesson card beside the records card is in continue-card.css.
 
    Ported from engineering-practice-ui-design-v1/reference-source/app/globals.css — `.overview-grid`,
    `.continue-card`, `.lime-button`, `.card`, `.lesson-list`, `.lesson-row` and their responsive
@@ -39,8 +39,10 @@
   border-radius: 5px;
   background: var(--background);
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
   font-weight: 600;
+  letter-spacing: 0.08em;
   line-height: 1.5;
 }
 
@@ -64,69 +66,8 @@
   align-items: start;
 }
 
-/* Dark in both schemes, like the sidebar: it is already a dark surface in the reference, and
-   re-tinting it for dark mode would be inventing colour the design package did not supply. */
-.continue-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 1.75rem 2rem 2rem;
-  border-radius: 10px;
-  background: var(--continue-card);
-  color: var(--continue-foreground);
-  overflow: hidden;
-}
-
-.card-kicker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem;
-  align-items: center;
-  margin-bottom: 0;
-  font-size: 0.8125rem;
-}
-
-.lesson-number {
-  margin: 1.5rem 0 0.4rem;
-  color: var(--continue-muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-}
-
-.continue-card h2 {
-  max-width: 29rem;
-  margin-bottom: 1.2rem;
-  font-size: clamp(1.65rem, 2.1vw, 2.2rem);
-  overflow-wrap: anywhere;
-}
-
-.lime-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.65rem;
-  padding: 0.55rem 1rem;
-  border-radius: var(--radius-control);
-  background: var(--lime);
-  color: var(--lime-ink);
-  font-size: 0.875rem;
-  font-weight: 650;
-  line-height: 1.4;
-  text-decoration: none;
-}
-
-.lime-button:visited {
-  color: var(--lime-ink);
-}
-
-.lime-button:hover {
-  background: var(--lime-hover);
-}
-
-.lime-button svg {
-  width: 1.05rem;
-  height: 1.05rem;
-}
+/* The current-lesson card lives in continue-card.css — its own responsibility, split when the
+   edge refinement grew this file past the size rule. */
 
 .records-card h2 {
   font-size: 1rem;
@@ -138,12 +79,15 @@
   font-size: 0.9375rem;
 }
 
+/* A ruled heading: the hairline is the Swiss ornament doing the section's work. */
 .section-heading {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
   margin: 2.3rem 0 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .section-heading h2 {
@@ -168,28 +112,46 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  transition: background 0.15s;
+  transition: background var(--dur-quick) var(--ease-out);
 }
 
 .lesson-row:hover {
   background: var(--row-hover);
 }
 
+/* The signature marker, on the row you are about to choose: the same 3px lime line that names the
+   current destination in the sidebar. It slides in with the background shift — a second voice for
+   the affordance, never the only one. */
+.lesson-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--lime);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+
+.lesson-row:hover::before,
+.lesson-row:focus-within::before {
+  transform: scaleX(1);
+}
+
 .lesson-row + .lesson-row {
   border-top: 1px solid var(--border);
 }
 
+/* A bare numeral, not a chip: index numbers are structure, and structure is not upholstered. */
 .lesson-index {
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--row-hover);
+  min-width: 2ch;
   color: var(--muted-foreground);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
+  text-align: right;
 }
 
 .lesson-label {
@@ -229,7 +191,8 @@
   display: block;
   margin-top: 0.15rem;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
 }
 
 .lesson-row > svg {
@@ -237,6 +200,15 @@
   width: 1.1rem;
   height: 1.1rem;
   color: var(--muted-foreground);
+  transition:
+    transform var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.lesson-row:hover > svg,
+.lesson-row:focus-within > svg {
+  color: var(--foreground);
+  transform: translateX(3px);
 }
 
 /* --- The release disclosure and the standby pages ----------------------------------------- */
@@ -295,10 +267,6 @@
 @media (max-width: 1150px) {
   .overview-grid {
     grid-template-columns: minmax(0, 1.5fr) minmax(15rem, 1fr);
-  }
-
-  .continue-card {
-    padding: 1.5rem 1.5rem 1.75rem;
   }
 }
 

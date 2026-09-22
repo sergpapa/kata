@@ -161,12 +161,13 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
     <article className="card lesson-reader">
       <BackToLessons />
       <h1>{lesson.displayTitle}</h1>
+      {/* No `no-wrap` on the release segment: `white-space: nowrap` beats `overflow-wrap:
+          anywhere`, and at 375px the un-wrappable release ID ran flush to the card's border —
+          on every lesson, since they all carry the same release. Wrapping mid-segment is the
+          lesser cost. */}
       <p className="lesson-provenance">
         Lesson {lesson.order} · {lesson.candidateLessonId} · content version {lesson.contentVersion}{' '}
-        ·{' '}
-        <span className="no-wrap">
-          release {release.releaseId} {release.version}
-        </span>
+        · release {release.releaseId} {release.version}
       </p>
       <FactList facts={lesson.facts} />
       <LessonMarkdown markdown={lesson.bodyMarkdown} />

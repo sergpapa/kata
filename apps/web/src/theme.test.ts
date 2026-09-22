@@ -196,20 +196,50 @@ describe.each([
 });
 
 describe('the edge type and motion vocabulary', () => {
-  it('declares the display face as Space Grotesk with the sans stack behind it', () => {
-    expect(light['--font-display']).toMatch(/^'Space Grotesk Variable',/);
-    expect(light['--font-display']).toMatch(/sans-serif$/);
+  /** Declared values wrap across source lines; comparison is by content, not by layout. */
+  const oneLine = (value: string | undefined): string => (value ?? '').replace(/\s+/g, ' ');
+
+  it('declares the display face as Space Grotesk with the whole sans stack behind it', () => {
+    // The full stack, not a prefix match: 'Space Grotesk Variable', sans-serif would pass a
+    // prefix/suffix check while dropping every system fallback the reader lands on if the
+    // variable font fails to load.
+    expect(oneLine(light['--font-display'])).toBe(
+      `'Space Grotesk Variable', ${oneLine(light['--font-sans'])}`,
+    );
   });
 
-  it('fronts the mono stack with JetBrains Mono', () => {
-    expect(light['--font-mono']).toMatch(/^'JetBrains Mono Variable',/);
-    expect(light['--font-mono']).toMatch(/monospace$/);
+  it('fronts the existing mono stack with JetBrains Mono, dropping nothing', () => {
+    expect(oneLine(light['--font-mono'])).toBe(
+      "'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, " +
+        "'Liberation Mono', 'Courier New', monospace",
+    );
   });
 
-  it('declares exactly the one easing the spec allows, as quart-out', () => {
+  it('pins the motion vocabulary to its exact values', () => {
     expect(light['--ease-out']).toBe('cubic-bezier(0.25, 1, 0.5, 1)');
-    expect(light['--dur-quick']).toBeDefined();
-    expect(light['--dur-reveal']).toBeDefined();
+    expect(light['--dur-quick']).toBe('0.2s');
+    expect(light['--dur-reveal']).toBe('0.45s');
+  });
+
+  it('declares no second easing in the token file', () => {
+    // "One easing" made literal for this file; the stylesheets that consume it are the design
+    // review's beat. `ease`-keyword drift there cannot be seen from here.
+    expect(css.match(/cubic-bezier\(/g)).toHaveLength(1);
+  });
+});
+
+/**
+ * The palette dial is pinned: no new hues, ever. The track must therefore be a navy the palette
+ * already owns — the code surface in light, the panel edge in dark — not merely something with
+ * enough contrast. #000000 passes every ratio above and is still a foreign colour.
+ */
+describe('the progress track stays inside the palette', () => {
+  it('reuses the code surface in light', () => {
+    expect(light['--progress-track']).toBe(light['--code-bg']);
+  });
+
+  it('reuses the panel edge in dark', () => {
+    expect(dark['--progress-track']).toBe(dark['--panel-edge']);
   });
 });
 

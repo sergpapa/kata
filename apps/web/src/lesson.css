@@ -14,6 +14,50 @@
   padding: 2rem;
 }
 
+/* --- Reading position ---------------------------------------------------------------------- */
+
+/* The signature motif doing a job: the lime marker on a navy track, scrubbed 1:1 with scroll under
+   the pinned top bar. A lesson here is 12,000px tall at 1440px; the bar is the only thing that
+   says how much is left without the scrollbar's guesswork.
+
+   Scrubbed by a scroll-driven animation, not JS: position IS the coupling, so this is the one
+   place scrubbing is the honest choice. Browsers without `animation-timeline` (Firefox) simply
+   never draw either pseudo-element; reduced motion kills the animation globally in theme.css,
+   which leaves the fill at scaleX(0) — a bare track, no moving part. Both tracks' inks are
+   measured in theme.test.ts. */
+@supports (animation-timeline: scroll()) {
+  .shell[data-view='lesson'] .topbar::after,
+  .shell[data-view='lesson'] .topbar::before {
+    content: '';
+    position: absolute;
+    inset: auto 0 -3px 0;
+    height: 3px;
+  }
+
+  .shell[data-view='lesson'] .topbar::after {
+    background: var(--progress-track);
+  }
+
+  .shell[data-view='lesson'] .topbar::before {
+    z-index: 1;
+    background: var(--lime);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: reading-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes reading-progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
 .lesson-body {
   font-size: 1rem;
   line-height: 1.85;
@@ -34,10 +78,13 @@ h1 + .lesson-provenance {
   margin-top: 0;
 }
 
+/* IDs, versions, release — the metadata register, so it reads as the checked facts it is
+   rather than dissolving into the prose above the lesson. */
 .lesson-provenance {
   margin: 0 0 1.5rem;
   color: var(--muted-foreground);
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   overflow-wrap: anywhere;
 }
 

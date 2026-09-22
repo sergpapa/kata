@@ -24,7 +24,17 @@ no lesson shows a fallback. Markdown still parses straight to React elements, ra
 becomes visible text, and the sandboxed-iframe diagram exception still grants nothing. Schema
 version 2, unchanged again this slice.
 
-`npm test` (458 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+The edge visual refinement landed 2026-09-22 (spec and dial sheet in
+`docs/specs/edge-visual-refinement.md`): Swiss-revival direction inside the pinned palette — Space
+Grotesk display titles, JetBrains Mono as the metadata register, the lime position-marker motif
+(nav, lesson-row hover, text selection, and a scroll-scrubbed reading-progress hairline on lesson
+pages), one hero motion moment per view, all timing on a single tested quart-out vocabulary. The
+fidelity suite is untouched; eleven token assertions were added, reviewed by test-guardian PRE and
+strengthened on its three findings. The design review's one defect (the `no-wrap` release segment
+running flush to the reading card's border at 375px on every lesson) is fixed, and the primary
+action was raised to the 44px target floor.
+
+`npm test` (469 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
 `npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate visits
 nineteen routes at three widths in both schemes — five diagrams opened and read inside their
 frames — plus the 720px zoom pass, the open drawer, and pinned navigation 3,000px down a lesson.

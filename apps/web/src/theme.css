@@ -56,13 +56,31 @@
      which is no separation at all, so the edge is what carries it. */
   --panel-edge: #17233c;
 
+  /* The reading-progress hairline: a navy track under the top bar that fills lime. In light the
+     track is the code surface — a dark value the top bar is white behind; in dark that same value
+     is 1.03:1 against the top bar, so the panel edge carries it instead. Both pairs are measured
+     in theme.test.ts. */
+  --progress-track: #17233c;
+
   --radius-card: 9px;
   --radius-control: 6px;
 
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* The two voices of the edge refinement (docs/specs/edge-visual-refinement.md): a display face
+     for titles and the brand, a mono for code and the metadata register — IDs, versions,
+     provenance, eyebrows. Body prose stays on the workhorse stack. */
+  --font-display:
+    'Space Grotesk Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
   --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+    'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+
+  /* One easing, one duration set, one stagger beat — the whole motion vocabulary. A timing value
+     that is not one of these is dial drift. */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-quick: 0.2s;
+  --dur-reveal: 0.45s;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -84,6 +102,7 @@
     --quote-bg: #101a2e;
     --quote-rule: #5568a0;
     --panel-edge: #35446e;
+    --progress-track: #35446e;
   }
 }
 
@@ -119,16 +138,23 @@ p {
   margin-top: 0;
 }
 
+/* Type-as-hero: headings speak in the display face, body prose stays quiet. One fluid formula per
+   level, tracking tightening as size grows — hierarchy through scale, not colour. */
 h1,
 h2,
-h3 {
-  letter-spacing: -0.025em;
-  line-height: 1.25;
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: clamp(1.8rem, 2.5vw, 2.65rem);
+  font-size: clamp(2rem, 1.35rem + 2.2vw, 3.1rem);
   font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
   margin-bottom: 0.6rem;
 }
 
@@ -158,6 +184,14 @@ samp {
 :focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 3px;
+}
+
+/* The motif on the reader's own gesture: selected text sits on the lime marker colour. The pair is
+   measured (--lime-ink on --lime) in theme.test.ts, and it holds on every surface because the
+   selection brings its own ground. */
+::selection {
+  background: var(--lime);
+  color: var(--lime-ink);
 }
 
 /* Links carry the accent in both schemes. Visited is deliberately not distinguished: these are
@@ -209,12 +243,15 @@ details[open] > summary::before {
   content: '−';
 }
 
+/* The metadata register: mono, small, tracked wide. Exposed structure is the ornament vocabulary
+   of this product — the eyebrows label what the release actually says. */
 .eyebrow {
   margin-bottom: 0.65rem;
   color: var(--eyebrow);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.115em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
 }
 
 .fine {

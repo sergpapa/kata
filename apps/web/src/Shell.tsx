@@ -186,7 +186,9 @@ export function Shell({
   const trail = trailFor(route, pageName);
 
   return (
-    <div className="shell" data-drawer={open ? 'open' : 'closed'}>
+    // `data-view` lets the stylesheet know which kind of page is inside — the reading-progress
+    // hairline draws only on a lesson, where position in a 12,000px document is worth showing.
+    <div className="shell" data-drawer={open ? 'open' : 'closed'} data-view={route.kind}>
       <a className="skip-link" href="#main">
         Skip to content
       </a>

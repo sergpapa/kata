@@ -108,6 +108,11 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
       <div className="overview-grid">
         {first && (
           <section className="continue-card" data-testid="current-lesson">
+            {/* Ornament, not information: the same two digits the LESSON line announces, at card
+                scale behind the content. Hidden from readers so nothing is said twice. */}
+            <span className="continue-ghost" aria-hidden="true">
+              {twoDigits(first.order)}
+            </span>
             <p className="card-kicker">
               <span className="pill lime">FIRST IN THE RELEASE</span>
             </p>
