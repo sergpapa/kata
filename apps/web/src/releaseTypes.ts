@@ -54,3 +54,16 @@ export interface LessonActivity {
   /** Rendered only where the named section is absent, so the excerpt is never shown twice. */
   readonly promptMarkdown: string;
 }
+
+/**
+ * One field the server has stored, as `GET /api/lessons/:id` answers it. A field never saved is
+ * absent from the array rather than present and empty — "nothing is stored" and "an empty answer is
+ * stored" are different facts, and only the second has a revision.
+ */
+export interface StoredResponse {
+  readonly activityId: string;
+  readonly fieldName: string;
+  readonly text: string;
+  readonly revision: number;
+  readonly updatedAt: string;
+}

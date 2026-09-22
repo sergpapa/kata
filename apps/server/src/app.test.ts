@@ -80,7 +80,10 @@ describe('the walking skeleton', () => {
 
     const rows = db.prepare('SELECT count(*) AS n FROM schema_meta').get() as { n: number };
     expect(rows.n).toBe(1);
-    expect(readSchemaVersion(db)).toBe('3');
+    // '4' since slice 10 added learner_response; declared in docs/specs/acknowledged-saves.md
+    // (re-aim 8). The claim is unchanged: running every migration twice leaves one row, at the
+    // version the last migration set.
+    expect(readSchemaVersion(db)).toBe('4');
   });
 });
 

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import { activity, lessonBody, panelOf } from '../testkit/activityFixture.js';
 import type { StoredResponse } from '../releaseTypes.js';

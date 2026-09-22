@@ -1,13 +1,15 @@
-import type { LessonActivity } from '../releaseTypes.js';
+import type { LessonActivity, StoredResponse } from '../releaseTypes.js';
 import type { UnplacedReason } from './placeActivities.js';
+import { ResponseField } from './ResponseField.js';
 
 /**
- * What an activity looks like on the page while the app cannot yet keep an answer to it.
+ * What an activity looks like on the page: what it is, and one writing surface per field its
+ * author declared.
  *
- * It says what the author asks for and states, without hedging, that there is nowhere to write it.
- * There is deliberately no box — not even a disabled one. Somebody would type into it and lose the
- * work, which is the single failure Milestone 2 exists to prevent (docs/specs/activity-placement.md
- * decision 1).
+ * Through slice 9 this panel said, in as many words, that the app could not keep an answer, and
+ * offered no box — not even a disabled one, because somebody would have typed into it and lost the
+ * work. That sentence is gone because it stopped being true: every box here is backed by a write
+ * the server acknowledges, and the state beside it says which (docs/specs/acknowledged-saves.md).
  */
 
 /** The author's `kind` values, in words. An unknown one is shown as written, never guessed at. */
@@ -19,19 +21,6 @@ const KIND_WORDS: Readonly<Record<string, string>> = {
   local_practice: 'Local practice',
   judgment: 'Judgment',
 };
-
-/** The same for `response_fields`, phrased as the thing the learner would supply. */
-const FIELD_WORDS: Readonly<Record<string, string>> = {
-  prediction: 'your prediction',
-  observation: 'what you observed',
-  explanation: 'your explanation',
-  help_used: 'whether you used help',
-};
-
-function inWords(values: readonly string[]): string {
-  if (values.length <= 1) return values.join('');
-  return `${values.slice(0, -1).join(', ')} and ${values[values.length - 1]}`;
-}
 
 /**
  * Why the panel is at the foot instead of beside its section. The missing case says "no section
@@ -51,6 +40,7 @@ export function ActivityPanel({
   headingText,
   authoredHeading,
   notPlaced,
+  responses,
   children,
 }: {
   readonly activity: LessonActivity;
@@ -59,11 +49,12 @@ export function ActivityPanel({
   /** The same heading as the author spelled it, when that differs from the rendered text. */
   readonly authoredHeading?: string | null;
   readonly notPlaced?: UnplacedReason;
+  /** What the server has stored for this activity. Absent fields have nothing stored. */
+  readonly responses?: readonly StoredResponse[] | undefined;
   /** The rendered prompt, supplied only where the authored section is not on the page. */
   readonly children?: React.ReactNode;
 }) {
   const kind = KIND_WORDS[activity.kind] ?? activity.kind;
-  const asks = activity.responseFields.map((field) => FIELD_WORDS[field] ?? field);
   // The section's own heading is right there; printing it again a paragraph below is noise. Both
   // spellings count: a heading matched by the Markdown the author typed is still this heading, and
   // printing `What kind of action? \`GET\`` under a heading reading "What kind of action? GET"
@@ -90,11 +81,16 @@ export function ActivityPanel({
 
       {children}
 
-      {asks.length > 0 && <p className="activity-asks">This activity asks for {inWords(asks)}.</p>}
-
-      <p className="activity-no-store">
-        The app cannot store any of it yet, so there is nowhere here to write it.
-      </p>
+      {activity.responseFields.map((fieldName) => (
+        <ResponseField
+          key={fieldName}
+          activityId={activity.activityId}
+          fieldName={fieldName}
+          stored={responses?.find(
+            (one) => one.activityId === activity.activityId && one.fieldName === fieldName,
+          )}
+        />
+      ))}
     </aside>
   );
 }

@@ -15,7 +15,7 @@ import {
   rehypePlaceActivities,
   type UnplacedActivity,
 } from '../activities/placeActivities.js';
-import type { LessonActivity } from '../releaseTypes.js';
+import type { LessonActivity, StoredResponse } from '../releaseTypes.js';
 
 /**
  * Renders an authored lesson body. The contract is docs/specs/markdown-rendering.md.
@@ -157,6 +157,7 @@ const components: Components = {
 export function LessonMarkdown({
   markdown,
   activities,
+  responses,
   headingIds = true,
   onOutline,
   onUnplacedActivities,
@@ -164,6 +165,8 @@ export function LessonMarkdown({
   readonly markdown: string;
   /** The lesson's activities, each placed at the end of the section its heading names. */
   readonly activities?: readonly LessonActivity[];
+  /** What the server has stored for those activities, so each box is drawn already filled. */
+  readonly responses?: readonly StoredResponse[];
   /**
    * Whether headings get anchor ids. False for anything rendered beside the lesson body — a
    * second pass slugs independently, so a prompt heading matching a body heading would put the
@@ -210,11 +213,12 @@ export function LessonMarkdown({
             activity={activity}
             headingText={typeof heading === 'string' ? heading : null}
             authoredHeading={typeof authored === 'string' ? authored : null}
+            responses={responses}
           />
         );
       },
     };
-  }, [activities]);
+  }, [activities, responses]);
 
   return (
     <div className="lesson-body">

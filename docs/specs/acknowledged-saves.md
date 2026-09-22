@@ -170,6 +170,14 @@ is named below with where it now lives. None of them is weakened.
    the database actually holds, not a constant — is exactly what it was; only the number moves, and
    S1 now asserts the same thing from the other side.
 
+   **A second instance of the same constant, in the same file, was missed by both this list and the
+   PRE audit:** `app.test.ts`'s _"applies each migration once, so restarting the app does not
+   re-seed the database"_ ends with the same `readSchemaVersion(db)` assertion. Found when the
+   migration landed and the suite went red; declared here on finding it, before the assertion was
+   touched. Same claim, same number, same reason. The lesson is that "which tests pin the schema
+   version" is a grep, not a memory — `readSchemaVersion` and `schemaVersion` both now point at
+   exactly these two places and S1.
+
 No other existing test is re-aimed. If that turns out to be wrong, the change and its reason are
 recorded here before the red commit and nowhere else.
 

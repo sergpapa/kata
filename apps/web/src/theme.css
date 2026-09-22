@@ -22,6 +22,21 @@
   --border: #dde3ef;
   --row-hover: #f0f3fc;
 
+  /* The boundary of a control, and the one place this app knowingly departs from the published
+     palette. DESIGN_SPECIFICATION §2 publishes it as #c8d1e4, which measures 1.53:1 on white
+     where WCAG 1.4.11 asks 3:1 of a control's visual boundary. Through slice 9 there was nothing
+     to type into, so it was left out rather than shipped broken
+     (docs/specs/visual-design-integration.md C2). This value is 4.02:1 on the card and 3.75:1 on
+     the canvas, both measured in theme.test.ts. */
+  --input: #767f93;
+
+  /* What a save is doing, in colour — never instead of the words, always beside them. The light
+     values are the design package's own: #b12d3f is its `--destructive`, and the other two are the
+     ink of its `.note.success` and `.note.warning`. */
+  --state-saved: #2e664b;
+  --state-failed: #b12d3f;
+  --state-conflict: #7b561e;
+
   /* Actions */
   --primary: #3349b3;
   --primary-foreground: #ffffff;
@@ -92,6 +107,11 @@
     --eyebrow: #9aa8c6;
     --border: #27324f;
     --row-hover: #1c2740;
+
+    --input: #5c6b94;
+    --state-saved: #6fd3a0;
+    --state-failed: #ef9a9a;
+    --state-conflict: #e0b556;
 
     --primary: #8aa0ee;
     --primary-foreground: #0e1732;
@@ -262,6 +282,21 @@ details[open] > summary::before {
 
 .no-wrap {
   white-space: nowrap;
+}
+
+/* Read aloud, never drawn. Used where a live region has to name its own subject and the words are
+   already on screen a few pixels away — twelve save states announcing a bare "Saved" would tell a
+   screen-reader user nothing about which box just landed. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .notice {

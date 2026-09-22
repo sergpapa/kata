@@ -18,6 +18,7 @@ import {
   TerminalIcon,
 } from './icons.js';
 import { RouteLink } from './RouteLink.js';
+import { UnsavedDialog } from './UnsavedDialog.js';
 import type { OutlineEntry } from './markdown/LessonMarkdown.js';
 import type { ReleaseView } from './releaseTypes.js';
 import type { Route } from './route.js';
@@ -210,6 +211,10 @@ export function Shell({
       <a className="skip-link" href="#main">
         Skip to content
       </a>
+
+      {/* Here rather than on the lesson page: it has to survive the page it is protecting being
+          asked to unmount, and it guards every route the reader can leave for. */}
+      <UnsavedDialog />
 
       <nav
         id={sidebarId}

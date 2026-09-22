@@ -13,6 +13,8 @@ import {
 import { activitiesForLesson, parseActivitySet } from './modules/content/activitySet.js';
 import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
 import { loadResumePoint, saveResumePoint } from './modules/learner/resumeRepository.js';
+import { loadResponsesForActivities } from './modules/learner/responseRepository.js';
+import { registerResponseRoutes, responseForPage } from './modules/learner/responseRoutes.js';
 import type { ReleaseState } from './modules/content/types.js';
 
 export interface AppDeps {
@@ -36,7 +38,7 @@ export interface AppDeps {
  * running process, and a lesson that silently lost its activities would look identical to a lesson
  * that never had any.
  */
-function activitiesOf(deps: AppDeps, candidateLessonId: string) {
+function allActivities(deps: AppDeps) {
   if (deps.release.state === 'failed') return [];
 
   const sourceText = loadActivitySetText(deps.db, deps.release.releaseRowId);
@@ -53,7 +55,11 @@ function activitiesOf(deps: AppDeps, candidateLessonId: string) {
     );
   }
 
-  return activitiesForLesson(parsed.activities, candidateLessonId);
+  return parsed.activities;
+}
+
+function activitiesOf(deps: AppDeps, candidateLessonId: string) {
+  return activitiesForLesson(allActivities(deps), candidateLessonId);
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
@@ -110,6 +116,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       }
 
       const { frontMatter, sourceText, ...identity } = stored;
+      const activities = activitiesOf(deps, candidateLessonId);
       return {
         state: 'lesson',
         release: { releaseId: summary.releaseId, version: summary.version },
@@ -122,7 +129,14 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         // could not be read, so a failure here means the stored row was changed underneath a
         // running app — said out loud rather than served as a lesson that quietly lost its
         // activities.
-        activities: activitiesOf(deps, candidateLessonId),
+        activities,
+        // The learner's own work for this lesson's activities, carried on the answer the page is
+        // already waiting for. A second request would draw every box empty and fill it a moment
+        // later, which reads as work lost and recovered (docs/specs/acknowledged-saves.md F2).
+        responses: loadResponsesForActivities(
+          deps.db,
+          activities.map((activity) => activity.activityId),
+        ).map(responseForPage),
         // Manifest order, answered by the side that stores it, so previous/next can never disagree
         // with the list the dashboard shows.
         ...loadNeighbours(deps.db, deps.release.releaseRowId, stored.order),
@@ -170,6 +184,23 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const recordedAt = new Date().toISOString();
     saveResumePoint(deps.db, candidateLessonId, recordedAt);
     return { state: 'set', candidateLessonId, recordedAt };
+  });
+
+  registerResponseRoutes(app, {
+    db: deps.db,
+    release: deps.release,
+    activitiesOfRelease: () => allActivities(deps),
+    contentVersionOf: (candidateLessonId) => {
+      if (deps.release.state === 'failed') return undefined;
+      return loadReleaseSummary(deps.db, deps.release.releaseRowId)?.lessons.find(
+        (lesson) => lesson.candidateLessonId === candidateLessonId,
+      )?.contentVersion;
+    },
+    releaseIdOf: () => {
+      if (deps.release.state === 'failed') return undefined;
+      return loadReleaseSummary(deps.db, deps.release.releaseRowId)?.releaseId;
+    },
+    now: () => new Date().toISOString(),
   });
 
   if (deps.webDistDir && fs.existsSync(deps.webDistDir)) {

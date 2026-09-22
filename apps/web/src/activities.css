@@ -11,8 +11,9 @@
  * echoes, all of which mean "you are here". A fifth use meaning "this is an activity" would have
  * made the accent mean two things and weakened both.
  *
- * Deliberately absent: --input. Its published value measures 1.53:1 on white where WCAG 1.4.11
- * asks 3:1 (docs/specs/visual-design-integration.md C2), and this slice has nothing to type into.
+ * --input arrives with the boxes, at the darker value theme.test.ts measures rather than the
+ * published one (docs/specs/visual-design-integration.md C2, closed by
+ * docs/specs/acknowledged-saves.md D1).
  */
 
 .activity-panel {
@@ -64,6 +65,131 @@
 .activity-not-placed {
   margin: 0;
   color: var(--muted-foreground);
+}
+
+/*
+ * One recorded field. The label and the save state share a line, because they are the two halves of
+ * the same sentence: what this box is for, and whether what is in it is anywhere but the screen.
+ */
+.response-field {
+  margin: 0;
+}
+
+.response-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.response-head label {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/*
+ * The panel's one load-bearing claim, and so never small print.
+ *
+ * Slice 9's design review found the sentence that mattered most set smaller and dimmer than the
+ * line above it, which is the visual grammar for "skip this". That sentence has gone; this line
+ * inherited its job, and the same rule with it.
+ */
+.response-state {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
+}
+
+.response-field[data-state='saved'] .response-state {
+  color: var(--state-saved);
+}
+
+.response-field[data-state='failed'] .response-state {
+  color: var(--state-failed);
+}
+
+.response-field[data-state='conflict'] .response-state {
+  color: var(--state-conflict);
+}
+
+.response-box {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.response-failure {
+  margin: 0.5rem 0 0;
+  color: var(--state-failed);
+}
+
+.response-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.55rem 0 0;
+}
+
+.response-save {
+  padding: 0.4rem 0.9rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.response-secondary {
+  padding: 0.4rem 0.9rem;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Both texts at once, so nothing is discarded before the reader has seen what they are choosing
+   between. The rule down the edge is the warning ink, not a fill: a tinted panel inside a panel
+   inside a card is three boxes deep. */
+.response-conflict {
+  margin-top: 0.6rem;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--state-conflict);
+}
+
+.response-conflict-lead {
+  margin: 0;
+  color: var(--foreground);
+}
+
+.response-conflict-label {
+  margin: 0.55rem 0 0.25rem;
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
+}
+
+/* The other tab's words, kept character for character — this is somebody's answer, not a summary. */
+.response-conflict-stored {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* The guard path: an activity whose authored section this lesson does not carry. */

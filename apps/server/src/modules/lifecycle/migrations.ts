@@ -100,4 +100,34 @@ export const migrations: readonly Migration[] = [
       UPDATE schema_meta SET value = '3' WHERE key = 'app_schema_version';
     `,
   },
+  {
+    id: 4,
+    name: 'learner_response',
+    sql: `
+      -- One live record per (activity, field), which is the unit a save covers (ADR 0004, ADR
+      -- 0011). The content version is stamped on each accepted write rather than being part of the
+      -- key: an authorized correction must leave the owner's answer on screen and editable, not
+      -- file it under a version string they never saw.
+      --
+      -- \`revision\` is what makes a save a compare-and-set. It starts at 1 on the first accepted
+      -- write; a client that believes nothing is stored sends 0.
+      CREATE TABLE learner_response (
+        id                  INTEGER PRIMARY KEY,
+        activity_id         TEXT NOT NULL,
+        field_name          TEXT NOT NULL,
+        candidate_lesson_id TEXT NOT NULL,
+        content_version     TEXT NOT NULL,
+        release_id          TEXT NOT NULL,
+        text                TEXT NOT NULL,
+        revision            INTEGER NOT NULL,
+        updated_at          TEXT NOT NULL,
+        UNIQUE (activity_id, field_name)
+      );
+
+      -- A lesson page asks for every field of several activities at once.
+      CREATE INDEX idx_learner_response_activity ON learner_response (activity_id);
+
+      UPDATE schema_meta SET value = '4' WHERE key = 'app_schema_version';
+    `,
+  },
 ];

@@ -55,8 +55,30 @@ export function lessonHref(candidateLessonId: string): string {
  */
 const listeners = new Set<() => void>();
 
-export function navigate(href: string): void {
+/**
+ * A veto on leaving the current address, installed by whatever has something to lose. Returning
+ * `false` cancels the navigation; whoever said no is responsible for asking the reader.
+ *
+ * Kept as a registered function rather than an import of the unsaved-work registry: routing has no
+ * business knowing what a response field is, and the next thing that needs to stop a navigation
+ * should not have to edit this file.
+ */
+let guard: ((href: string) => boolean) | null = null;
+
+export function setNavigationGuard(check: ((href: string) => boolean) | null): void {
+  guard = check;
+}
+
+/** Tells every subscriber to re-read the address. For anything that changes it without `navigate`. */
+export function announceRoute(): void {
+  for (const listener of [...listeners]) listener();
+}
+
+export function navigate(href: string, force = false): void {
   if (href === window.location.pathname) return;
+  // `force` is the reader having been asked and having said go. It is not a way around the guard;
+  // it is the guard's own answer coming back.
+  if (!force && guard && !guard(href)) return;
   window.history.pushState({}, '', href);
   // A new page starts at its top. Without this, following a lesson from halfway down the list
   // opens that lesson already scrolled past its title. Going *back* is left alone on purpose: the
@@ -74,12 +96,15 @@ function subscribe(onChange: () => void): () => void {
   };
 }
 
-export function useRoute(): Route {
-  return parseRoute(
-    useSyncExternalStore(
-      subscribe,
-      () => window.location.pathname,
-      () => '/',
-    ),
+/** The address itself, as a stable string — an effect can depend on this; a parsed Route cannot. */
+export function usePathname(): string {
+  return useSyncExternalStore(
+    subscribe,
+    () => window.location.pathname,
+    () => '/',
   );
+}
+
+export function useRoute(): Route {
+  return parseRoute(usePathname());
 }

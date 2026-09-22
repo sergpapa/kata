@@ -7,7 +7,12 @@ import { RouteLink } from './RouteLink.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
 import type { UnplacedActivity } from './activities/placeActivities.js';
-import type { ImportFailure, LessonActivity, LessonSummary } from './releaseTypes.js';
+import type {
+  ImportFailure,
+  LessonActivity,
+  LessonSummary,
+  StoredResponse,
+} from './releaseTypes.js';
 
 /** One lesson to read: the authored title, the facts a learner is shown, and the body. */
 
@@ -50,7 +55,13 @@ function sameActivities(
  * heading their lesson has. A release that renames one still reads, and the reader is told which
  * section the activity was written for (docs/specs/activity-placement.md, U1–U3).
  */
-function UnplacedActivities({ unplaced }: { readonly unplaced: readonly UnplacedActivity[] }) {
+function UnplacedActivities({
+  unplaced,
+  responses,
+}: {
+  readonly unplaced: readonly UnplacedActivity[];
+  readonly responses: readonly StoredResponse[];
+}) {
   if (unplaced.length === 0) return null;
 
   return (
@@ -61,6 +72,7 @@ function UnplacedActivities({ unplaced }: { readonly unplaced: readonly Unplaced
           activity={activity}
           headingText={null}
           notPlaced={reason}
+          responses={responses}
         >
           {/* The one place the prompt is rendered, and only when the section is genuinely absent.
               An ambiguous heading means the section IS on the page — twice — so showing the
@@ -92,6 +104,7 @@ type LessonView =
       readonly release: { readonly releaseId: string; readonly version: string };
       readonly lesson: LessonDetail;
       readonly activities: readonly LessonActivity[];
+      readonly responses: readonly StoredResponse[];
       readonly previous: LessonNeighbour | null;
       readonly next: LessonNeighbour | null;
     }
@@ -307,10 +320,11 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
       <LessonMarkdown
         markdown={lesson.bodyMarkdown}
         activities={view.activities}
+        responses={view.responses}
         onOutline={handleOutline}
         onUnplacedActivities={handleUnplaced}
       />
-      <UnplacedActivities unplaced={unplaced} />
+      <UnplacedActivities unplaced={unplaced} responses={view.responses} />
       <NeighbourNav previous={view.previous} next={view.next} />
     </article>
   );
