@@ -86,83 +86,83 @@ lessons in manifest order, and a resume point the dashboard's primary card retur
 
 ### N — Contents list and heading anchors
 
-- [ ] N1. Every heading in a rendered lesson body carries an `id` derived from its text; two
+- [x] N1. Every heading in a rendered lesson body carries an `id` derived from its text; two
       headings with the same text get distinct ids. The ids survive the full render pipeline
       (inert guards, then sanitizer).
-- [ ] N2. Every generated id starts with `user-content-`, and the contents anchors point at
+- [x] N2. Every generated id starts with `user-content-`, and the contents anchors point at
       exactly that spelling.
-- [ ] N3. On a lesson page, the sidebar shows the lesson's sections — every heading the body
+- [x] N3. On a lesson page, the sidebar shows the lesson's sections — every heading the body
       renders as `h2`, in authored order, each entry an anchor `#user-content-<slug>` carrying the
       heading's own text.
-- [ ] N4. For all fifteen real lessons: every contents entry's target id exists exactly once in
+- [x] N4. For all fifteen real lessons: every contents entry's target id exists exactly once in
       that lesson's rendered body, and every body `h2` has exactly one contents entry.
-- [ ] N5. On the dashboard, the standby pages and the not-found page, no contents block renders.
+- [x] N5. On the dashboard, the standby pages and the not-found page, no contents block renders.
       Navigating from one lesson to another replaces the outline; navigating away removes it.
-- [ ] N6. A followed contents link leaves its heading visible below the sticky top bar, not
+- [x] N6. A followed contents link leaves its heading visible below the sticky top bar, not
       underneath it (`scroll-margin-top` at least the top bar's height).
-- [ ] N7. At 375px the contents list is inside the drawer; following an entry closes the drawer,
+- [x] N7. At 375px the contents list is inside the drawer; following an entry closes the drawer,
       and the drawer's focus trap cycles through the new anchors — the trap half pinned in vitest
       (PRE finding: focus order is a DOM fact, not a layout fact), the in-drawer layout half in the
       screenshot gate.
 
 ### P — Previous and next
 
-- [ ] P1. A lesson page ends with a `nav` landmark offering the previous and next lessons in
+- [x] P1. A lesson page ends with a `nav` landmark offering the previous and next lessons in
       manifest order, each a real link carrying the neighbour's two-digit number and authored
       title.
-- [ ] P2. The first lesson has no previous control and the last has no next control — absent, not
+- [x] P2. The first lesson has no previous control and the last has no next control — absent, not
       disabled.
-- [ ] P3. Following next or previous opens the neighbour at its top, with focus moved to the new
+- [x] P3. Following next or previous opens the neighbour at its top, with focus moved to the new
       page (the existing navigate/focus behavior, now exercised from a lesson).
-- [ ] P4. For the real fifteen-lesson release: lesson N's next names lesson N+1's authored title
+- [x] P4. For the real fifteen-lesson release: lesson N's next names lesson N+1's authored title
       for every N in 1–14, and the same backwards — a data fact, so it is pinned in vitest against
       the real release directory (moved off the screenshot gate on test-guardian's PRE finding).
-- [ ] P5. Neighbours come from the stored `display_order`, not from array position or key shape:
+- [x] P5. Neighbours come from the stored `display_order`, not from array position or key shape:
       the server answers them ordered even when asked about the middle of the release, and the
       client renders exactly what the server names.
 
 ### R — Resume point
 
-- [ ] R1. Opening a lesson that answers `state: 'lesson'` records it as the resume point. A 404,
+- [x] R1. Opening a lesson that answers `state: 'lesson'` records it as the resume point. A 404,
       a refused release, or an unavailable app records nothing.
-- [ ] R2. The record survives a client refresh and a server restart: a new app instance over the
+- [x] R2. The record survives a client refresh and a server restart: a new app instance over the
       same database answers with the same resume point.
-- [ ] R3. With no resume point, the dashboard's primary card is byte-for-byte today's: **FIRST IN
+- [x] R3. With no resume point, the dashboard's primary card is byte-for-byte today's: **FIRST IN
       THE RELEASE**, the first lesson, **Start lesson** (visual-design D1 stands).
-- [ ] R4. With a resume point, the primary card names the last-opened lesson by two-digit number
+- [x] R4. With a resume point, the primary card names the last-opened lesson by two-digit number
       and authored title, its action reads **Continue lesson** and links there, and its kicker
       says the lesson was last _opened_ — no page element ever claims read, studied or completed,
       and no progress bar or ratio appears (D3 stands).
-- [ ] R5. A resume record naming a lesson absent from the imported release: the API answers
+- [x] R5. A resume record naming a lesson absent from the imported release: the API answers
       `state: 'none'`, the card shows **Start lesson**, and the stored row is untouched.
-- [ ] R6. No element anywhere claims the resume point was saved, is saving, or failed to save; a
+- [x] R6. No element anywhere claims the resume point was saved, is saving, or failed to save; a
       rejected or failed PUT leaves the page as it was.
-- [ ] R7. The records card's wording matches what is now true: the last-opened lesson is kept;
+- [x] R7. The records card's wording matches what is now true: the last-opened lesson is kept;
       notes and predictions are not, and arrive in Milestone 2.
 
 ### A — API and schema
 
-- [ ] A1. `GET /api/resume-point` answers `{ state: 'none' }` or
+- [x] A1. `GET /api/resume-point` answers `{ state: 'none' }` or
       `{ state: 'set', candidateLessonId, recordedAt }`, and the failed-release state in the
       server's own words, like the other endpoints.
-- [ ] A2. `PUT /api/resume-point` with a lesson in the imported release stores the pointer and
+- [x] A2. `PUT /api/resume-point` with a lesson in the imported release stores the pointer and
       acknowledges. An ID not in the release refuses with 404 naming the ID and stores nothing; a
       body without a string `candidateLessonId` refuses with 400; a refused release answers its
       failed state.
-- [ ] A3. Migration 3 creates `resume_point` forward-only; `/api/health` answers schema version
+- [x] A3. Migration 3 creates `resume_point` forward-only; `/api/health` answers schema version
       `'3'`; re-running migrations on an existing database is a no-op.
-- [ ] A4. Only the repository module speaks SQL about the resume point (ADR 0002 boundary).
+- [x] A4. Only the repository module speaks SQL about the resume point (ADR 0002 boundary).
 
 ### G — Nothing regresses
 
-- [ ] G1. Every markdown-rendering criterion still holds — single `h1`, W1's
+- [x] G1. Every markdown-rendering criterion still holds — single `h1`, W1's
       character-for-character fences — with ids now on headings.
-- [ ] G2. Every visual-design shell criterion still holds, S5's drawer focus behavior now with
+- [x] G2. Every visual-design shell criterion still holds, S5's drawer focus behavior now with
       contents anchors present.
-- [ ] G3. The screenshot gate stays green: no sideways scroll at 375/768/1440 in either scheme on
+- [x] G3. The screenshot gate stays green: no sideways scroll at 375/768/1440 in either scheme on
       a lesson page with the contents list present, drawer open included; pinned navigation
       3,000px down still holds; the five diagrams still draw.
-- [ ] G4. The sidebar with a fifteen-entry outline does not push the release block or
+- [x] G4. The sidebar with a fifteen-entry outline does not push the release block or
       destinations off screen at 768px — the sidebar scrolls within itself if it must.
 
 ## Out of scope
@@ -181,3 +181,47 @@ offers 06 back and 08 ahead by their authored titles. Go home: the card now says
 naming Lesson 07. Refresh — still there. Stop the server, start it again — still there. Narrow to
 375px: the drawer carries the same contents, nothing scrolls sideways, and nothing anywhere claims
 anything has been read.
+
+## Slice record
+
+Built 2026-09-22. Red commit `7838d0e` (68 tests red across 7 files, each for a missing route,
+table, anchor or wording — plus the declared re-aims); green at 542 passing across 21 files.
+`npm test`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run format:check` and
+`npm run screenshots` all pass locally.
+
+**test-guardian PRE:** pass, four findings, all taken before the red commit was pinned — N5's
+standby/not-found leak coverage, R1's unavailable-app negative, the drawer focus trap cycled over
+the contents anchors in vitest (focus order is a DOM fact, not a layout fact), and P4 moved off
+the screenshot gate into a vitest integration test over the real release, where an off-by-one or
+title drift fails an assertion instead of hoping a screenshot reader notices.
+
+**test-guardian POST:** pass. One substantive test change between red and green — the declared
+App.test.tsx re-aim — verified as claim-preserving (`/api/release` still must be fetched; only
+the incidental call-position pin went); everything else prettier rewraps or byte-identical, and
+the resume endpoints' refusal paths checked against the database directly, not the HTTP echo.
+
+**/code-review (medium):** one confirmed finding, fixed test-first — the dashboard drew a Start
+card for lesson 1 while `/api/resume-point` was still in flight, and following that transient
+link would record lesson 1 over the reader's real place. The page now holds its reading status
+until both answers settle; `renders no card at all until the resume answer arrives` pins it.
+
+**Design review:** ship with nits. Two taken: the contents label now matches the sidebar's
+all-caps eyebrow convention, and `.sidebar-contents .sidebar-group-label` drops the stock side
+margin that had stacked on the block's own padding and pushed the label right of its list. One
+declined, with the reviewer's own reasoning: no chevrons on the neighbour links — the restraint
+dial keeps ornament out of lesson-adjacent surfaces, the words Previous/Next plus the directional
+lime hover marker already carry the wayfinding, and the reviewer measured every target, focus
+ring and contrast pair sound without them.
+
+**Hygiene note:** the new styles pushed lesson.css and shell.css past the ~350-line split point,
+so the slice's blocks moved whole into `apps/web/src/navigation.css` — one responsibility, no
+value changed, gate re-run green after the move.
+
+**End to end:** the gate's new checks passed on real Chromium — contents anchors resolving
+exactly once on all fifteen lessons at three widths in both schemes, a followed anchor landing
+clear of the top bar, the drawer carrying the contents at 375px, the first contents entry on
+screen at 768 and 1440 three thousand pixels down a lesson, and the resume round trip (open
+lesson 7, return home, the card offers Continue lesson to `LS-M020-07`). A cold restart of the
+built server over the same database file still answered the recorded lesson. The gate wipes its
+own data directory per run now, because an app that records state would otherwise hand the second
+run different captures than the first.

@@ -10,6 +10,7 @@ import './shell.css';
 import './dashboard.css';
 import './continue-card.css';
 import './lesson.css';
+import './navigation.css';
 import './diagram.css';
 
 const container = document.getElementById('root');

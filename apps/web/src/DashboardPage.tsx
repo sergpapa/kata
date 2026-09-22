@@ -68,9 +68,16 @@ function ReleaseDetails({
 
 export function DashboardPage({ view }: { readonly view: ReleaseView }) {
   // Asked before any early return, because a hook cannot be conditional.
-  const resumeId = resumeLessonId(useApi('/api/resume-point'));
+  const resume = useApi('/api/resume-point');
 
-  if (view.state === 'reading') return <p role="status">Reading the release…</p>;
+  // Held until BOTH answers are in (/code-review finding): a card drawn before the resume answer
+  // says Start for lesson 1, and following that transient link records lesson 1 over the reader's
+  // real place. An unanswered request is not "none" — but a settled failure is, because the only
+  // honest fallback is the start of the release.
+  if (view.state === 'reading' || resume.state === 'reading') {
+    return <p role="status">Reading the release…</p>;
+  }
+  const resumeId = resumeLessonId(resume);
 
   if (view.state === 'unavailable') {
     return (

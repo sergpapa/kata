@@ -240,6 +240,29 @@ describe('the card once a lesson has been opened', () => {
     expect(firstCard().textContent).not.toMatch(/continue/i);
   });
 
+  it('renders no card at all until the resume answer arrives', async () => {
+    // /code-review's finding: a transient Start card, clicked fast, opens lesson 1 and PUTs it
+    // over the stored resume point. So no card may exist before the answer does.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/api/resume-point') return new Promise<Response>(() => {});
+        return Promise.resolve(
+          new Response(JSON.stringify(importedRelease()), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      }),
+    );
+
+    render(<App />);
+
+    await screen.findByRole('status');
+    expect(screen.queryByTestId('current-lesson')).toBeNull();
+    expect(screen.queryByRole('link', { name: /start lesson/i })).toBeNull();
+  });
+
   it('offers Start when the answer is plainly none', async () => {
     answerRoutes({
       '/api/release': importedRelease(),

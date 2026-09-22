@@ -263,7 +263,7 @@ export function Shell({
             the section, not dismissing the drawer. */}
         {outline && outline.length > 0 && (
           <div className="sidebar-contents">
-            <p className="eyebrow sidebar-group-label">In this lesson</p>
+            <p className="eyebrow sidebar-group-label">IN THIS LESSON</p>
             <ul className="contents-list">
               {outline.map((entry) => (
                 <li key={entry.id}>

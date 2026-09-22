@@ -2,59 +2,53 @@
 
 ## Current state
 
-Last updated 2026-09-21. The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons
-across modules M020 and M021, five lab kits, 45 activity entries — from
-`content/releases/http-first-fifteen-v1_0_1/content`, and serves all of it inside the Engineering
-Practice shell unchanged. The 1.0.1 reissue accepted both open register entries: **CF-001 and
-CF-002 are closed** — lesson 2's diagram now draws (the semicolon became a comma) and lesson 7's
-facts panel says "Lesson 6" instead of a stable ID. Lessons 2 and 7 advanced to `1.0.1-draft`
-with their two nesting kits; the other thirteen lessons and three kits are byte-identical to
-1.0.0, and the transition is pinned to the author's own `content-corrections.json` authorization
-in `verify.test.ts` — the first legitimate content change in the chain, handled exactly as the
-append-only design intended. All five received packages live byte-for-byte under
-`content/releases/` (ADR 0009); a drop is a directory there plus one path flip in
-`apps/server/src/config.ts`, and the manifest-driven suites extend themselves.
+Last updated 2026-09-22. **Milestone 1 is complete.** The app imports
+`FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021, five lab
+kits, 45 activity entries — from `content/releases/http-first-fifteen-v1_0_1/content`, serves all
+of it inside the Engineering Practice shell (Swiss-revival direction, spec and dial sheet in
+`docs/specs/edge-visual-refinement.md`), and since slice 4 the reader can navigate and resume:
+every lesson page carries an **IN THIS LESSON** contents list in the sidebar (heading anchors via
+`rehype-slug`, namespaced `user-content-` by the sanitizer's clobber prefix, collected off the
+very tree that renders so list and page cannot drift), **previous/next** links at the lesson's
+foot answered by the server from `display_order`, and a **resume point** — the lesson last opened,
+one silently written SQLite row (schema version 3, ADR 0010) behind its own repository module.
+The dashboard's card reads Continue lesson naming the last-opened lesson, or Start lesson when
+nothing is recorded; it renders only once the resume answer settles, because a transient Start,
+followed fast, would have recorded lesson 1 over the reader's real place (/code-review's one
+finding, fixed test-first). The records card states both truths: the last-opened lesson is kept;
+notes and predictions are not, and arrive with Milestone 2's acknowledged saving. Nothing anywhere
+claims read, studied or completed — "last opened" is the whole recorded fact.
 
-Lessons 14–15 remain the deep-investigation pair: a stale-cache incident diagnosis and its repair,
-backed by a kit whose starter code is deliberately faulty — the kit ZIP is stored byte-for-byte
-and must never be "fixed". Its servers bind 4321/4323 (author's kits span 4315–4323), clear of the
-app's 8317 and the screenshot runner's 8318, verified running beside the app. The diagram census
-is now five of five: lessons 1, 2, 5, 6 and 11 all draw in real Chromium (Mermaid 11.17.2);
-no lesson shows a fallback. Markdown still parses straight to React elements, raw HTML still
-becomes visible text, and the sandboxed-iframe diagram exception still grants nothing. Schema
-version 2, unchanged again this slice.
+CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to
+the author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
+byte-for-byte under `content/releases/` (ADR 0009). The 14–15 kit still binds 4321/4323, clear of
+the app's 8317 and the gate's 8318. The diagram census stays five of five in real Chromium
+(Mermaid 11.17.2); Markdown still parses straight to React elements, raw HTML still becomes
+visible text, and the sandboxed-iframe exception still grants nothing.
 
-The edge visual refinement landed 2026-09-22 (spec and dial sheet in
-`docs/specs/edge-visual-refinement.md`): Swiss-revival direction inside the pinned palette — Space
-Grotesk display titles, JetBrains Mono as the metadata register, the lime position-marker motif
-(nav, lesson-row hover, text selection, and a scroll-scrubbed reading-progress hairline on lesson
-pages), one hero motion moment per view, all timing on a single tested quart-out vocabulary. The
-fidelity suite is untouched; eleven token assertions were added, reviewed by test-guardian PRE and
-strengthened on its three findings. The design review's one defect (the `no-wrap` release segment
-running flush to the reading card's border at 375px on every lesson) is fixed, and the primary
-action was raised to the 44px target floor.
-
-`npm test` (469 passing across 18 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. The screenshot gate visits
-nineteen routes at three widths in both schemes — five diagrams opened and read inside their
-frames — plus the 720px zoom pass, the open drawer, and pinned navigation 3,000px down a lesson.
-Slice 6's `/code-review` also closed two latent defects outside its diff: a YAML alias cycle in
-front matter now gets a named refusal instead of crashing the importer, and the shell no longer
-steals focus on first paint under StrictMode's doubled dev effects. Nothing on any page claims
-progress, because nothing records what has been read; that is Milestone 2, and the dashboard says
-so in words.
+`npm test` (542 passing across 21 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The gate now also proves, per
+run: contents anchors resolving exactly once on all fifteen lessons at three widths in both
+schemes, a followed anchor landing clear of the top bar (`scroll-margin-top`), the drawer carrying
+the contents at 375px, the first contents entry on screen at 768/1440 three thousand pixels down a
+lesson, and a real resume round trip (open lesson 7, return home, Continue lesson 07) — and it
+wipes its own data directory per run, since an app that records state would otherwise hand the
+second run different captures. A cold restart over the same database file answers the recorded
+lesson. The server has its first write endpoint (`PUT /api/resume-point`), which refuses an
+unknown lesson by name, a nameless body with `resume_point_invalid`, and stores nothing on any
+refusal; a stale pointer to a lesson the release no longer carries answers `none` without the row
+being deleted or rewritten.
 
 Known and not fixed: the design package's published `--input` border measures 1.53:1 on white
 where WCAG 1.4.11 asks 3:1, so it is not ported rather than ported broken; Milestone 2 adds the
 first textarea and `docs/specs/visual-design-integration.md` C2 names darker values that pass.
 Deferred with reasons in `docs/specs/content-release-first-thirteen.md`: content-shaped tall
 tables at 375px (lesson 13), and open-disclosure captures missing from the screenshot gate.
+Declined with reason in `docs/specs/reader-navigation-and-resume.md`: chevrons on the neighbour
+links (the restraint dial; the design review itself called them optional).
 
-Not yet built: there is no contents list, no previous/next and no resume point; slice 4 adds
-those, and will add heading `id`s with it — now over fifteen lessons instead of five, which is
-also why it matters more.
-
-Next action: Milestone 1, slice 4 — reader navigation and resume, which lands inside this shell.
+Next action: Milestone 2, activity placement — the 45 activities from `trial-activities.json`
+beside their `source_heading`, which is also where the C2 input-border values come due.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -114,8 +108,14 @@ Next action: Milestone 1, slice 4 — reader navigation and resume, which lands 
       transitions, and lesson 2's diagram proven drawn in real Chromium (Mermaid 11.17.2), five of
       five. The continuity tests learned to tell an authorized correction from silent drift.
       Criteria and slice log in `docs/specs/content-release-corrections-101.md`.
-- [ ] **Reader navigation and resume.** Contents list, manifest order, read ahead and back, and a
-      resume point the app returns the learner to.
+- [x] **Reader navigation and resume.** Done 2026-09-22. Contents list of the open lesson's
+      sections in the sidebar with namespaced heading anchors (the slice-2 deferral closed),
+      previous/next in manifest order named by the server beside the lesson, and the resume point
+      as a silent server-side pointer (schema 3, ADR 0010) offered back as the dashboard's
+      Continue card. test-guardian PRE (four findings taken) and POST, `/code-review` (one
+      confirmed finding: the transient Start card could record over the reader's place; fixed
+      test-first), design review ship-with-nits (two taken, one declined with reason). Criteria
+      and slice record in `docs/specs/reader-navigation-and-resume.md`.
 
 ## Milestone 2 — Keep the owner's work honestly (goal: work survives a refresh and a restart, and is never falsely labelled saved)
 
@@ -154,6 +154,32 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-22, slice 8 — reader navigation and resume (Milestone 1 slice 4).** Built to
+  `docs/specs/reader-navigation-and-resume.md`: 542 tests, test-guardian PRE and POST,
+  `/code-review`, design review. Closes Milestone 1.
+
+  Three forks were asked in one Stage-0 batch and all three defaults taken: the resume point lives
+  in SQLite rather than browser storage (the handoff's own acceptance check demands the reading
+  position survive restart in a provable way, and ADR 0004 already distrusts browser storage);
+  granularity is the lesson, not a scroll offset (a scroll claim is a reading claim the app cannot
+  verify, and the new contents list makes within-lesson return one click); and resume is a card,
+  never a redirect (the release's own status caveat stays visible). ADR 0010 records why the
+  pointer sits outside the acknowledged-save contract: no text anyone wrote is at risk, so four
+  save states would put a meaningless "saved" on screen, and last-write-wins loses nothing
+  recoverable.
+
+  PRE's finding that mattered most moved P4 — the real fifteen-lesson previous/next chain — off
+  the screenshot gate into a vitest integration test over the real release directory, where an
+  off-by-one fails an assertion instead of hoping a reviewer reads a PNG. POST verified the one
+  post-red test change (App.test's fetch-order pin re-aimed to a URL-containment claim, declared
+  in the spec) preserved its claim. `/code-review`'s confirmed finding was a race worth having a
+  name: the dashboard drew Start-lesson-1 while the resume answer was in flight, and following
+  that transient link recorded lesson 1 over the reader's real place; the card now waits for both
+  answers, pinned by a never-resolving-fetch test. The design review's two nits (the contents
+  label's casing and its double-inset misalignment) are fixed; its optional chevron suggestion is
+  declined in the spec with the reviewer's own restraint reasoning. The slice's styles pushed two
+  files past the ~350-line split point and moved whole into `apps/web/src/navigation.css`.
 
 - **2026-09-21, slice 7 — the 1.0.1 correction import.** Built to
   `docs/specs/content-release-corrections-101.md`: 458 tests, test-guardian PRE (pass; its one

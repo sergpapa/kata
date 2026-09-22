@@ -1,0 +1,147 @@
+/* Reader navigation, slice 4: the sidebar's In-this-lesson contents block, the anchor
+   landing margin under the pinned top bar, and the previous/next links at the lesson's foot.
+   Split out of shell.css and lesson.css along this responsibility line; the palette stays in
+   theme.css and no value here is new. */
+
+/* --- The open lesson's contents -------------------------------------------------------------- */
+
+/* Reported by the lesson page, rendered under the release block; the sidebar already scrolls
+   within itself when the column outgrows the viewport (criterion G4). Bottom padding so the last
+   entry is not flush against the drawer's edge. */
+.sidebar-contents {
+  margin: 0 0 1.5rem;
+  padding: 0 0.9rem;
+}
+
+/* The label's stock 1.4rem side margin assumes a bare sidebar child; inside this block it stacks
+   on the parent's 0.9rem padding and lands right of the list it labels (design review, slice 4).
+   0.85rem matches the entries' own text inset, so label and list start on one line. */
+.sidebar-contents .sidebar-group-label {
+  margin: 0 0.85rem 0.6rem;
+}
+
+.contents-list {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contents-list a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-control);
+  color: var(--nav-ink);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-decoration: none;
+  transition:
+    background var(--dur-quick) var(--ease-out),
+    color var(--dur-quick) var(--ease-out);
+}
+
+.contents-list a:visited {
+  color: var(--nav-ink);
+}
+
+.contents-list a:hover,
+.contents-list a:focus-visible {
+  background: var(--sidebar-accent);
+  box-shadow: inset 3px 0 var(--sidebar-marker);
+  color: var(--sidebar-foreground);
+}
+
+/* --- Contents anchors and the way between lessons ------------------------------------------ */
+
+/* A followed contents link must land its heading below the pinned top bar (4.45rem) and its
+   3px reading-progress hairline, not underneath them. Criterion N6. */
+.lesson-body h2,
+.lesson-body h3,
+.lesson-body h4,
+.lesson-body h5,
+.lesson-body h6 {
+  scroll-margin-top: 5.5rem;
+}
+
+/* The foot of the lesson: back on the left, on on the right, each carrying its neighbour's own
+   number and title. An absent neighbour leaves an empty cell, not a disabled control. */
+.lesson-neighbours {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.neighbour {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  text-decoration: none;
+  color: var(--foreground);
+  transition:
+    border-color var(--dur-quick) var(--ease-out),
+    box-shadow var(--dur-quick) var(--ease-out);
+}
+
+.neighbour:visited {
+  color: var(--foreground);
+}
+
+.neighbour-previous {
+  grid-column: 1;
+}
+
+.neighbour-next {
+  grid-column: 2;
+  text-align: right;
+}
+
+/* The lime position marker again, on the edge the link points toward. */
+.neighbour-previous:hover,
+.neighbour-previous:focus-visible {
+  box-shadow: inset 3px 0 var(--lime);
+}
+
+.neighbour-next:hover,
+.neighbour-next:focus-visible {
+  box-shadow: inset -3px 0 var(--lime);
+}
+
+.neighbour-kicker {
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.neighbour-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+@media (max-width: 640px) {
+  .lesson-neighbours {
+    grid-template-columns: 1fr;
+  }
+
+  .neighbour-previous,
+  .neighbour-next {
+    grid-column: auto;
+    text-align: left;
+  }
+
+  .neighbour-next:hover,
+  .neighbour-next:focus-visible {
+    box-shadow: inset 3px 0 var(--lime);
+  }
+}
