@@ -144,7 +144,7 @@ rule is that a test is never changed to make an implementation pass — and beca
 put the sentence "None of them is weakened" in this section when one of them was. A claim in this
 section is only worth what the search behind it is worth, so here is the search:
 
-- **`AppDeps` gains a required `releaseDir`.** 31 `buildApp(` call sites across `app.test.ts`,
+- **`AppDeps` gains a required `releaseDir`.** 30 `buildApp(` call sites across `app.test.ts`,
   `realReleaseActivities.test.ts`, `realReleaseNavigation.test.ts`, `responses.test.ts` and
   `index.ts` must each pass it. Every one is a mechanical addition of a directory that test already
   has in hand; no assertion changes, and the type error is the loud failure CLAUDE.md asks for
@@ -228,7 +228,13 @@ section is only worth what the search behind it is worth, so here is the search:
 ### V — visual and responsive
 
 - **V1.** The panel uses the existing Engineering Practice tokens. It introduces no new colour that
-  `theme.test.ts` does not measure in both schemes.
+  `theme.test.ts` does not measure in both schemes. Text is held to 4.5:1 in both schemes; the
+  panel's own edge is held to the 1.15:1 separation floor the activity panel and the blockquote
+  already answer to, **not** 3:1 — a decorative panel edge is not a WCAG 1.4.11 component boundary,
+  and `--border` measures 1.20:1 against `--background` in light, so demanding 3:1 of it would be
+  demanding a colour this theme does not have. The one 1.4.11 boundary on the panel is the download
+  control's own, which is held to 3:1 with the token read out of the stylesheet rather than written
+  into the test.
 - **V2.** At 375, 768 and 1440 the panel and every Copy button stay inside the page with no
   horizontal page scroll. The SHA-256 wraps; it does not push the card wide.
 - **V3.** The Copy button does not cover the code it copies, and does not shrink the block's own
@@ -265,3 +271,33 @@ section is only worth what the search behind it is worth, so here is the search:
   is now a layout effect, and `beforeunload` asks `hasUnsaved()` when the browser asks it rather
   than being attached and detached as the answer changes. 0 failures in 25 unloaded full-suite runs,
   against 1-in-3 before. Commit `f4a0713`.
+
+- **2026-09-23 — test-guardian PRE: FAIL, three findings, all taken before any implementation.**
+  Nothing was built while the audit ran, and nothing was built on unapproved tests.
+
+  The finding that mattered was in this slice's own style test, and it was invisible: `contrast()`
+  takes `(scheme, foregroundToken, backgroundToken)` and was being called with two hex strings and
+  no scheme. `tsc --noEmit` reported six TS2554 errors at exactly those lines — the only type errors
+  in the whole web project — and at runtime every call would have thrown rather than measured. It
+  was hidden behind the file's own `ENOENT` on the not-yet-written `lab-kit.css`, so it would have
+  surfaced the moment the implementer created that file, as nine contrast checks erroring instead of
+  nine measurements passing. A style test that throws is a style test that measures nothing.
+
+  The second was worse in kind, because the test was wrong about the design rather than about the
+  code: a blanket 3:1 floor over `--border`, `--quote-rule` and `--input` **can never pass**.
+  `--border` measures 1.20:1 light and 1.45:1 dark against `--background`, and `--quote-rule` 1.58:1
+  — both existing tokens that V1 forbids replacing. The only way to green would have been to give
+  the panel an `--input` border, which is the control-boundary token, semantically wrong for a
+  decorative panel edge and inconsistent with every other panel in the app. A test that can only be
+  satisfied by a wrong implementation is worse than no test. Replaced with the two floors the repo
+  already distinguishes: 1.15:1 separation for the panel's own edge, and 3:1 for the download
+  control's boundary, which is the actual WCAG 1.4.11 case — with the token read out of the
+  stylesheet so the rule cannot drift from the measurement.
+
+  The third was a fact error in this spec: 30 `buildApp(` call sites, not 31. The first count
+  included the `export function buildApp(` definition line. Corrected above.
+
+  Audited clean: all 72 failing tests fail on real assertions or missing routes, never on a typo;
+  the seven vacuous-pass controls added before the red commit were re-verified as genuinely
+  requiring the feature; and the five greps behind "no existing test is re-aimed or retired" were
+  independently reconfirmed, the miscount aside.
