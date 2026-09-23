@@ -2,6 +2,7 @@ import { afterEach, vi } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import { activity, lessonBody, panelOf } from './activityFixture.js';
+import type { LessonContext } from '../activities/recoveryFile.js';
 import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 
 /**
@@ -16,6 +17,11 @@ import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  // Not globals, so `unstubAllGlobals` never sees them: these are statics on the `URL` class, which
+  // jsdom ships without. Deleting is the restore — there was nothing here to put back.
+  const url = URL as unknown as Record<string, unknown>;
+  delete url.createObjectURL;
+  delete url.revokeObjectURL;
 });
 
 export type Answer = () => Promise<Response>;
@@ -103,6 +109,20 @@ export const offline = () => async () => {
 /** Never settles, so a test can look at the page while the request is still in flight. */
 export const inFlight = () => () => new Promise<Response>(() => {});
 
+/**
+ * Which lesson the panel under test belongs to. Required wherever activities are rendered since
+ * slice 13: a recovery file names the lesson, the version and the release, and a page that cannot
+ * name them has nothing to write into one.
+ */
+export const lessonContext: LessonContext = {
+  order: 4,
+  candidateLessonId: 'LS-FIX-01',
+  displayTitle: 'How a request is shaped',
+  contentVersion: '1.0.0-draft',
+  releaseId: 'FSSE-FIX',
+  releaseVersion: '1.0.1-draft',
+};
+
 export function renderPanel(
   over: Parameters<typeof activity>[0] = {},
   responses: readonly StoredResponse[] = [],
@@ -112,8 +132,84 @@ export function renderPanel(
       markdown={lessonBody}
       activities={[activity({ activityId: 'ACT-A', ...over })]}
       responses={responses}
+      lessonContext={lessonContext}
     />,
   );
+}
+
+/**
+ * A clipboard that records, so a test can compare what was written character for character.
+ *
+ * `CopyBlock.test.tsx` keeps its own copy of this on purpose: that file is the proof that pulling
+ * the copy state machine into a shared hook changed no behaviour, so nothing it imports may move in
+ * the same slice.
+ */
+export function stubClipboard(): { written: string[]; fail?: boolean } {
+  const state: { written: string[]; fail?: boolean } = { written: [] };
+  vi.stubGlobal('navigator', {
+    ...globalThis.navigator,
+    clipboard: {
+      writeText: vi.fn(async (text: string) => {
+        if (state.fail) throw new Error('Write permission denied.');
+        state.written.push(text);
+      }),
+    },
+  });
+  return state;
+}
+
+/** A browser with no clipboard at all, which is what plain HTTP gives a page in some browsers. */
+export function stubNoClipboard(): void {
+  vi.stubGlobal('navigator', { ...globalThis.navigator, clipboard: undefined });
+}
+
+export type DownloadMode = 'ok' | 'absent' | 'throws';
+
+/**
+ * The file-saving boundary, stood in for.
+ *
+ * jsdom implements no `URL.createObjectURL`, so every claim here is about the bytes and the name
+ * the page hands the browser — never about a file actually reaching a disk. The anchor's own
+ * `click` is spied rather than left to fire, because jsdom would navigate on it.
+ *
+ * `absent` and `throws` are the two ways the real boundary refuses: a browser that never had the
+ * method, and one that has it and says no.
+ */
+export function stubDownloads(mode: DownloadMode = 'ok') {
+  const blobs: Blob[] = [];
+  const revoked: string[] = [];
+  const clicked: { name: string; href: string }[] = [];
+
+  const url = URL as unknown as Record<string, unknown>;
+  if (mode === 'absent') {
+    // Both, not just the one the code reaches first: a browser that never had `createObjectURL`
+    // does not have its counterpart either, and a stub that keeps one is a kinder boundary than
+    // the real one it stands for.
+    delete url.createObjectURL;
+    delete url.revokeObjectURL;
+  } else {
+    url.createObjectURL = (blob: Blob) => {
+      if (mode === 'throws') throw new Error('This browser refused to make a file.');
+      blobs.push(blob);
+      return `blob:recovery/${blobs.length}`;
+    };
+    url.revokeObjectURL = (href: string) => revoked.push(href);
+  }
+
+  const click = vi
+    .spyOn(HTMLAnchorElement.prototype, 'click')
+    .mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push({ name: this.download, href: this.href });
+    });
+
+  return {
+    clicked,
+    revoked,
+    click,
+    /** What was actually put in the file, read back off the blob the page built. */
+    text: async (index = 0): Promise<string | undefined> => blobs[index]?.text(),
+    type: (index = 0): string | undefined => blobs[index]?.type,
+  };
 }
 
 export function fieldOf(container: HTMLElement, fieldName: string): HTMLElement {
@@ -139,6 +235,19 @@ export function historyOf(container: HTMLElement, fieldName: string): HTMLDetail
 
 export function saveButton(container: HTMLElement, fieldName: string): HTMLElement {
   return within(fieldOf(container, fieldName)).getByRole('button', { name: /^save/i });
+}
+
+/** Every button the field offers right now, by its visible word. Order is the row's own. */
+export function buttonWords(scope: HTMLElement): string[] {
+  return [...scope.querySelectorAll('button')].map((one) => one.textContent?.trim() ?? '');
+}
+
+export function copyButton(scope: HTMLElement): HTMLElement {
+  return within(scope).getByRole('button', { name: /^cop/i });
+}
+
+export function downloadButton(scope: HTMLElement): HTMLElement {
+  return within(scope).getByRole('button', { name: /^(download|could not download)/i });
 }
 
 export function stored(over: Partial<StoredResponse> = {}): StoredResponse {

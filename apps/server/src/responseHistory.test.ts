@@ -314,3 +314,47 @@ describe('a corrected release and the answers written before it', () => {
     ]);
   });
 });
+
+/**
+ * Criterion A1 in docs/specs/save-failure-recovery.md.
+ *
+ * The other half of the acceptance row that slice pays off: "Simulate a save failure | **Existing
+ * acknowledged work remains intact**; the learner can recover or export the unsaved text".
+ *
+ * The conflict path is pinned above and at the repository, and so is an undeclared field. The gap
+ * this closes is the one the reader is likeliest to hit by accident — a paste past the limit, a 400
+ * from validation rather than from compare-and-set — landing on a field that already carries a
+ * history worth losing.
+ */
+describe('a save the server refuses outright leaves what is already stored alone', () => {
+  it('moves neither the live record nor one earlier version when the text is too long', async () => {
+    const app = freshApp();
+    await saveAll(app, ['first guess', 'corrected']);
+    const before = fieldOf(await responsesOf(app), 'prediction');
+
+    const answer = await put(app, 'prediction', {
+      text: 'x'.repeat(100_001),
+      expectedRevision: before?.revision,
+    });
+
+    expect(answer.statusCode).toBe(400);
+    const after = fieldOf(await responsesOf(app), 'prediction');
+    expect(after?.text).toBe('corrected');
+    expect(after?.revision).toBe(before?.revision);
+    expect(after?.updatedAt).toBe(before?.updatedAt);
+    expect(after?.earlierVersions?.map((one) => one.text)).toEqual(['first guess']);
+  });
+
+  it('appends no revision when the field is one the activity never declared', async () => {
+    const app = freshApp();
+    await saveAll(app, ['first guess', 'corrected']);
+
+    const answer = await put(app, 'not_a_declared_field', { text: 'anything', expectedRevision: 0 });
+
+    // 404 with `field_not_declared`, the contract `responses.test.ts` already pins.
+    expect(answer.statusCode).toBe(404);
+    const responses = await responsesOf(app);
+    expect(responses.map((one) => one.fieldName)).toEqual(['prediction']);
+    expect(fieldOf(responses, 'prediction')?.earlierVersions).toHaveLength(1);
+  });
+});
