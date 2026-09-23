@@ -19,8 +19,11 @@ import {
 } from './modules/content/activitySet.js';
 import { learnerFacingFacts, lessonBodyBelowTitle } from './modules/content/lessonView.js';
 import { loadResumePoint, saveResumePoint } from './modules/learner/resumeRepository.js';
-import { loadResponsesForActivities } from './modules/learner/responseRepository.js';
-import { registerResponseRoutes, responseForPage } from './modules/learner/responseRoutes.js';
+import {
+  loadEarlierRevisions,
+  loadResponsesForActivities,
+} from './modules/learner/responseRepository.js';
+import { registerResponseRoutes, responseWithHistory } from './modules/learner/responseRoutes.js';
 import type { ReleaseState } from './modules/content/types.js';
 
 export interface AppDeps {
@@ -182,10 +185,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         // The learner's own work for this lesson's activities, carried on the answer the page is
         // already waiting for. A second request would draw every box empty and fill it a moment
         // later, which reads as work lost and recovered (docs/specs/acknowledged-saves.md F2).
-        responses: loadResponsesForActivities(
-          deps.db,
-          activities.map((activity) => activity.activityId),
-        ).map(responseForPage),
+        //
+        // Each field's superseded answers travel with it, for the same reason: a disclosure that
+        // appeared a moment after the box would read as history the app had just discovered
+        // (docs/specs/prediction-history.md A10).
+        responses: lessonResponses(deps.db, activities),
         // The kit this lesson declares, or null. Read off the stored release rather than off the
         // lesson's own front matter: the manifest is what the download route looks up, and a page
         // that named one file while the route served another would be the reader's problem to
@@ -289,4 +293,18 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   }
 
   return app;
+}
+
+/**
+ * One lesson's stored fields, each carrying the revisions it has superseded (ADR 0012).
+ *
+ * Both reads are one statement over the whole lesson rather than one per field: twelve boxes on a
+ * lesson is twelve round trips to say the same thing.
+ */
+function lessonResponses(db: Db, activities: readonly LessonActivity[]) {
+  const activityIds = activities.map((activity) => activity.activityId);
+  const earlier = loadEarlierRevisions(db, activityIds);
+  return loadResponsesForActivities(db, activityIds).map((stored) =>
+    responseWithHistory(stored, earlier),
+  );
 }

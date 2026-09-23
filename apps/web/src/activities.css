@@ -208,6 +208,77 @@
   overflow-wrap: anywhere;
 }
 
+/* What the owner wrote before, under the box that replaced it (ADR 0012). Closed, and absent
+   entirely where nothing has been superseded — on a first read-through this adds no height to any
+   of the twelve panels a lesson carries. */
+.response-history {
+  margin-top: 0.55rem;
+}
+
+/* 44px, the floor .diagram-source summary and .lesson-facts-panel summary already clear. At its
+   own line height this was under 20px — less than half the target beside it, and the design review
+   found the same shape of defect the diagram disclosures had already been fixed for. */
+.response-history-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.response-history-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.response-history-summary:hover {
+  color: var(--foreground);
+}
+
+.response-history-list {
+  margin: 0.5rem 0 0;
+  padding-left: 0.9rem;
+  list-style: none;
+  border-left: 1px solid var(--quote-rule);
+}
+
+.response-version + .response-version {
+  margin-top: 0.7rem;
+}
+
+/* When it was written and which wording it answered. The pairing is the record's whole point, so
+   it is stated on every entry rather than only where a correction has moved the version. */
+.response-version-when {
+  margin: 0 0 0.25rem;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* A version is an identifier the app is presenting as one, and every version in this release ends
+   in `-draft`: left to wrap it split as `2.0.0-` / `draft` on every entry at 375px. The same rule
+   .activity-id already carries, for the same reason. */
+.response-version-content {
+  white-space: nowrap;
+}
+
+/* The owner's characters, kept as they typed them. `pre-wrap` rather than `pre`: this is prose in
+   a narrow column, not a code sample, and left to default it runs off the side of a 375px page. */
+.response-version-text {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  background: var(--card);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* The guard path: an activity whose authored section this lesson does not carry. */
 .activity-foot {
   margin-top: 2rem;

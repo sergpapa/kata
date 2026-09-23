@@ -130,4 +130,59 @@ export const migrations: readonly Migration[] = [
       UPDATE schema_meta SET value = '4' WHERE key = 'app_schema_version';
     `,
   },
+  {
+    id: 5,
+    name: 'learner_response_revision',
+    sql: `
+      -- Every accepted write that changed the text, kept for good (ADR 0012). Nothing edits or
+      -- deletes a row here: this is where "importing a new content version must not overwrite an
+      -- earlier recorded prediction" stops being a claim about the app and becomes a property of
+      -- the store.
+      --
+      -- Additive on purpose. \`learner_response\` is not altered, so the compare-and-set of ADR
+      -- 0004 and the key of ADR 0011 are exactly what they were, and the live record remains the
+      -- one row the reader edits.
+      --
+      -- \`revision\` is the number the live record took from the write that appended this row, not
+      -- a counter of its own. It can therefore have gaps: a save whose text repeats the newest
+      -- revision's is accepted, moves the live record, and appends nothing, because nothing about
+      -- the work changed.
+      CREATE TABLE learner_response_revision (
+        id                  INTEGER PRIMARY KEY,
+        activity_id         TEXT NOT NULL,
+        field_name          TEXT NOT NULL,
+        revision            INTEGER NOT NULL,
+        candidate_lesson_id TEXT NOT NULL,
+        content_version     TEXT NOT NULL,
+        release_id          TEXT NOT NULL,
+        text                TEXT NOT NULL,
+        written_at          TEXT NOT NULL,
+        UNIQUE (activity_id, field_name, revision)
+      );
+
+      -- No separate index: the UNIQUE above builds a B-tree keyed
+      -- (activity_id, field_name, revision), which is what both reads here want — one field's
+      -- revisions in order, and the highest revision of a field.
+
+      -- Every answer already in the store becomes its own first revision, at the number and stamp
+      -- it already carries. Without this, a store upgraded from schema 4 — which is the owner's,
+      -- since they have been recording work since slice 10 — would drop the answer they wrote
+      -- before today the first time they corrected it, because the append would have nothing to
+      -- come after. That is the exact loss ADR 0012 exists to prevent, on the one store that
+      -- matters. It also makes the live-text invariant true from the moment this migration
+      -- finishes rather than from the next write.
+      --
+      -- \`updated_at\` is the only time this row has, and it is the truthful one: it is when that
+      -- text was acknowledged. Anything earlier in that field's life was never recorded and cannot
+      -- be recovered here.
+      INSERT INTO learner_response_revision
+        (activity_id, field_name, revision, candidate_lesson_id, content_version, release_id,
+         text, written_at)
+      SELECT activity_id, field_name, revision, candidate_lesson_id, content_version, release_id,
+             text, updated_at
+        FROM learner_response;
+
+      UPDATE schema_meta SET value = '5' WHERE key = 'app_schema_version';
+    `,
+  },
 ];

@@ -13,8 +13,9 @@ write against each of them and have the app keep it**: one box per field the aut
 saved on its own and each saying whether what is in it is stored. Your work survives a refresh and
 a restart. **Each lesson also hands over its practice kit** — the right archive of the five, under
 the author's own filename, with its version and checksum beside it — and every code sample carries a
-Copy button. An acknowledged prediction is not yet kept as its own revision, there is no download of
-unsaved text after a failure, and nothing is exported yet. See [docs/roadmap.md](docs/roadmap.md).
+Copy button. **Every answer you replace is kept**, under the box that replaced it, with the lesson
+wording it was written against. There is no download of unsaved text after a failure, and nothing is
+exported yet. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
 
@@ -89,6 +90,15 @@ What is stored is recorded against the activity, the lesson, the content version
 was written under, so a later correction to a lesson never quietly re-labels an answer you gave to
 an earlier wording.
 
+**Nothing you have saved is ever replaced.** Every save that changes a box's text is kept as its own
+revision, and a box with something behind it carries an **Earlier versions** disclosure underneath —
+closed, and absent entirely until there is something in it. Opening it shows each earlier answer as
+you typed it, when it was saved, and which version of the lesson it was answering. That last part is
+the point of keeping them: a prediction you committed to before you knew the answer stays readable
+beside the correction you wrote afterwards, and a corrected lesson cannot rewrite either. Nothing
+here edits or deletes a revision, including the app. The reasoning is in
+[docs/adr/0012](docs/adr/0012-every-accepted-write-that-changes-the-text-is-an-append-only-revision.md).
+
 Lesson text is data, never markup that runs. Markdown becomes React elements directly; no HTML
 string exists anywhere in the application. Anything that must not render is turned into visible
 text rather than deleted: raw HTML shows as the characters the author typed, a link whose target is
@@ -138,6 +148,7 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | `apps/server/src/modules/content/`                  | Release import: manifest, hashes, path safety, and the content repository                  |
 | `apps/web`                                          | React client (Vite)                                                                        |
 | `apps/web/src/markdown/`                            | The lesson renderer and the guards that keep lesson content inert                          |
+| `apps/web/src/activities/`                          | The practice panels: the boxes, the save states, the conflict path and the revisions       |
 | `tools/`                                            | Local development tooling, including the screenshot capture                                |
 | `docs/brief.md`                                     | What the first checkpoint delivers, and its hard constraints                               |
 | `docs/roadmap.md`                                   | Current state and the remaining slices — read this first in a new session                  |

@@ -1,6 +1,9 @@
 import { useLayoutEffect, useState } from 'react';
-import type { StoredResponse } from '../releaseTypes.js';
+import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 import { setUnsaved } from '../unsavedGuard.js';
+import { storedWhen } from '../format.js';
+import { ConflictPanel } from './ConflictPanel.js';
+import { ResponseHistory } from './ResponseHistory.js';
 
 /**
  * One recorded field: a box, a state the server decides, and a save the reader asks for.
@@ -52,30 +55,6 @@ function stateWords(state: FieldState, savedAt: string | null): string {
 }
 
 /**
- * When the acknowledged text was stored, in the reader's own locale.
- *
- * A clock time alone is right for a save just made and wrong for one made last week, and the same
- * line serves both: a field filled on first paint can carry any age at all, because rows outlive
- * the release they were written against. So anything that is not today says which day it was.
- */
-function savedWhen(iso: string, now = new Date()): string | null {
-  const when = new Date(iso);
-  if (Number.isNaN(when.getTime())) return null;
-  const time = when.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  const sameDay =
-    when.getFullYear() === now.getFullYear() &&
-    when.getMonth() === now.getMonth() &&
-    when.getDate() === now.getDate();
-  if (sameDay) return `at ${time}`;
-  const day = when.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-  return `on ${day} at ${time}`;
-}
-
-/**
  * What the server holds for this field, as a refusal reported it.
  *
  * `text` is null when the server said it holds **nothing** — a different fact from holding an empty
@@ -112,6 +91,16 @@ export function ResponseField({
     revision: stored?.revision ?? 0,
     at: stored?.updatedAt ?? null,
   });
+  /**
+   * The revisions this field has superseded, as the server last described them (ADR 0012).
+   *
+   * Held rather than derived, and replaced only by an answer that carries the key: the page never
+   * assembles a history from what it remembers sending, because a second tab's writes are part of
+   * this list and the page has never seen them.
+   */
+  const [earlierVersions, setEarlierVersions] = useState<readonly EarlierVersion[]>(
+    stored?.earlierVersions ?? [],
+  );
   const [inFlight, setInFlight] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [conflict, setConflict] = useState<ConflictRecord | null>(null);
@@ -169,7 +158,13 @@ export function ResponseField({
         message?: string;
         failure?: { message?: string };
         stored?: { text: string; revision: number; updatedAt: string } | null;
+        earlierVersions?: readonly EarlierVersion[];
       };
+
+      // Sent with both the acceptance and the refusal, so the list follows the store either way.
+      // An answer that omits the key is not an answer of "none": clearing the list there would
+      // hide revisions that exist, which is the same class of lie as inventing one.
+      if (answer.earlierVersions) setEarlierVersions(answer.earlierVersions);
 
       if (response.status === 409 && answer.error === 'revision_conflict') {
         // Not a failure the reader can retry past: retrying is the one thing that must not
@@ -244,7 +239,7 @@ export function ResponseField({
             that would otherwise announce the identical words. */}
         <p className="response-state" role="status">
           <span className="visually-hidden">{scope}: </span>
-          {stateWords(state, acknowledged.at ? savedWhen(acknowledged.at) : null)}
+          {stateWords(state, acknowledged.at ? storedWhen(acknowledged.at) : null)}
         </p>
       </div>
 
@@ -290,67 +285,16 @@ export function ResponseField({
           </button>
         </p>
       )}
-    </div>
-  );
-}
 
-/**
- * Both texts, side by side, and the reader decides. Keep mine re-sends against the revision the
- * conflict reported — a deliberate overwrite they asked for, which is not the silent one ADR 0004
- * forbids. Nothing here discards either text on its own.
- *
- * The two actions carry equal weight. Decision 3 treats them as two legitimate choices, and making
- * the overwrite the confident-looking one would be the app leaning on a decision that is the
- * reader's to make.
- */
-function ConflictPanel({
-  stored,
-  scope,
-  onUseStored,
-  onKeepMine,
-}: {
-  /** null when the server reported holding nothing at all for this field. */
-  readonly stored: string | null;
-  readonly scope: string;
-  readonly onUseStored: () => void;
-  readonly onKeepMine: () => void;
-}) {
-  return (
-    <div className="response-conflict" role="alert">
-      <p className="response-conflict-lead">
-        This field was saved somewhere else since you started editing it. Nothing has been
-        overwritten — choose which text to keep.
-      </p>
-
-      <p className="response-conflict-label">Saved elsewhere</p>
-      {stored === null ? (
-        <p className="response-conflict-empty">
-          Nothing is stored for this field now. Taking it would leave the box empty and unsaved.
-        </p>
-      ) : (
-        <pre className="response-conflict-stored">{stored}</pre>
-      )}
-
-      <p className="response-conflict-label">What you typed here, still in the box above</p>
-
-      <p className="response-actions">
-        <button
-          type="button"
-          className="response-secondary"
-          onClick={onKeepMine}
-          aria-label={`Keep mine, ${scope}`}
-        >
-          Keep mine
-        </button>
-        <button
-          type="button"
-          className="response-secondary"
-          onClick={onUseStored}
-          aria-label={`Use stored, ${scope}`}
-        >
-          Use stored
-        </button>
-      </p>
+      {/* Below the Save it belongs to, not between the box and its own control: what the owner
+          wrote before is context for the box, and it must not come between somebody and the button
+          that stores what they just typed. */}
+      <ResponseHistory
+        earlierVersions={earlierVersions}
+        label={label}
+        activityId={activityId}
+        fieldName={fieldName}
+      />
     </div>
   );
 }

@@ -2,91 +2,93 @@
 
 ## Current state
 
-Last updated 2026-09-23. **Milestones 1 and 2 are complete bar two slices, and Milestone 3 has its
-first.** The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020
-and M021, five lab kits, 45 activity entries — from
+Last updated 2026-09-23. **Milestone 1 is complete, Milestone 2 has one slice left, and Milestone 3
+has its first.** The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across
+modules M020 and M021, five lab kits, 45 activity entries — from
 `content/releases/http-first-fifteen-v1_0_1/content`, serves all of it inside the Engineering
 Practice shell (Swiss-revival direction, spec and dial sheet in
 `docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, places the author's
-activities beside the sections they were written for, keeps what the owner writes against them, and
-**since slice 11 hands over the lab kits and lets every code sample be copied**.
+activities beside the sections they were written for, keeps what the owner writes against them,
+hands over the lab kits, lets every code sample be copied, and **since slice 12 never replaces an
+answer: every save that changes a box's text is its own revision, and the earlier ones sit under
+the box that superseded them**.
 
-**Milestone 3 was begun out of order, at the owner's instruction**, with Milestone 2's last two
-slices — prediction history and save failure recovery — still open. Lab downloads depends on
-neither. **Export does**: it carries "the owner's actual work", and prediction history is what gives
-that work revisions, so prediction history should land before Export.
+**Milestone 3 was begun out of order, at the owner's instruction**, and Milestone 2's last slice -
+save failure recovery — is still open. **Export's dependency is now satisfied**: it carries "the
+owner's actual work", and prediction history is what gives that work revisions to carry.
 
-**Lab downloads (slice 11).** `GET /api/labs/:labId/download` serves a kit's exact bytes as
-`application/zip` under the author's own filename, `no-store`, after re-hashing them against the
-release on every request — the start-up check proves the file was right when the process began, and
-four handoffs ask for the comparison at the moment the reader takes it. A kit changed under the
-running app is refused 409 with both hashes named and no body; the other four still serve. The lab
-id is looked up in `content_lab_kit` and never joined to a path, so a traversal in the URL finds no
-row. The release directory is canonicalised first, as the importer does. `GET /api/lessons/:id`
-carries a `labKit` naming the file, the lab, its version, its size, its whole SHA-256 and the
-lessons that use it **with their numbers** — a lesson's number cannot be got from its key, since
-`LS-M021-01` is lesson 9. The panel sits below the facts on all 14 kit-bearing lessons, with the
-identity and checksum behind a disclosure; lesson 1 says in full ink that it needs none. Every
-non-diagram fenced block — 155 of the release's 160 — carries a Copy button that writes the author's
-exact characters to the clipboard and does nothing else, and says so when a clipboard refuses.
+**Prediction history (slice 12).** Schema 4 to 5, one new table `learner_response_revision`, and
+`learner_response` untouched — the compare-and-set of ADR 0004 and the key of ADR 0011 are exactly
+what they were. Every accepted write whose text differs from the field's newest revision appends one
+row carrying the revision number the live record took, the text character for character, and the
+lesson, version and release the server stamped; a write that repeats the stored text is still
+accepted, still moves the live record, and appends nothing, because nothing about the work changed.
+The append is inside the same transaction as the conditional write, so there is no state in which
+the live record moved and its history did not. **The migration seeds every answer already in the
+store as its own first revision** — without it, the owner's existing work would have vanished from
+history the first time they corrected it, which was `/code-review`'s finding and the loss the slice
+exists to prevent. Nothing edits or deletes a revision, including the app (ADR 0012). All four
+declared fields keep a history, not `prediction` alone.
+
+`GET /api/lessons/:id` carries `earlierVersions` on each stored response — every revision but the
+newest, newest first, with its number, text, time and content version — and both the 200 and the
+409 of a save carry the same, recomputed after the write, so the page never assembles a history
+from what it remembers sending. A field with earlier versions shows a closed **Earlier versions (N)**
+disclosure below its Save; a field with none shows nothing at all, so a first read-through adds no
+height to any of the twelve boxes a lesson carries. Earlier text renders as characters, never as
+Markdown or HTML. There is no Restore — copying work out is the next slice's subject.
 
 Every lesson page carries an **IN THIS LESSON** contents list in the sidebar, **previous/next**
 links at its foot answered by the server from `display_order`, and a **resume point** — one silently
-written SQLite row (schema version 4, ADR 0010). **Acknowledged saves** give each of the 45 panels
-one box per field its author declared, twelve on a lesson, each saving on an explicit press with no
-autosave; "Saved" appears only while the text is character for character what the server
-acknowledged, a refusal keeps the text and names the reason, a revision conflict shows both texts,
-and leaving a lesson with unsaved text stops and names what is unsaved. Storage is
-`learner_response`, one row per `(activity_id, field_name)`; the write decides its own outcome
-through its statement's change count, and every accepted write stamps the version the server reads
-off the release (ADR 0011). **This slice added no table, no column and no migration — the schema
-stays at 4.**
-
-**The suite's reliability question, parked since slice 10, is answered.** One label covered two
-faults. The timeout was jsdom saturation: 22 environments for 21 web files, 223 s of construction
-inside a 64 s wall clock. `pool: 'vmThreads'` builds one per worker and keeps per-file module
-registries — 64.4 s to 9.8 s; `isolate: false` was measured and rejected because it shares the
-environment across files and broke two assertions outright. That exposed a second failure it had
-been hiding: three `unsavedNavigation` cases failing on a **wrong value**, a real race. The unsaved
-registry was written in a passive effect while three synchronous handlers read it — the link veto,
-`popstate` and `beforeunload` — so a field that had just rendered itself saved stayed registered as
-unsaved for one task, and a click or a refresh inside that task was refused over work that was safe.
-It is a layout effect now, and `beforeunload` asks `hasUnsaved()` when the browser asks it. 0
-failures in 25 unloaded full-suite runs, against 1-in-3 before (commit `f4a0713`).
+written SQLite row (ADR 0010). **Acknowledged saves** give each of the 45 panels one box per field
+its author declared, twelve on a lesson, each saving on an explicit press with no autosave; "Saved"
+appears only while the text is character for character what the server acknowledged, a refusal keeps
+the text and names the reason, a revision conflict shows both texts, and leaving a lesson with
+unsaved text stops and names what is unsaved. **Lab downloads** serve a kit's exact bytes under the
+author's own filename after re-hashing them against the release on every request, refusing a changed
+kit 409 with both hashes named; all 155 non-diagram fenced blocks carry a Copy button.
 
 CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to the
 author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
-byte-for-byte under `content/releases/` (ADR 0009). The 14–15 kit still binds 4321/4323, clear of
+byte-for-byte under `content/releases/` (ADR 0009). The 14-15 kit still binds 4321/4323, clear of
 the app's 8317 and the gate's 8318. The diagram census stays five of five in real Chromium (Mermaid
 11.17.2); Markdown still parses straight to React elements, raw HTML still becomes visible text, and
-the sandboxed-iframe exception still grants nothing.
+the sandboxed-iframe exception still grants nothing. The suite's reliability question stays answered
 
-`npm test` (919 passing across 40 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. The gate now also proves, per
-lesson per width per scheme, that a lesson shows exactly one kit panel naming the kit the API says
-it has — with the whole hash, and a download pointing at that lab id — that a lesson with no kit
-says so, and that every code block offers a copy which sits neither inside nor over the sample it
-copies. Proven by sabotage six ways, each producing its own named failure.
+- `pool: 'vmThreads'` and a layout-effect unsaved registry, 0 failures in 25 unloaded runs at commit
+  `f4a0713`.
+
+`npm test` (979 passing across 43 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The gate now also seeds three
+saves on lesson 1's first activity through the app's own API — two of them different — and proves,
+at every width and scheme, that exactly that field shows `Earlier versions (1)`, that opening it
+makes no sideways scroll, that its text wraps rather than spilling, and that its summary is at least
+44px tall. It also classifies every `pre` on a page as a sample, the owner's own prose, or a
+failure. Each of those three was proven by sabotage.
 
 **Known and not fixed.** **One unexplained full-suite run** during slice 11's review reported 8
-failures, one per file, across both projects, including server files the change under test cannot
-reach. Its signature was not captured, and 22 subsequent full-suite runs were clean. Not reproduced,
-and not explained. Deferred with reasons in `docs/specs/content-release-first-thirteen.md`:
-content-shaped tall tables at 375px (lesson 13), and open-disclosure captures missing from the
-screenshot gate — which slice 11 makes more pressing, because the kit panel's identity and checksum
-now sit behind a disclosure the gate never opens. Declined with reasons in
-`docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links),
-`docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release) and
+failures, one per file, across both projects, including server files the change under test could not
+reach. Its signature was not captured, and every full-suite run since has been clean. Not
+reproduced, and not explained. Deferred with reasons in
+`docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px (lesson 13).
+**The open-disclosure gap is now half closed** — the gate opens and measures the earlier-versions
+disclosure, but still never opens the lab kit panel's identity and checksum. Declined with reasons
+in `docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links),
+`docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release),
 `docs/specs/acknowledged-saves.md` (the density of twelve boxes; a Leave-anyway that pushes rather
-than going back). The kit panel still adds about 410px to every kit-bearing lesson at 375px, which
-is decision 1's cost and the owner's to judge in the trial. The Copy button's touch target is 39px,
-not the 44px guideline — a stated compromise against a control repeated 23 times a page. Four test
-files sit over the ~350-line guidance: `verify.test.ts` at 846, `app.test.ts` at 617,
-`unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 449.
+than going back) and `docs/specs/prediction-history.md` (the history list's 1px rule against the
+panel's 3px and 2px ones). The kit panel still adds about 410px to every kit-bearing lesson at
+375px, which is the owner's to judge in the trial. The Copy button's touch target is 39px, not the
+44px guideline — a stated compromise against a control repeated 23 times a page; the earlier-versions
+summary clears 44px. **`apps/server/tsconfig.json` excludes `src/**/*.test.ts`, so server test files
+are never typechecked by `npm run typecheck`** — four of them carry pre-existing type errors, and
+this is the gap that hid six of them in slice 11. Five test files sit over the ~350-line guidance:
+`verify.test.ts` at 846, `app.test.ts` at 618, `responseRevisions.test.ts` at 497,
+`unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 450; `tools/screenshots.mjs` is at 571.
 
-Next action: Milestone 2, prediction history — an acknowledged prediction becomes its own revision,
-and a later correction appends rather than replaces. It should come before Milestone 3's Export,
-which needs those revisions to have something to carry.
+Next action: Milestone 2, save failure recovery — a failed save keeps the text present and
+recoverable, and the learner can copy or download it. After that, Milestone 3's Export, whose
+dependency this slice closed.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -175,8 +177,17 @@ which needs those revisions to have something to carry.
       carrying `stored: null` was filled in with a client-invented timestamp, so Use stored read
       "Saved" for a record that did not exist. Criteria and slice record in
       `docs/specs/acknowledged-saves.md`; the key decision in ADR 0011.
-- [ ] **Prediction history.** An acknowledged prediction is its own revision; a later correction
-      appends and never replaces it.
+- [x] **Prediction history.** Done 2026-09-23. Schema 5, one append-only revision table, and the
+      live record untouched: every accepted write that changes a field's text is its own revision,
+      stamped with the version it answered, and the earlier ones sit under the box that superseded
+      them. All four declared fields, not `prediction` alone. test-guardian PRE (FAIL on two
+      findings, both taken before anything was built) and POST skipped on diff evidence — no vitest
+      test moved during implementation. `/code-review` at medium (four findings, all taken), design
+      review ship-with-nits (three findings, two taken, one declined with a reason). The finding
+      that mattered was invisible to every test because every test started from an empty store: the
+      migration recorded nothing that was already there, so the owner's existing answers would have
+      vanished from history the first time they corrected one. Criteria and slice record in
+      `docs/specs/prediction-history.md`; the decision in ADR 0012.
 - [ ] **Save failure recovery.** A failed save keeps the text present and recoverable, and the
       learner can copy or download it.
 
@@ -209,6 +220,46 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-23, slice 12 — prediction history (Milestone 2 slice 3).** Built to
+  `docs/specs/prediction-history.md`: 979 tests, test-guardian PRE, `/code-review`, design review,
+  `/hygiene`. Closes Export's dependency.
+
+  Four forks were asked in one Stage-0 batch and all four defaults taken: all four declared fields
+  keep a history rather than `prediction` alone, the earlier versions reach the reader as a closed
+  per-box disclosure, a save that repeats the stored text appends nothing, and there is no Restore
+  control this slice.
+
+  **The finding that mattered was invisible to every test, because every test started from an empty
+  store.** Migration 5 created the revision table and recorded nothing already in it. On a fresh
+  store — which is what the whole suite, the screenshot gate and the manual verification all use -
+  that is indistinguishable from correct. On the owner's store, which has held work since slice 10,
+  the first save after the upgrade would have appended only the new text, and the answer they wrote
+  before today would have been unrecoverable: the exact loss this slice exists to prevent, on the
+  one store that matters. `/code-review` found it by reading the migration against a store that
+  already had rows. The lesson is narrower than "test the upgrade path": **a fixture that is always
+  empty cannot see a migration that only forgets what was already there.**
+
+  **PRE failed on two findings, both about tests that could not fail.** V26's asked whether `--card`
+  was painted anywhere in `activities.css` — and it already is, four times, by rules with nothing to
+  do with the disclosure — so an empty `.response-history {}` would have passed it, and `npm test`
+  would have gone green on a disclosure with no styling at all. P17's date assertions were satisfied
+  by the raw ISO string: `2020-01-02T14:02:00.000Z` contains both "2020" and "14:02". Both are the
+  same mistake in different clothes — **an assertion aimed at a whole file, or at a substring, is
+  aimed at nothing in particular.** The same weak shape sits in `ResponseConflict.test.tsx:359` from
+  slice 10, named rather than changed, because it is not this slice's test.
+
+  **The gate's guard against its own narrowing could not detect what it claimed to.** Aiming the
+  whitespace check at `.code-block pre` needed a guard that the selector still matched something,
+  and the guard was derived from the same selector — so renaming the class emptied both and the run
+  went green having measured nothing. Replaced with a classification: every `pre` on the page is a
+  sample, the owner's own prose, or a failure. Renaming `.code-block` now produces 90 named
+  failures where the previous version produced none.
+
+  **The design review found a 25px touch target one component over from the fix.** `diagram.css`
+  carries a 44px rule with a comment explaining why, written when the same defect was found there.
+  A pattern fixed in one file is not fixed in the codebase, and the only thing that catches this at
+  build time is the assertion the gate now carries.
 
 - **2026-09-23, slice 11 — lab downloads (Milestone 3 slice 1).** Built to
   `docs/specs/lab-downloads.md`: 919 tests, test-guardian PRE and POST, `/code-review`, design

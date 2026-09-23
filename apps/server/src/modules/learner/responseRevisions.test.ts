@@ -2,7 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { openDatabase, readSchemaVersion, type Db } from '../lifecycle/database.js';
+import Database from 'better-sqlite3';
+import { migrate, openDatabase, readSchemaVersion, type Db } from '../lifecycle/database.js';
+import { migrations } from '../lifecycle/migrations.js';
 import {
   loadEarlierRevisions,
   loadResponse,
@@ -108,6 +110,89 @@ describe('the revision table', () => {
       'revision',
       'updated_at',
     ]);
+  });
+});
+
+describe('a store that was already carrying work before this table existed', () => {
+  /** A record store at schema 4 exactly as slice 10 left it, with one answer already in it. */
+  function atSchemaFour(): Db {
+    const database = new Database(':memory:') as Db;
+    database.pragma('foreign_keys = ON');
+    database.exec(
+      'CREATE TABLE IF NOT EXISTS applied_migrations (id INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL)',
+    );
+    for (const migration of migrations.filter((one) => one.id <= 4)) {
+      database.exec(migration.sql);
+      database
+        .prepare('INSERT INTO applied_migrations (id, name, applied_at) VALUES (?, ?, ?)')
+        .run(migration.id, migration.name, '2026-09-22T10:00:00.000Z');
+    }
+    database
+      .prepare(
+        `INSERT INTO learner_response
+           (activity_id, field_name, candidate_lesson_id, content_version, release_id,
+            text, revision, updated_at)
+         VALUES ('ACT-FIX-01', 'prediction', 'FIX-LS-01', '1.0.0-draft', 'FIX-RELEASE',
+                 'written before this table existed', 3, '2026-09-22T11:00:00.000Z')`,
+      )
+      .run();
+    return database;
+  }
+
+  it('makes each answer already stored its own first revision', () => {
+    // The owner has been recording work since slice 10. A migration that only starts recording
+    // from here would let their existing answer vanish the first time they corrected it — which is
+    // the exact loss this slice exists to prevent, on the one store that actually matters.
+    db = atSchemaFour();
+
+    migrate(db);
+
+    expect(readSchemaVersion(db)).toBe('5');
+    expect(allRevisions(db)).toEqual([
+      {
+        revision: 3,
+        text: 'written before this table existed',
+        content_version: '1.0.0-draft',
+        release_id: 'FIX-RELEASE',
+        candidate_lesson_id: 'FIX-LS-01',
+        written_at: '2026-09-22T11:00:00.000Z',
+      },
+    ]);
+  });
+
+  it('keeps that answer readable as an earlier version once it is corrected', () => {
+    db = atSchemaFour();
+    migrate(db);
+
+    saveResponse(
+      db,
+      write({
+        text: 'corrected after the upgrade',
+        expectedRevision: 3,
+        contentVersion: '1.0.1-draft',
+      }),
+    );
+
+    expect(
+      loadEarlierRevisions(db, ['ACT-FIX-01']).map((one) => [one.text, one.contentVersion]),
+    ).toEqual([['written before this table existed', '1.0.0-draft']]);
+  });
+
+  it('holds the live-text invariant from the moment the migration finishes', () => {
+    db = atSchemaFour();
+
+    migrate(db);
+
+    expect(allRevisions(db)[0]?.text).toBe(loadResponse(db, 'ACT-FIX-01', 'prediction')?.text);
+  });
+
+  it('brings a store with no work at all to 5 without inventing a revision', () => {
+    db = openDatabase(':memory:');
+
+    expect(readSchemaVersion(db)).toBe('5');
+    expect(db.prepare('SELECT count(*) AS n FROM learner_response_revision').get()).toEqual({
+      n: 0,
+    });
   });
 });
 

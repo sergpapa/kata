@@ -83,6 +83,13 @@ export async function checkEarlierVersions(page, seeded) {
       return `${activityId}/${fieldName} summarises its history as "${summary}", expected a count of ${earlierVersions}`;
     }
 
+    // 44px (WCAG 2.5.8 asks 24, the project's own floor is 44 and .diagram-source summary already
+    // clears it). jsdom measures every box as zero, so this can only be asserted here.
+    const target = history.querySelector('summary').getBoundingClientRect();
+    if (target.height < 44) {
+      return `the earlier-versions disclosure is ${Math.round(target.height)}px tall, under the 44px target floor`;
+    }
+
     const elsewhere = [...document.querySelectorAll('.response-field')].filter(
       (one) => one !== field && one.querySelector('details.response-history') !== null,
     );

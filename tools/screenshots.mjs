@@ -134,6 +134,9 @@ const child = spawn(process.execPath, [serverEntry], {
 });
 
 let browser;
+/** The field V24 seeds, named out here so the run's own summary can report it. */
+let seededHistory;
+const seededLesson = 'lesson-01';
 try {
   await waitForHealth();
   // Wiped, not merged: a capture from a route that no longer exists is worse than no capture, and
@@ -147,8 +150,7 @@ try {
   // data directory was wiped above, so this is the only work in the store and the captures of
   // lesson 1 show it by design (docs/specs/prediction-history.md, "Existing tests this slice
   // re-aims").
-  const seededHistory = await seedHistory(baseUrl, 'LS-M020-01');
-  const seededLesson = 'lesson-01';
+  seededHistory = await seedHistory(baseUrl, 'LS-M020-01');
 
   for (const route of routes) {
     // How many activities this lesson actually has, asked of the app rather than written down
@@ -236,21 +238,30 @@ try {
         // Whitespace inside a code block is load-bearing in HTTP samples, and only a real stylesheet
         // can break it. jsdom cannot see this at all.
         //
-        // Aimed at code blocks rather than at every `pre` on the page, which is what it was always
-        // about (docs/specs/prediction-history.md, re-aim 4). Two `pre` elements on this page are
-        // deliberately `pre-wrap` — the conflict panel's stored text and an earlier version — and
-        // both are free prose the owner typed, which has to wrap in a 375px column rather than
-        // scroll. The count is checked too, so narrowing the selector cannot make this vacuous.
+        // Every `pre` on the page is classified rather than the selector being narrowed
+        // (docs/specs/prediction-history.md, re-aim 4). Two of them are deliberately `pre-wrap` —
+        // the conflict panel's stored text and an earlier version — because both are free prose
+        // the owner typed, which has to wrap in a 375px column rather than scroll. Everything else
+        // is a sample and must keep its whitespace exactly.
+        //
+        // Classifying rather than narrowing is `/code-review`'s finding: a check derived from
+        // `.code-block` alone goes green the day that class is renamed, because it then measures
+        // nothing at all. Here a renamed wrapper leaves its `pre` unclassified, and unclassified is
+        // a failure.
         const wrapping = await page.evaluate(() => {
-          const blocks = [...document.querySelectorAll('.code-block')];
-          const samples = blocks.map((block) => block.querySelector('pre'));
-          return {
-            sampleless: samples.filter((sample) => sample === null).length,
-            wrong: samples
-              .filter((sample) => sample !== null)
-              .map((sample) => getComputedStyle(sample).whiteSpace)
-              .filter((value) => value !== 'pre'),
-          };
+          const prose = ['response-conflict-stored', 'response-version-text'];
+          const report = { wrong: [], unwrapped: [], unclassified: 0 };
+          for (const block of document.querySelectorAll('pre')) {
+            const whiteSpace = getComputedStyle(block).whiteSpace;
+            if (prose.some((name) => block.classList.contains(name))) {
+              if (whiteSpace !== 'pre-wrap') report.unwrapped.push(whiteSpace);
+            } else if (block.closest('.code-block, .diagram-reason')) {
+              if (whiteSpace !== 'pre') report.wrong.push(whiteSpace);
+            } else {
+              report.unclassified += 1;
+            }
+          }
+          return report;
         });
         if (wrapping.wrong.length > 0) {
           failures.push(
@@ -258,12 +269,16 @@ try {
               `white-space: pre (found ${[...new Set(wrapping.wrong)].join(', ')})`,
           );
         }
-        if (wrapping.sampleless > 0) {
-          // The narrowing above is only safe while every code block still holds a sample: a
-          // selector that matched nothing would report no wrongly-wrapped blocks for the most
-          // boring reason there is.
+        if (wrapping.unwrapped.length > 0) {
           failures.push(
-            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.sampleless} code block(s) with no sample in them`,
+            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.unwrapped.length} block(s) of the owner's own ` +
+              `prose not set to white-space: pre-wrap (found ${[...new Set(wrapping.unwrapped)].join(', ')})`,
+          );
+        }
+        if (wrapping.unclassified > 0) {
+          failures.push(
+            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.unclassified} pre-formatted block(s) that are ` +
+              `neither a sample nor the owner's own prose, so nothing decided how their whitespace should behave`,
           );
         }
 
@@ -296,9 +311,15 @@ try {
               outDir,
               `${route.name}-${size.name}-${scheme}-history.png`,
             );
+            // Scoped by activity as well as field: all three of this lesson's activities declare
+            // `prediction`, so `.first()` on the field name alone follows placement order and can
+            // capture a field with no disclosure at all while the check above — which is scoped
+            // properly — passes. `/code-review`'s finding.
             await page
-              .locator(`.response-field[data-field-name="${seededHistory.fieldName}"]`)
-              .first()
+              .locator(
+                `.activity-panel[data-activity-id="${seededHistory.activityId}"] ` +
+                  `.response-field[data-field-name="${seededHistory.fieldName}"]`,
+              )
               .screenshot({ path: historyFile });
             console.log(`  ${path.relative(repoRoot, historyFile)}`);
           }
@@ -546,4 +567,5 @@ ${failures.length} layout check(s) failed:`);
 const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
 Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
-${drawn} diagram(s) were opened and read inside their frames at every width and scheme.`);
+${drawn} diagram(s) were opened and read inside their frames at every width and scheme.
+${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.`);

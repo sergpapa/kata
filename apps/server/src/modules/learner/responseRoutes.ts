@@ -2,7 +2,12 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { Db } from '../lifecycle/database.js';
 import type { LessonActivity } from '../content/activitySet.js';
 import type { ReleaseState } from '../content/types.js';
-import { saveResponse, type StoredResponse } from './responseRepository.js';
+import {
+  loadEarlierRevisions,
+  saveResponse,
+  type StoredResponse,
+  type StoredRevision,
+} from './responseRepository.js';
 
 /**
  * The one endpoint that records learner work, kept out of `app.ts` so the save contract reads in
@@ -34,6 +39,53 @@ export function responseForPage(stored: StoredResponse): ResponseForPage {
     text: stored.text,
     revision: stored.revision,
     updatedAt: stored.updatedAt,
+  };
+}
+
+/**
+ * One superseded answer, as the page shows it (ADR 0012).
+ *
+ * `contentVersion` is here and the release and lesson keys are not, for the same reason
+ * `ResponseForPage` carries none of them: the version is what the reader is being asked to read
+ * this text against, and the rest is provenance the export reads from the store.
+ */
+export interface EarlierVersionForPage {
+  readonly revision: number;
+  readonly text: string;
+  readonly writtenAt: string;
+  readonly contentVersion: string;
+}
+
+/** One field's superseded answers, out of a batch loaded for a whole page or for one save. */
+export function earlierVersionsOf(
+  revisions: readonly StoredRevision[],
+  activityId: string,
+  fieldName: string,
+): readonly EarlierVersionForPage[] {
+  return revisions
+    .filter((revision) => revision.activityId === activityId && revision.fieldName === fieldName)
+    .map((revision) => ({
+      revision: revision.revision,
+      text: revision.text,
+      writtenAt: revision.writtenAt,
+      contentVersion: revision.contentVersion,
+    }));
+}
+
+/**
+ * A stored field with its own superseded answers attached, for the lesson page.
+ *
+ * The revisions are passed in rather than loaded here, and the parameter has no default: a default
+ * would let a caller that forgot them answer "this field has no earlier versions", which is a
+ * statement about the owner's work and not a missing optimisation.
+ */
+export function responseWithHistory(
+  stored: StoredResponse,
+  revisions: readonly StoredRevision[],
+): ResponseForPage & { readonly earlierVersions: readonly EarlierVersionForPage[] } {
+  return {
+    ...responseForPage(stored),
+    earlierVersions: earlierVersionsOf(revisions, stored.activityId, stored.fieldName),
   };
 }
 
@@ -131,12 +183,23 @@ export function registerResponseRoutes(app: FastifyInstance, deps: ResponseRoute
         updatedAt: deps.now(),
       });
 
+      // Read after the write decided its own outcome, and sent whichever way it went. A page that
+      // saved twice without reloading, and a page whose conflict was resolved by taking what was
+      // stored, both have a list older than the store's — and a client that assembled one from
+      // what it remembers sending would be inventing the owner's history (ADR 0012).
+      const earlierVersions = earlierVersionsOf(
+        loadEarlierRevisions(deps.db, [activityId]),
+        activityId,
+        fieldName,
+      );
+
       if (outcome.state === 'conflict') {
         return reply.code(409).send({
           error: 'revision_conflict',
           message:
             'This field was saved somewhere else since you started editing it. Nothing was overwritten.',
           stored: outcome.stored ? responseForPage(outcome.stored) : null,
+          earlierVersions,
         });
       }
 
@@ -144,6 +207,7 @@ export function registerResponseRoutes(app: FastifyInstance, deps: ResponseRoute
         state: 'saved',
         revision: outcome.response.revision,
         updatedAt: outcome.response.updatedAt,
+        earlierVersions,
       };
     },
   );

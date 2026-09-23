@@ -269,3 +269,66 @@ It independently repeated the typecheck audit this slice ran, because `apps/serv
 excludes `src/**/*.test.ts` — **server test files are never typechecked by `npm run typecheck`**,
 which is the gap that hid six TS2554 errors in the previous slice. The only errors in this slice's
 new server tests were the intended missing export and four consequent implicit-`any` parameters.
+
+**2026-09-23 — built.** 979 tests pass across 43 files; `lint`, `typecheck`, `build`,
+`format:check` and `screenshots` all pass. **No vitest test moved during implementation**
+(`git diff <red> <green> -- '*.test.ts' '*.test.tsx' 'apps/web/src/testkit/*'` is empty), so
+test-guardian POST was skipped on that evidence; the only file in that set that changed is
+`tools/screenshots.mjs`, and its diff is a variable hoisted out of a `try` block plus one line of
+reporting.
+
+Exercised end to end against the built app on a fresh store, not only in the suite: schema 5; three
+saves where the third repeats the second, leaving two revision rows and a live record at 3; a stale
+save refused 409 carrying both the stored text and the earlier versions and writing nothing; the
+`observation` field's history independent at 0; the lesson payload carrying `contentVersion`
+`2.0.0-draft`; the summary taking keyboard focus and opening on Enter; 12 fields on the page and
+exactly 1 showing a disclosure; and every one of those still true after the process was killed and
+restarted over the same file.
+
+**`/code-review` at medium: four findings, all taken.**
+
+1. **The migration recorded nothing that was already there.** `learner_response_revision` was
+   created empty, so on a store upgraded from schema 4 — which is the owner's, since they have been
+   recording work since slice 10 — the first save after the upgrade appended only the new text and
+   the answer they wrote before today became unrecoverable. The loss this slice exists to prevent,
+   on the one store that matters, and invisible to every test because every test started from an
+   empty store. Migration 5 now seeds each existing live record as its own first revision at the
+   number and stamp it already carries, which also makes the live-text invariant true from the
+   moment the migration finishes rather than from the next write. Three tests were written first
+   against a store built by applying migrations 1–4 and inserting a row.
+2. **The gate's guard against its own narrowing could not detect what it claimed to.** Both the
+   check and its guard were derived from `.code-block`, so renaming that class emptied both and the
+   run went green having measured nothing. Replaced with a classification of every `pre` on the
+   page: a sample, the owner's own prose, or a failure. Proven by renaming `.code-block` — 90
+   failures naming 8 unclassified blocks per lesson page, where the previous version reported
+   nothing.
+3. **The history capture could photograph the wrong field.** All three of lesson 1's activities
+   declare `prediction`, and the locator matched on the field name with `.first()`, which follows
+   placement order while the seeding uses manifest order. The check itself was correctly scoped, so
+   a wrong capture would have passed. The locator now names the activity too.
+4. **Narrowing to `.code-block pre` had silently dropped the refused-diagram fallback's `pre`.**
+   Closed by the same classification as finding 2, which puts `.diagram-reason` back in scope.
+
+**Design review: ship with nits, three findings, two taken and one declined.**
+
+1. **Taken — the summary was a 25px touch target.** Measured, not estimated: the sabotage run below
+   reported 25px at every width. The project's own floor is 44px and `.diagram-source summary`
+   already carries the rule with a comment saying why; this reintroduced the same defect one
+   component over. Now `min-height: 44px` with the matching padding and a focus ring, and the gate
+   measures it at all three widths in both schemes.
+2. **Taken — `· 2.0.0-draft` split as `2.0.0-` / `draft` at 375px**, on what will be every entry,
+   since every version in this release ends in `-draft`. `white-space: nowrap`, the same rule
+   `.activity-id` already carries for the same reason.
+3. **Declined — the list's 1px left rule against the panel's 3px and 2px ones.** The 3px rules are
+   semantic warnings (a conflict, an unplaced activity) and the 2px one marks the author's own
+   prompt. This is the quietest thing on the panel and its rule is meant to be the quietest: an
+   earlier answer is context, not a claim. Recorded rather than silently ignored.
+
+The review confirmed what mattered more than the nits: the earlier-version block reuses the conflict
+panel's exact box treatment rather than inventing one, so "stored, read-only text" has one visual
+vocabulary across both features; and placement below Save is right, because it keeps the disclosure
+out of the tab path between the box and the control that stores what was typed in it.
+
+**Sabotage record.** Every new gate check was proven to fail: the touch target (25px reported at
+three widths and both schemes), the owner's prose set to `white-space: pre` (1 block named per
+width and scheme), and `.code-block` renamed (8 unclassified blocks named per lesson page).
