@@ -66,6 +66,26 @@ export interface StoredResponse {
   readonly text: string;
   readonly revision: number;
   readonly updatedAt: string;
+  /**
+   * Every recorded revision of this field except the one in `text`, newest first (ADR 0012).
+   *
+   * Optional only because an answer that omits it is a different fact from an answer that says
+   * there are none: the page keeps what it already has rather than clearing a history it cannot
+   * see. The server always sends it.
+   */
+  readonly earlierVersions?: readonly EarlierVersion[];
+}
+
+/**
+ * One superseded answer, kept as it was written. `contentVersion` is the version of the lesson
+ * this text was answering, which is the pairing the owner's review has to be able to check — it is
+ * not necessarily the version the live record now names.
+ */
+export interface EarlierVersion {
+  readonly revision: number;
+  readonly text: string;
+  readonly writtenAt: string;
+  readonly contentVersion: string;
 }
 
 /**

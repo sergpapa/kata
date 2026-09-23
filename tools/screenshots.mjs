@@ -14,6 +14,7 @@ import { chromium } from 'playwright';
 import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
+import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -141,6 +142,14 @@ try {
   fs.mkdirSync(outDir, { recursive: true });
   browser = await chromium.launch();
 
+  // Criterion V24: three accepted saves on lesson 1's first activity, two of them distinct, so the
+  // gate sees a field with a history as well as thirteen lessons' worth of fields without one. The
+  // data directory was wiped above, so this is the only work in the store and the captures of
+  // lesson 1 show it by design (docs/specs/prediction-history.md, "Existing tests this slice
+  // re-aims").
+  const seededHistory = await seedHistory(baseUrl, 'LS-M020-01');
+  const seededLesson = 'lesson-01';
+
   for (const route of routes) {
     // How many activities this lesson actually has, asked of the app rather than written down
     // here. A literal 3 would make the gate a test of this one package: a release shipping none
@@ -226,15 +235,35 @@ try {
 
         // Whitespace inside a code block is load-bearing in HTTP samples, and only a real stylesheet
         // can break it. jsdom cannot see this at all.
-        const wrapping = await page.evaluate(() =>
-          [...document.querySelectorAll('pre')]
-            .map((block) => getComputedStyle(block).whiteSpace)
-            .filter((value) => value !== 'pre'),
-        );
-        if (wrapping.length > 0) {
+        //
+        // Aimed at code blocks rather than at every `pre` on the page, which is what it was always
+        // about (docs/specs/prediction-history.md, re-aim 4). Two `pre` elements on this page are
+        // deliberately `pre-wrap` — the conflict panel's stored text and an earlier version — and
+        // both are free prose the owner typed, which has to wrap in a 375px column rather than
+        // scroll. The count is checked too, so narrowing the selector cannot make this vacuous.
+        const wrapping = await page.evaluate(() => {
+          const blocks = [...document.querySelectorAll('.code-block')];
+          const samples = blocks.map((block) => block.querySelector('pre'));
+          return {
+            sampleless: samples.filter((sample) => sample === null).length,
+            wrong: samples
+              .filter((sample) => sample !== null)
+              .map((sample) => getComputedStyle(sample).whiteSpace)
+              .filter((value) => value !== 'pre'),
+          };
+        });
+        if (wrapping.wrong.length > 0) {
           failures.push(
-            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.length} code block(s) not set to ` +
-              `white-space: pre (found ${[...new Set(wrapping)].join(', ')})`,
+            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.wrong.length} code block(s) not set to ` +
+              `white-space: pre (found ${[...new Set(wrapping.wrong)].join(', ')})`,
+          );
+        }
+        if (wrapping.sampleless > 0) {
+          // The narrowing above is only safe while every code block still holds a sample: a
+          // selector that matched nothing would report no wrongly-wrapped blocks for the most
+          // boring reason there is.
+          failures.push(
+            `${route.name} (${scheme}) at ${size.width}px has ${wrapping.sampleless} code block(s) with no sample in them`,
           );
         }
 
@@ -252,6 +281,27 @@ try {
           const diagramFile = path.join(outDir, `${route.name}-${size.name}-${scheme}-diagram.png`);
           await page.locator('.diagram-scroll').first().screenshot({ path: diagramFile });
           console.log(`  ${path.relative(repoRoot, diagramFile)}`);
+        }
+
+        // Criteria V24 and V25, run after the capture above because the check opens the disclosure
+        // and the capture above is the closed default. The opened state gets its own capture: the
+        // previous slice left "open-disclosure captures" as a named deferral, and an earlier answer
+        // is long free text, which is the content most likely to push a 375px page sideways.
+        if (route.name === seededLesson) {
+          const history = await checkEarlierVersions(page, seededHistory);
+          if (history !== 'ok') {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${history}`);
+          } else {
+            const historyFile = path.join(
+              outDir,
+              `${route.name}-${size.name}-${scheme}-history.png`,
+            );
+            await page
+              .locator(`.response-field[data-field-name="${seededHistory.fieldName}"]`)
+              .first()
+              .screenshot({ path: historyFile });
+            console.log(`  ${path.relative(repoRoot, historyFile)}`);
+          }
         }
         await context.close();
       }

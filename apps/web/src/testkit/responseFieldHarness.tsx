@@ -2,7 +2,7 @@ import { afterEach, vi } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import { activity, lessonBody, panelOf } from './activityFixture.js';
-import type { StoredResponse } from '../releaseTypes.js';
+import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 
 /**
  * The fixtures the response-field suites share: a strict fake server, the answers it can give, and
@@ -51,6 +51,32 @@ export const saved =
       status: 200,
       headers: { 'content-type': 'application/json' },
     });
+
+/**
+ * A save the server accepted, answering with the history it holds afterwards.
+ *
+ * Separate from `saved` rather than folded into it: `saved` answers without the key at all, which
+ * is what an older server does, and the field must be provably different in the two cases.
+ */
+export const savedWithHistory =
+  (
+    revision: number,
+    earlierVersions: readonly EarlierVersion[],
+    updatedAt = '2026-09-22T14:02:00.000Z',
+  ) =>
+  async () =>
+    new Response(JSON.stringify({ state: 'saved', revision, updatedAt, earlierVersions }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+
+export const earlier = (over: Partial<EarlierVersion> = {}): EarlierVersion => ({
+  revision: 1,
+  text: 'what I first thought',
+  writtenAt: '2020-01-02T09:14:00.000Z',
+  contentVersion: '1.0.0-draft',
+  ...over,
+});
 
 export const conflict = (text: string, revision: number) => async () =>
   new Response(
@@ -104,6 +130,11 @@ export function boxOf(container: HTMLElement, fieldName: string): HTMLTextAreaEl
 
 export function stateOf(container: HTMLElement, fieldName: string): string {
   return fieldOf(container, fieldName).getAttribute('data-state') ?? '';
+}
+
+/** The earlier-versions disclosure on a field, or null where the field offers none. */
+export function historyOf(container: HTMLElement, fieldName: string): HTMLDetailsElement | null {
+  return fieldOf(container, fieldName).querySelector('details.response-history');
 }
 
 export function saveButton(container: HTMLElement, fieldName: string): HTMLElement {

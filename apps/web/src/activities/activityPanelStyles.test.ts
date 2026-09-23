@@ -119,6 +119,30 @@ describe('the activity panel’s styles', () => {
     expect(unmeasured, 'a new colour here needs a new measured pair below').toEqual([]);
   });
 
+  it('draws an earlier version on a surface of its own, from a pair this file measures', () => {
+    // Criterion V26 in docs/specs/prediction-history.md. The three tests above already refuse an
+    // unmeasured token anywhere in this stylesheet; what they cannot refuse is the disclosure
+    // going unstyled altogether, which at 375px is the difference between a list somebody can read
+    // and an earlier answer running off the side of the page.
+    //
+    // Scoped to the rule's own declarations, as test-guardian PRE required. The first version of
+    // this test asked whether `--card` appeared anywhere in the file and whether the string
+    // `.response-history` did — and `--card` is already painted four times by rules that have
+    // nothing to do with this one, so `.response-history {}` with an empty body, or a comment
+    // mentioning it, would have passed. That implementation renders the disclosure with no styling
+    // at all, which is the defect this test exists to catch.
+    const at = activitiesCss.indexOf('.response-version-text {');
+    expect(at, 'activities.css has no .response-version-text rule').toBeGreaterThan(-1);
+    const declarations = activitiesCss.slice(at, activitiesCss.indexOf('}', at));
+
+    expect(declarations).toContain('var(--card)');
+    // Long free text in a narrow column. `pre` defaults to `white-space: pre`, which is right for a
+    // code sample and wrong here: an earlier answer is prose the owner typed, and left to default
+    // it runs off the side of a 375px page rather than wrapping.
+    expect(declarations).toMatch(/white-space:\s*pre-wrap/);
+    expect(declarations).toMatch(/overflow-wrap:\s*(anywhere|break-word)/);
+  });
+
   it('draws the boxes with the theme’s input border rather than a border of its own', () => {
     // The inverse of what this test asserted through slice 9, and deliberately so. Until this
     // slice there was nothing to type into, so `--input` was left undeclared rather than ported at

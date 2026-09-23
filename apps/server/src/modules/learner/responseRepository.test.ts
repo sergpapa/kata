@@ -44,10 +44,15 @@ function write(over: Partial<ResponseWrite> = {}): ResponseWrite {
 }
 
 describe('the learner response table', () => {
-  it('brings the schema to 4', () => {
+  it('leaves the schema at least at 4, where this table arrived', () => {
     db = openDatabase(':memory:');
 
-    expect(readSchemaVersion(db)).toBe('4');
+    // Re-aim 3 in docs/specs/prediction-history.md. This test's claim was never "4 is the newest
+    // schema" — that belongs to whichever slice migrated last, and app.test.ts holds it. What it
+    // is here to pin is that opening a store brings learner_response into existence, which is
+    // what every assertion below depends on.
+    expect(Number(readSchemaVersion(db))).toBeGreaterThanOrEqual(4);
+    expect(db.prepare('PRAGMA table_info(learner_response)').all()).not.toEqual([]);
   });
 
   it('stores one record per activity and field, not one per activity', () => {

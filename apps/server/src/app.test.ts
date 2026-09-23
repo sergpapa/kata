@@ -68,9 +68,9 @@ describe('the walking skeleton', () => {
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(200);
-    // '4' since slice 10 added the learner_response table; declared in
-    // docs/specs/acknowledged-saves.md (re-aim 8). It was '3' from slice 4's resume_point.
-    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '4' });
+    // '5' since slice 12 added the learner_response_revision table; declared in
+    // docs/specs/prediction-history.md (re-aim 1). It was '4' from slice 10's learner_response.
+    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '5' });
     await app.close();
   });
 
@@ -81,10 +81,10 @@ describe('the walking skeleton', () => {
 
     const rows = db.prepare('SELECT count(*) AS n FROM schema_meta').get() as { n: number };
     expect(rows.n).toBe(1);
-    // '4' since slice 10 added learner_response; declared in docs/specs/acknowledged-saves.md
-    // (re-aim 8). The claim is unchanged: running every migration twice leaves one row, at the
-    // version the last migration set.
-    expect(readSchemaVersion(db)).toBe('4');
+    // '5' since slice 12 added learner_response_revision; declared in
+    // docs/specs/prediction-history.md (re-aim 2). The claim is unchanged: running every migration
+    // twice leaves one row, at the version the last migration set.
+    expect(readSchemaVersion(db)).toBe('5');
   });
 });
 
