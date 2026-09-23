@@ -11,7 +11,9 @@ lesson you last opened, so the dashboard can offer Continue after a refresh or a
 author's 45 practice activities appear beside the sections they were written for, and **you can now
 write against each of them and have the app keep it**: one box per field the author asked for, each
 saved on its own and each saying whether what is in it is stored. Your work survives a refresh and
-a restart. An acknowledged prediction is not yet kept as its own revision, there is no download of
+a restart. **Each lesson also hands over its practice kit** — the right archive of the five, under
+the author's own filename, with its version and checksum beside it — and every code sample carries a
+Copy button. An acknowledged prediction is not yet kept as its own revision, there is no download of
 unsaved text after a failure, and nothing is exported yet. See [docs/roadmap.md](docs/roadmap.md).
 
 ## What it is not
@@ -97,7 +99,17 @@ in [docs/adr/0007](docs/adr/0007-markdown-renders-to-react-elements-and-nothing-
 Code blocks keep the author's whitespace exactly, including the blank line that separates headers
 from body in an HTTP message, and carry their language as a label so a command you type is not
 mistaken for output you should see. A block wider than the column scrolls inside itself; the page
-never scrolls sideways.
+never scrolls sideways. Each one has a Copy button that puts those exact characters on your
+clipboard and does nothing else — if the browser refuses the clipboard, the button says so rather
+than pretending it worked.
+
+A lesson that has a practice kit shows it below the lesson's facts: the archive's own filename, a
+Download kit button, who else uses the same kit, and — behind a disclosure — its lab id, version,
+size and full SHA-256, so you can check what you downloaded against the release registry. Lesson 1
+needs no kit and says so. The bytes are re-hashed against the release every time you press Download;
+if the archive on disk has changed since the app started, you get a named refusal and both hashes
+rather than a file the release does not describe. The 14–15 kit ships deliberately broken starter
+code — that is the lesson, and the app never repairs, runs or rewrites it.
 
 For the built application:
 

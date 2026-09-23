@@ -235,7 +235,9 @@ h1 + .lesson-provenance {
    review made about the Save button, which applies here with more force. */
 .code-block-copy {
   flex: none;
-  padding: 0.3rem 0.7rem;
+  /* ~34px tall rather than ~25px. WCAG 2.2 SC 2.5.8 asks 24x24 and this cleared it, but there are
+     up to 23 of these on one lesson and every one of them is a touch target on a phone. */
+  padding: 0.5rem 0.9rem;
   border: 1px solid var(--continue-muted);
   border-radius: var(--radius-control);
   background: transparent;

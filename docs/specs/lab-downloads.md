@@ -139,10 +139,26 @@ Measured against `content/releases/http-first-fifteen-v1_0_1/` and the code at c
 
 ## Existing tests this slice re-aims or retires
 
-**None.** Recorded here before the red commit with the greps that support it, because the standing
-rule is that a test is never changed to make an implementation pass — and because the previous slice
-put the sentence "None of them is weakened" in this section when one of them was. A claim in this
-section is only worth what the search behind it is worth, so here is the search:
+**Correction, written during implementation: this section said "None." and that was wrong.** Two
+pre-existing tests moved, for a reason the greps below did not look for. Both read the whole
+`.code-block` **wrapper's** `textContent`, which now also holds the Copy button's word; the search
+below asked which tests read the `pre`, and neither of these does. The previous slice made the
+identical mistake one level down — its list said "None of them is weakened" when one of them was —
+and the lesson it wrote, that which tests pin a constant is a grep rather than a memory, is only as
+good as the grep. A grep aimed at the wrong element finds nothing and reports that as safety.
+
+1. `markdown/LessonMarkdown.test.tsx` — _"invents no label for a fence the author left
+   unlabelled"_. **Re-aimed, claim strengthened.** It asserted `container.textContent` equals
+   `'just some text'`, which is a statement about the whole block including its chrome. Its actual
+   claim is that no language label is invented, so it now asserts `.code-block-language` is null
+   directly, plus the `pre`'s own text. Both halves kept; the absence is named rather than inferred.
+2. `testkit/activityFixture.ts` — `bodyOrder()`. **Re-aimed.** A code block is now named by its
+   sample rather than by its wrapper's whole text. The helper's job is to say which block sat where,
+   and re-asserting what controls a block carries is `CopyBlock.test.tsx`'s job. One of its ten call
+   sites renders a code block, so one expected string in `ActivityPlacement.test.tsx` changed with
+   it; the other nine are untouched either way. Verified by test-guardian POST.
+
+The rest of the original search stands, and is kept below as written:
 
 - **`AppDeps` gains a required `releaseDir`.** 30 `buildApp(` call sites across `app.test.ts`,
   `realReleaseActivities.test.ts`, `realReleaseNavigation.test.ts`, `responses.test.ts` and
@@ -152,13 +168,15 @@ section is only worth what the search behind it is worth, so here is the search:
 - **Nothing pins the lesson response exhaustively.** Every assertion on `GET /api/lessons/:id` in
   `app.test.ts` uses `toMatchObject`; there is no `toStrictEqual` and no `Object.keys` anywhere in
   the server tests. Adding `labKit` adds a key nothing forbids.
-- **The Copy button goes outside the `pre`, so no code-block test moves.** Six existing assertions
+- **The Copy button goes outside the `pre`, so no code-block test moves.** _(This is the item that
+  was wrong — see the correction above. It was true of the six assertions it names and false of the
+  two it does not.)_ Six existing assertions
   read code blocks by `container.querySelectorAll('pre')` and compare `textContent`
   (`realLessons.test.tsx` ×4, `MermaidDiagram.test.tsx` ×2), plus the gate's `white-space: pre`
   check in `screenshots.mjs`. The language label already sits outside the `pre` for exactly this
   reason — text inside the block becomes part of the sample — and the button joins it there. C7
   asserts that directly rather than leaving it to the existing six to notice.
-- **No test counts the buttons on a lesson page.** The only exhaustive button assertion in the suite
+- **No test counts the buttons on a lesson page.** _(Still true.)_ The only exhaustive button assertion in the suite
   is `StandbyPage.test.tsx` — `queryAllByRole('button')).toHaveLength(0)` — on a page with no lesson
   body and no code blocks.
 - **The screenshot gate gains a check; none of its existing checks changes.** `checkActivityPanels`
@@ -318,3 +336,86 @@ section is only worth what the search behind it is worth, so here is the search:
   that actually name the kit, ordered by `display_order`, rather than off the manifest's own
   `lesson_ids`: the importer already refuses a release where the two disagree, and this way the
   panel names what the app holds rather than what it was told.
+
+- **2026-09-23 — the three reviews.** `/code-review` at medium (12 findings), test-guardian POST
+  (PASS, two coverage gaps), design review (ship-with-nits, five findings). Every finding taken;
+  none declined.
+
+  **The finding that mattered would have broken every download on somebody else's machine and on
+  none of mine.** `readVerifiedBytes` compares its base directory against the **real** path of the
+  file it just read, and `verifyRelease` canonicalises the base with `fs.realpathSync` before
+  calling it. The download route did not: it passed the configured path straight through. Wherever
+  the release sits behind a symlink, a Windows junction, an 8.3 short name or a redirected profile —
+  and `os.tmpdir()` on macOS is exactly that, `/var` → `/private/var` — every kit resolves to a real
+  path outside its own base, and the reader gets "climbs out of the release directory" for all five.
+  Nothing on this machine reproduces it, every test passed, and the live download of all five kits
+  passed. It is now canonicalised in the route, with a test that builds the app over a junction and
+  skips itself where the OS will not grant one.
+
+  **Two more were live defects the tests could not see.** The kit's filename goes into
+  `content-disposition` straight out of the manifest, and ADR 0005 says manifest content is
+  untrusted: a `"` in a basename closes the quoted string and lets the rest assert header parameters
+  of its own, a CR or LF makes Node reject the header so the reader gets an unnamed 500 instead of
+  one of this app's named refusals, and a non-ASCII name arrives mangled. It now goes through
+  `download.ts`, which escapes, strips control characters, and adds the RFC 5987 form only when the
+  quoted one cannot carry the name — six tests of its own. And the response carried no
+  `cache-control`, which quietly undid the slice's central promise: a reader who downloads a kit,
+  has it corrupted on disk and downloads again could be served the browser's copy without the route
+  running, so the 409 the changed kit earns never reaches them. `no-store`, pinned.
+
+  `isImportFailure` was a bare check for `{ code, message }` — true of every `NodeJS.ErrnoException`
+  and every `SqliteError` — so an internal error reaching the download's catch would be answered as
+  `409 {"error":"ERR_INVALID_ARG_VALUE"}`: an internal identifier presented as one of the release's
+  named refusals, and the app's own fault called the content's. It now checks the declared code set.
+
+  **A defect I introduced in the tests, found by review and not by the tests.** Sixteen `buildApp`
+  sites read `buildApp({ db, release: importRelease(db, releaseDir()), releaseDir: releaseDir() })`
+  — and `releaseDir()` mints a fresh temp directory per call, so the app imported one tree and
+  served another. They passed only because the fixture is byte-identical twice, and the first test
+  to mutate one of those fixtures would have been meaningless rather than red. All sixteen now take
+  one directory.
+
+  Two smaller ones: `.lab-kit` named `--radius-panel`, which is declared nowhere, so the one new
+  panel on a lesson page had square corners while everything around it did not — and
+  `labKitStyles.test.ts` could not catch it, because its token check scans colour properties and
+  `border-radius` is not one. And `CopyBlock` cleared its settle timer before the `await` rather
+  than after, so a double press orphaned the first timer: it fired inside the second press's window
+  and reported that copy as over before it was, and on unmount it was no longer the timer the
+  cleanup held.
+
+  **POST passed and named two gaps the green commit revealed**, both now closed: the refused-release
+  download case asserted the body and never the status, where its two sibling routes both pin 200;
+  and `listed()`'s two-item branch had no test although the shipped release has exactly one such kit
+  (14–15), so "14, and 15" would have shipped silently.
+
+  **The design review's sharpest finding was that this panel recreated the problem the facts list
+  above it was collapsed to solve.** Measured at 375 × 812: the panel ran ~605px and the lesson's
+  first sentence started at ~1133px — more than a screen and a half down, which is the exact phrase
+  in `LessonPage.tsx`'s own comment explaining why the facts became a `<details>`. The lab id, the
+  version, the size and the hash are what a reader checks a download _against_; the filename, the
+  download, who else uses it and "this app never runs it" are what they act _on_. The first four now
+  sit behind a disclosure. Re-measured: panel 436px, first body line 1028px — 1.27 screens, under
+  the bar the precedent set. It is not nothing: the panel still adds ~410px to every kit-bearing
+  lesson, and that is the cost of decision 1, which the owner took knowingly.
+
+  Its second was the same shape as the previous slice's: lesson 1's "needs no kit" sentence — the
+  answer to "where is my download?" on the first page anyone sees — was set muted and smaller than
+  the paragraph below it, which is the visual grammar for small print. It now takes `.lesson-status`'s
+  treatment, full ink and the same left rule, for the reason that comment gives.
+
+  Also taken: the Copy button's touch target went from ~25px to 39px tall (WCAG 2.2 SC 2.5.8 asks
+  24 × 24 and the old one cleared it; 44 is the guideline, and going there would have made a control
+  repeated 23 times a page fight the height finding above — 39 is a stated compromise, not an
+  oversight); the copy outcome is announced through a `role="status"` region like `ResponseField`'s,
+  rendered only while there is something to say, because 23 permanently empty live regions is
+  machinery of its own and one would sit inside every refused diagram's fallback beside the
+  announcement it already makes; and the button's accessible name now carries the sample's first
+  line, so four consecutive `javascript` blocks no longer announce the identical name.
+
+  The sharing sentence said "Shared with lessons 6, 7 and 8" while the reader stood on lesson 6. It
+  reads "Used by".
+
+  **One unexplained test run.** Mid-review a full-suite run reported 8 failures, one per file, across
+  both projects, including server files the change under test cannot reach. Its signature was not
+  captured. Twelve subsequent full-suite runs were clean, and a further deliberate 10-run check was
+  clean. Recorded rather than dismissed: it is not reproduced, and it is not explained.

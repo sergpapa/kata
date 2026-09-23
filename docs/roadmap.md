@@ -2,40 +2,57 @@
 
 ## Current state
 
-Last updated 2026-09-22. **Milestone 1 is complete and Milestone 2 has its first two slices.** The
-app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021,
-five lab kits, 45 activity entries — from
+Last updated 2026-09-23. **Milestones 1 and 2 are complete bar two slices, and Milestone 3 has its
+first.** The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020
+and M021, five lab kits, 45 activity entries — from
 `content/releases/http-first-fifteen-v1_0_1/content`, serves all of it inside the Engineering
 Practice shell (Swiss-revival direction, spec and dial sheet in
 `docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, places the author's
-activities beside the sections they were written for, and **since slice 10 keeps what the owner
-writes against them**.
+activities beside the sections they were written for, keeps what the owner writes against them, and
+**since slice 11 hands over the lab kits and lets every code sample be copied**.
+
+**Milestone 3 was begun out of order, at the owner's instruction**, with Milestone 2's last two
+slices — prediction history and save failure recovery — still open. Lab downloads depends on
+neither. **Export does**: it carries "the owner's actual work", and prediction history is what gives
+that work revisions, so prediction history should land before Export.
+
+**Lab downloads (slice 11).** `GET /api/labs/:labId/download` serves a kit's exact bytes as
+`application/zip` under the author's own filename, `no-store`, after re-hashing them against the
+release on every request — the start-up check proves the file was right when the process began, and
+four handoffs ask for the comparison at the moment the reader takes it. A kit changed under the
+running app is refused 409 with both hashes named and no body; the other four still serve. The lab
+id is looked up in `content_lab_kit` and never joined to a path, so a traversal in the URL finds no
+row. The release directory is canonicalised first, as the importer does. `GET /api/lessons/:id`
+carries a `labKit` naming the file, the lab, its version, its size, its whole SHA-256 and the
+lessons that use it **with their numbers** — a lesson's number cannot be got from its key, since
+`LS-M021-01` is lesson 9. The panel sits below the facts on all 14 kit-bearing lessons, with the
+identity and checksum behind a disclosure; lesson 1 says in full ink that it needs none. Every
+non-diagram fenced block — 155 of the release's 160 — carries a Copy button that writes the author's
+exact characters to the clipboard and does nothing else, and says so when a clipboard refuses.
 
 Every lesson page carries an **IN THIS LESSON** contents list in the sidebar, **previous/next**
-links at its foot answered by the server from `display_order`, and a **resume point** — the lesson
-last opened, one silently written SQLite row (schema version 4, ADR 0010). The dashboard's card
-reads Continue lesson naming the last-opened lesson, or Start lesson when nothing is recorded.
+links at its foot answered by the server from `display_order`, and a **resume point** — one silently
+written SQLite row (schema version 4, ADR 0010). **Acknowledged saves** give each of the 45 panels
+one box per field its author declared, twelve on a lesson, each saving on an explicit press with no
+autosave; "Saved" appears only while the text is character for character what the server
+acknowledged, a refusal keeps the text and names the reason, a revision conflict shows both texts,
+and leaving a lesson with unsaved text stops and names what is unsaved. Storage is
+`learner_response`, one row per `(activity_id, field_name)`; the write decides its own outcome
+through its statement's change count, and every accepted write stamps the version the server reads
+off the release (ADR 0011). **This slice added no table, no column and no migration — the schema
+stays at 4.**
 
-**Acknowledged saves (slice 10)** give each of the 45 panels one box per field its author declared —
-`prediction`, `observation`, `explanation`, `help_used`, so twelve on a lesson. Each saves on its
-own, on an explicit press, with no autosave anywhere. **"Saved" appears only while the text in the
-box is character for character what the server acknowledged**, so typing one more character returns
-the field to unsaved without a request. A save the server refuses leaves the text in the box, names
-the reason in the server's own words, and offers Save again. A save refused because the field moved
-elsewhere opens the conflict path instead: both texts on screen at once, Keep mine and Use stored,
-neither discarded without a click. Leaving a lesson with unsaved text stops and names what is
-unsaved — for a link, for back and forward, and for a refresh.
-
-Storage is `learner_response`, one row per `(activity_id, field_name)`, schema 4. The write decides
-its own outcome: the expected revision goes into the `WHERE` clause and the statement's own change
-count is the answer, so a refusal is a refusal rather than a read that lost a race. Every accepted
-write stamps the lesson, content version and release **the server reads off the imported release**,
-never anything the request claimed — ADR 0011 records why the version is stamped per write rather
-than keyed on, which is what keeps an authorized correction from presenting as an empty box where
-the owner's answer was. `--input` arrives with the first textarea at `#767f93` / `#5c6b94` rather
-than the published `#c8d1e4`, closing the C2 deviation in `docs/specs/visual-design-integration.md`;
-three save-state inks join it, light values from the design package's own destructive and note
-colours, dark derived, every pair measured in `theme.test.ts`.
+**The suite's reliability question, parked since slice 10, is answered.** One label covered two
+faults. The timeout was jsdom saturation: 22 environments for 21 web files, 223 s of construction
+inside a 64 s wall clock. `pool: 'vmThreads'` builds one per worker and keeps per-file module
+registries — 64.4 s to 9.8 s; `isolate: false` was measured and rejected because it shares the
+environment across files and broke two assertions outright. That exposed a second failure it had
+been hiding: three `unsavedNavigation` cases failing on a **wrong value**, a real race. The unsaved
+registry was written in a passive effect while three synchronous handlers read it — the link veto,
+`popstate` and `beforeunload` — so a field that had just rendered itself saved stayed registered as
+unsaved for one task, and a click or a refresh inside that task was refused over work that was safe.
+It is a layout effect now, and `beforeunload` asks `hasUnsaved()` when the browser asks it. 0
+failures in 25 unloaded full-suite runs, against 1-in-3 before (commit `f4a0713`).
 
 CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to the
 author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
@@ -44,33 +61,32 @@ the app's 8317 and the gate's 8318. The diagram census stays five of five in rea
 11.17.2); Markdown still parses straight to React elements, raw HTML still becomes visible text, and
 the sandboxed-iframe exception still grants nothing.
 
-`npm test` (810 passing across 35 files), `npm run lint`, `npm run typecheck`, `npm run build`,
-`npm run format:check` and `npm run screenshots` all pass locally. The gate's activity check now
-also proves, per lesson per width per scheme, that the number of writing surfaces on the page equals
-the total of every activity's own `responseFields` as `GET /api/lessons/:id` reports them, that each
-carries a label of its own, and that each has a way to save what is typed in it — the expected count
-asked of the API rather than written down. Proven by sabotage: making `ResponseField` render nothing
-fails 90 checks by name.
+`npm test` (919 passing across 40 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+`npm run format:check` and `npm run screenshots` all pass locally. The gate now also proves, per
+lesson per width per scheme, that a lesson shows exactly one kit panel naming the kit the API says
+it has — with the whole hash, and a download pointing at that lab id — that a lesson with no kit
+says so, and that every code block offers a copy which sits neither inside nor over the sample it
+copies. Proven by sabotage six ways, each producing its own named failure.
 
-**Known and not fixed.** `realActivityPlacement.test.tsx`'s LS-M020-02 case fails about one
-full-suite run in three, always on a 5000 ms **timeout**, never on a wrong value; 10/10 in isolation
-at 852 ms, and 1261 ms on the commit before slice 10, so the slice made it faster. Two independent
-reviewers diagnosed harness saturation — 21 jsdom environments costing 50–90 s inside a ~15 s wall
-clock. Not widened and not skipped: the standing rule forbids widening a budget to fit a stress the
-harness inflicts on itself, and the real fix is a suite-wide concurrency decision nobody has made
-yet. That decision is the first thing worth taking to the next slice. Deferred with reasons in
-`docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px (lesson 13), and
-open-disclosure captures missing from the screenshot gate. Declined with reasons in
+**Known and not fixed.** **One unexplained full-suite run** during slice 11's review reported 8
+failures, one per file, across both projects, including server files the change under test cannot
+reach. Its signature was not captured, and 22 subsequent full-suite runs were clean. Not reproduced,
+and not explained. Deferred with reasons in `docs/specs/content-release-first-thirteen.md`:
+content-shaped tall tables at 375px (lesson 13), and open-disclosure captures missing from the
+screenshot gate — which slice 11 makes more pressing, because the kit panel's identity and checksum
+now sit behind a disclosure the gate never opens. Declined with reasons in
 `docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links),
 `docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release) and
-`docs/specs/acknowledged-saves.md` (the density of twelve boxes, which is decision 1's cost and the
-owner's to judge in the trial; a Leave-anyway that pushes rather than going back). Four test files
-sit over the ~350-line guidance: `verify.test.ts` at 846 and `app.test.ts` at 601, both
-pre-existing, and `unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 449 from slice 10.
+`docs/specs/acknowledged-saves.md` (the density of twelve boxes; a Leave-anyway that pushes rather
+than going back). The kit panel still adds about 410px to every kit-bearing lesson at 375px, which
+is decision 1's cost and the owner's to judge in the trial. The Copy button's touch target is 39px,
+not the 44px guideline — a stated compromise against a control repeated 23 times a page. Four test
+files sit over the ~350-line guidance: `verify.test.ts` at 846, `app.test.ts` at 617,
+`unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 449.
 
 Next action: Milestone 2, prediction history — an acknowledged prediction becomes its own revision,
-and a later correction appends rather than replaces. The per-field records and the per-write version
-stamp this slice built are what that appends to.
+and a later correction appends rather than replaces. It should come before Milestone 3's Export,
+which needs those revisions to have something to carry.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -166,10 +182,14 @@ stamp this slice built are what that appends to.
 
 ## Milestone 3 — Local labs and the handoff back (goal: the owner can do the terminal work and send their notes to the content author)
 
-- [ ] **Lab downloads.** Correct kit per lesson (none for 1, its own for 2, shared kits for 3–5,
-      6–8, 9–13 and 14–15), served with its version identity, plus copy-exact command buttons that
-      copy and never execute. The 14–15 kit ships deliberately faulty starter code; byte-for-byte
-      is the contract, not a defect.
+- [x] **Lab downloads.** Done 2026-09-23, opening Milestone 3 out of order at the owner's
+      instruction. The correct kit per lesson, re-hashed against the release on every request and
+      served byte-for-byte under the author's own filename; a Copy button on all 155 non-diagram
+      fenced blocks. test-guardian PRE (FAIL on three findings, all taken before any implementation)
+      and POST (pass, two coverage gaps closed), `/code-review` at medium (12 findings, all taken),
+      design review (ship-with-nits, five findings, all taken). The finding that mattered would have
+      broken every download on a machine whose release sits behind a symlink or a junction, and on
+      none of mine. Criteria and slice record in `docs/specs/lab-downloads.md`.
 - [ ] **Export.** The owner's actual work with lesson, activity, content-version and release context,
       in a form that travels with the owner review forms (`Owner_Review_After_Lesson_05.md`, `_08`,
       `_13`).
@@ -189,6 +209,52 @@ file preview and bounded ingestion, reviewer queue, findings and responses, appe
 need an approved data policy and a named reviewer before they mean anything.
 
 ## Session notes
+
+- **2026-09-23, slice 11 — lab downloads (Milestone 3 slice 1).** Built to
+  `docs/specs/lab-downloads.md`: 919 tests, test-guardian PRE and POST, `/code-review`, design
+  review, `/hygiene`. Opens Milestone 3, out of order and with Milestone 2's last two slices still
+  open, at the owner's instruction.
+
+  Four forks were asked in one Stage-0 batch and all four defaults taken: the kit sits in a fixed
+  place rather than at its first prose mention (nine of the fourteen kit-bearing lessons never name
+  it in their body, so matching would place five and fall back for nine), every fenced block gets a
+  Copy button rather than only `sh` and `powershell`, kits are reachable through their lessons only,
+  and the suite's parked concurrency question was answered first.
+
+  **Answering that question first was worth more than the slice.** "Flaky" turned out to be two
+  faults: jsdom saturation, which `pool: 'vmThreads'` fixed, and which had been hiding a real
+  one-task lag in the unsaved registry that three synchronous handlers read. 1-in-3 to 0-in-25, and
+  64.4s to 9.8s. Doing it before Stage 2 is what made every red run in this slice mean something.
+
+  **PRE failed on three findings, all taken with nothing built.** The one that mattered was
+  invisible from the test's own red run: `contrast()` was being called with two hex strings and no
+  scheme — six TS2554 errors hidden behind the file's `ENOENT` on a stylesheet that did not exist
+  yet. All nine contrast checks would have thrown rather than measured, the moment the implementer
+  created that file. The second was a test that could never pass: a 3:1 floor over `--border` and
+  `--quote-rule`, which measure 1.20:1 and 1.58:1 and which the spec forbids replacing. A test
+  satisfiable only by a wrong implementation is worse than no test.
+
+  **Two of my own tests turned out to contradict each other**, and the fork went to the owner rather
+  than being resolved quietly: the payload pinned `lessonIds` while the panel test demanded "lessons
+  6, 7 and 8", and a lesson's number cannot be got from its key — `LS-M021-01` is lesson 9. An
+  implementation that split the key on its suffix would have been wrong for lessons 9–15 and green,
+  because every panel fixture was M020.
+
+  **The review finding that mattered would have broken every download on somebody else's machine.**
+  `readVerifiedBytes` compares its base against the real path of what it read, and the importer
+  canonicalises first; the download route did not. Behind a symlink, a Windows junction or an 8.3
+  short name — `os.tmpdir()` on macOS is one — all five kits resolve outside their own base. Every
+  test passed, and all five kits downloaded live.
+
+  **The spec's own "no existing test moves" claim was wrong, and is corrected in place rather than
+  removed.** Two tests read the code block _wrapper's_ text, and the grep behind the claim asked
+  which tests read the `pre`. The previous slice made the identical mistake one level down. The
+  lesson it wrote — which tests pin a constant is a grep, not a memory — is only as good as what the
+  grep is aimed at.
+
+  The design review's sharpest finding was that this panel recreated the problem the facts list above
+  it was collapsed to solve: ~605px on a 375px phone, first sentence ~1133px down. Identity and
+  checksum went behind a disclosure; re-measured at 436px and 1028px.
 
 - **2026-09-22, slice 10 — acknowledged saves (Milestone 2 slice 2).** Built to
   `docs/specs/acknowledged-saves.md`: 810 tests, test-guardian PRE and POST, `/code-review` at high,
@@ -421,3 +487,79 @@ need an approved data policy and a named reviewer before they mean anything.
   ADRs 0001–0005, scaffolded the workspace, verified the skeleton locally. The architect agent was
   deliberately skipped: `Technical_Architecture_and_Implementation_Plan_v1.md` already is that
   output, and the ADRs record where this build narrows it.
+
+## Superseded state notes
+
+Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-09-22, before slice 11.**
+
+  Last updated 2026-09-22. **Milestone 1 is complete and Milestone 2 has its first two slices.** The
+  app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across modules M020 and M021,
+  five lab kits, 45 activity entries — from
+  `content/releases/http-first-fifteen-v1_0_1/content`, serves all of it inside the Engineering
+  Practice shell (Swiss-revival direction, spec and dial sheet in
+  `docs/specs/edge-visual-refinement.md`), lets the reader navigate and resume, places the author's
+  activities beside the sections they were written for, and **since slice 10 keeps what the owner
+  writes against them**.
+
+  Every lesson page carries an **IN THIS LESSON** contents list in the sidebar, **previous/next**
+  links at its foot answered by the server from `display_order`, and a **resume point** — the lesson
+  last opened, one silently written SQLite row (schema version 4, ADR 0010). The dashboard's card
+  reads Continue lesson naming the last-opened lesson, or Start lesson when nothing is recorded.
+
+  **Acknowledged saves (slice 10)** give each of the 45 panels one box per field its author declared —
+  `prediction`, `observation`, `explanation`, `help_used`, so twelve on a lesson. Each saves on its
+  own, on an explicit press, with no autosave anywhere. **"Saved" appears only while the text in the
+  box is character for character what the server acknowledged**, so typing one more character returns
+  the field to unsaved without a request. A save the server refuses leaves the text in the box, names
+  the reason in the server's own words, and offers Save again. A save refused because the field moved
+  elsewhere opens the conflict path instead: both texts on screen at once, Keep mine and Use stored,
+  neither discarded without a click. Leaving a lesson with unsaved text stops and names what is
+  unsaved — for a link, for back and forward, and for a refresh.
+
+  Storage is `learner_response`, one row per `(activity_id, field_name)`, schema 4. The write decides
+  its own outcome: the expected revision goes into the `WHERE` clause and the statement's own change
+  count is the answer, so a refusal is a refusal rather than a read that lost a race. Every accepted
+  write stamps the lesson, content version and release **the server reads off the imported release**,
+  never anything the request claimed — ADR 0011 records why the version is stamped per write rather
+  than keyed on, which is what keeps an authorized correction from presenting as an empty box where
+  the owner's answer was. `--input` arrives with the first textarea at `#767f93` / `#5c6b94` rather
+  than the published `#c8d1e4`, closing the C2 deviation in `docs/specs/visual-design-integration.md`;
+  three save-state inks join it, light values from the design package's own destructive and note
+  colours, dark derived, every pair measured in `theme.test.ts`.
+
+  CF-001 and CF-002 remain closed by the 1.0.1 reissue; the correction transition stays pinned to the
+  author's own `content-corrections.json` in `verify.test.ts`. All five received packages live
+  byte-for-byte under `content/releases/` (ADR 0009). The 14–15 kit still binds 4321/4323, clear of
+  the app's 8317 and the gate's 8318. The diagram census stays five of five in real Chromium (Mermaid
+  11.17.2); Markdown still parses straight to React elements, raw HTML still becomes visible text, and
+  the sandboxed-iframe exception still grants nothing.
+
+  `npm test` (810 passing across 35 files), `npm run lint`, `npm run typecheck`, `npm run build`,
+  `npm run format:check` and `npm run screenshots` all pass locally. The gate's activity check now
+  also proves, per lesson per width per scheme, that the number of writing surfaces on the page equals
+  the total of every activity's own `responseFields` as `GET /api/lessons/:id` reports them, that each
+  carries a label of its own, and that each has a way to save what is typed in it — the expected count
+  asked of the API rather than written down. Proven by sabotage: making `ResponseField` render nothing
+  fails 90 checks by name.
+
+  **Known and not fixed.** `realActivityPlacement.test.tsx`'s LS-M020-02 case fails about one
+  full-suite run in three, always on a 5000 ms **timeout**, never on a wrong value; 10/10 in isolation
+  at 852 ms, and 1261 ms on the commit before slice 10, so the slice made it faster. Two independent
+  reviewers diagnosed harness saturation — 21 jsdom environments costing 50–90 s inside a ~15 s wall
+  clock. Not widened and not skipped: the standing rule forbids widening a budget to fit a stress the
+  harness inflicts on itself, and the real fix is a suite-wide concurrency decision nobody has made
+  yet. That decision is the first thing worth taking to the next slice. Deferred with reasons in
+  `docs/specs/content-release-first-thirteen.md`: content-shaped tall tables at 375px (lesson 13), and
+  open-disclosure captures missing from the screenshot gate. Declined with reasons in
+  `docs/specs/reader-navigation-and-resume.md` (chevrons on the neighbour links),
+  `docs/specs/activity-placement.md` (a malformed activity record still refuses the whole release) and
+  `docs/specs/acknowledged-saves.md` (the density of twelve boxes, which is decision 1's cost and the
+  owner's to judge in the trial; a Leave-anyway that pushes rather than going back). Four test files
+  sit over the ~350-line guidance: `verify.test.ts` at 846 and `app.test.ts` at 601, both
+  pre-existing, and `unsavedNavigation.test.tsx` at 487 and `responses.test.ts` at 449 from slice 10.
+
+  Next action: Milestone 2, prediction history — an acknowledged prediction becomes its own revision,
+  and a later correction appends rather than replaces. The per-field records and the per-write version
+  stamp this slice built are what that appends to.

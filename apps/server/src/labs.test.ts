@@ -181,8 +181,47 @@ describe('downloading a kit', () => {
 
     const response = await app.inject({ method: 'GET', url: '/api/labs/FIX-LAB-02/download' });
 
+    // 200, the same answer `/api/release` and `/api/lessons/:id` give a refused release: the app is
+    // fine and the content is not, and a 5xx would have the page report a broken app. Pinned here
+    // because its two sibling routes pin it, and a route that quietly started answering 404 or 500
+    // would otherwise pass this test unchanged.
+    expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toContain('application/json');
     expect(response.json()).toMatchObject({ state: 'failed', failure: { code: 'file_missing' } });
+  });
+
+  it('tells the browser not to keep a copy, or the re-hash is about an earlier moment', async () => {
+    const app = appOver(releaseDir());
+
+    const response = await app.inject({ method: 'GET', url: '/api/labs/FIX-LAB-02/download' });
+
+    // Without this, a reader who downloads a kit, has it corrupted on disk, and downloads again can
+    // be served the cached bytes without the route running — so the 409 the changed kit earns never
+    // reaches them.
+    expect(response.headers['cache-control']).toBe('no-store');
+  });
+
+  it('serves a kit through a release directory reached by a link', async () => {
+    // `readVerifiedBytes` compares its base against the *real* path of the file it read, so a base
+    // that is itself a symlink or a Windows junction makes every kit look as though it climbs out
+    // of the release. The route canonicalises first, exactly as the importer does.
+    const real = releaseDir();
+    const link = path.join(path.dirname(real), `${path.basename(real)}-link`);
+    try {
+      fs.symlinkSync(real, link, 'junction');
+    } catch {
+      return; // No privilege to make one on this machine; the real-path claim is unprovable here.
+    }
+    tempDirs.push(link);
+    db = openDatabase(':memory:');
+    const app = buildApp({ db, release: importRelease(db, link), releaseDir: link });
+
+    const response = await app.inject({ method: 'GET', url: '/api/labs/FIX-LAB-02/download' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.rawPayload.equals(fs.readFileSync(path.join(real, 'labs', 'kit-02.zip')))).toBe(
+      true,
+    );
   });
 
   it('leaves the kit on disk exactly as it was', async () => {

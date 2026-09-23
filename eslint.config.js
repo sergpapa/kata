@@ -29,7 +29,13 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        // `ignoreRestSiblings` so `const { secret: _secret, ...rest } = row` is allowed: naming a
+        // field in order to drop it is the clearest way to say which field is being dropped, and a
+        // hand-written copy list of the survivors silently loses any field added later.
+        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },

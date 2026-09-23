@@ -295,6 +295,38 @@ export function loadActivitySetText(db: Db, releaseRowId: number): string | unde
  * a traversal in it finds no row instead of becoming a path. Scoped to `releaseRowId` for the same
  * reason `loadLesson` is — a kit that advanced a version is a new row beside the old one.
  */
+/**
+ * The kit's own row, without the sharing list.
+ *
+ * Split from `loadLabKit` because the download path needs three columns and the sharing list costs
+ * a second query over `content_lesson` that it drops on the next line.
+ */
+export function loadLabKitRow(
+  db: Db,
+  releaseRowId: number,
+  labId: string,
+): Omit<StoredLabKit, 'lessons'> | undefined {
+  const row = db
+    .prepare(
+      `SELECT lab_id, lab_version, source_path, sha256, byte_size
+         FROM content_lab_kit
+        WHERE release_row_id = ? AND lab_id = ?`,
+    )
+    .get(releaseRowId, labId) as LabKitRow | undefined;
+  if (!row) return undefined;
+
+  return {
+    labId: row.lab_id,
+    version: row.lab_version,
+    // POSIX basename explicitly: a release is a portable package whose manifest paths are written
+    // with forward slashes whatever machine reads them.
+    fileName: path.posix.basename(row.source_path),
+    sourcePath: row.source_path,
+    sha256: row.sha256,
+    byteSize: row.byte_size,
+  };
+}
+
 export function loadLabKit(db: Db, releaseRowId: number, labId: string): StoredLabKit | undefined {
   const row = db
     .prepare(

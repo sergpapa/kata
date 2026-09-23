@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { ImportFailure } from './types.js';
+import type { ImportFailure, ImportFailureCode } from './types.js';
 
 /**
  * Getting bytes out of a release directory safely: which paths are allowed to be followed, and
@@ -16,8 +16,46 @@ export function refuse(failure: ImportFailure): never {
   throw failure;
 }
 
+/**
+ * Every code `refuse()` can carry. Listed rather than inferred, because this guard is what decides
+ * whether a thrown thing is one of this release format's named refusals or somebody else's error —
+ * and `{ code, message }` alone describes every `NodeJS.ErrnoException` and every `SqliteError`
+ * too. Answering `ERR_INVALID_ARG_VALUE` as though it were a refusal would present an internal
+ * identifier as one of the release's own, and call the app's own fault the content's.
+ */
+const FAILURE_CODES = new Set<ImportFailureCode>([
+  'manifest_missing',
+  'manifest_unreadable',
+  'manifest_invalid',
+  'unsupported_manifest_schema',
+  'path_escapes_release',
+  'file_missing',
+  'file_unreadable',
+  'hash_mismatch',
+  'duplicate_lesson_id',
+  'duplicate_lesson_order',
+  'conflicting_lesson_id',
+  'conflicting_document_id',
+  'conflicting_version',
+  'front_matter_missing',
+  'front_matter_invalid',
+  'title_missing',
+  'lab_not_found',
+  'duplicate_lab_id',
+  'lab_lesson_mismatch',
+  'activity_set_invalid',
+  'duplicate_activity_id',
+  'activity_lesson_mismatch',
+]);
+
 export function isImportFailure(value: unknown): value is ImportFailure {
-  return typeof value === 'object' && value !== null && 'code' in value && 'message' in value;
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as { code?: unknown; message?: unknown };
+  return (
+    typeof candidate.message === 'string' &&
+    typeof candidate.code === 'string' &&
+    FAILURE_CODES.has(candidate.code as ImportFailureCode)
+  );
 }
 
 export function sha256Of(bytes: Buffer): string {

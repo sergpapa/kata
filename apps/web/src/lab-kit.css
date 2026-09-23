@@ -9,7 +9,7 @@
   margin: 1.6rem 0 2rem;
   padding: 1.2rem 1.4rem 1.4rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius-card);
   background: var(--background);
 }
 
@@ -93,10 +93,30 @@
   line-height: 1.6;
 }
 
-/* The lesson that needs no kit. Set at the panel's own size rather than as small print: it is the
-   answer to "where is my download?", and a reader who cannot find it will go looking. */
+/* The disclosure holding the identity and the checksum. Closed by default for the reason the facts
+   list above it is: open, this panel measured ~605px on a 375px phone, putting the lesson's first
+   sentence more than a screen and a half down — the exact problem collapsing the facts list
+   solved, reintroduced directly beneath it. What a reader acts on stays open; what they check a
+   download against does not. */
+.lab-kit-detail {
+  margin: 1rem 0 0;
+}
+
+.lab-kit-detail > summary {
+  padding: 0.3rem 0;
+  color: var(--eyebrow);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+/* The lesson that needs no kit. Full ink and the same left rule as `.lesson-status`, never muted
+   and never small: it answers "where is my download?" on the first page anyone sees, and the
+   previous slice's design review found exactly this shape of sentence set as small print. */
 .lab-kit-none {
   margin: 1.6rem 0 2rem;
-  color: var(--muted-foreground);
-  font-size: 0.9rem;
+  padding: 0.5rem 0 0.5rem 0.85rem;
+  border-left: 3px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.95rem;
 }

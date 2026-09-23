@@ -321,7 +321,7 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
         · release {release.releaseId} {release.version}
       </p>
       <FactList facts={lesson.facts} />
-      <LabKitPanel labKit={view.labKit ?? null} candidateLessonId={lesson.candidateLessonId} />
+      <LabKitPanel labKit={view.labKit ?? null} />
       <LessonMarkdown
         markdown={lesson.bodyMarkdown}
         activities={view.activities}

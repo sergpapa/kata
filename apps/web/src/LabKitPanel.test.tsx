@@ -111,6 +111,67 @@ describe('the kit on a lesson that has one', () => {
     expect(text).toMatch(/lessons\s+6,\s*7\s+and\s+8/i);
   });
 
+  it('says "14 and 15" for a kit shared by exactly two, with no stray comma', async () => {
+    // The shipped release has one: FSSE-HTTP-LAB-14-15. The three-lesson case above and the
+    // one-lesson case below leave the two-lesson branch of `listed()` unexercised, and "14, and 15"
+    // would ship silently.
+    answerWith(
+      lessonAnswer(
+        {
+          ...sharedKit,
+          labId: 'FSSE-HTTP-LAB-14-15',
+          lessons: [
+            { order: 14, candidateLessonId: 'LS-M021-06' },
+            { order: 15, candidateLessonId: 'LS-M021-07' },
+          ],
+        },
+        6,
+      ),
+    );
+
+    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(panel().textContent ?? '').toContain('lessons 14 and 15');
+  });
+
+  it('never names the reader’s own lesson as one the kit is *shared with*', async () => {
+    answerWith(lessonAnswer(sharedKit));
+
+    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    await screen.findByRole('heading', { level: 1 });
+
+    // The list includes the lesson being read, so the wording has to be "used by" and not
+    // "shared with" — being told a kit is shared with the page you are standing on reads as a bug.
+    expect(panel().textContent ?? '').not.toMatch(/shared with/i);
+  });
+
+  it('keeps the checksum and the version out of the reader’s way, behind a disclosure', async () => {
+    answerWith(lessonAnswer(sharedKit));
+
+    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    await screen.findByRole('heading', { level: 1 });
+
+    // Open, this panel measured ~605px on a 375px phone and put the lesson's first sentence more
+    // than a screen and a half down — the problem collapsing the facts list above it solved. What
+    // the reader acts on stays out; what they check a download against does not.
+    const details = panel().querySelector('details');
+    expect(details, 'the identity and hash belong behind a disclosure').not.toBeNull();
+    expect(details?.hasAttribute('open')).toBe(false);
+    expect(details?.textContent).toContain(KIT_SHA);
+    expect(details?.textContent).toContain('FSSE-HTTP-LAB-06-08');
+
+    // And the three things a reader acts on are not inside it.
+    const open = panel().textContent?.replace(details?.textContent ?? '', '') ?? '';
+    expect(open).toContain('HTTP_Lessons_06_08_Local_Kit_v1.zip');
+    expect(open).toMatch(/never runs it/i);
+    expect(
+      within(panel())
+        .getByRole('link', { name: /download/i })
+        .closest('details'),
+    ).toBeNull();
+  });
+
   it('says nothing about sharing when only this lesson uses the kit', async () => {
     answerWith(
       lessonAnswer(

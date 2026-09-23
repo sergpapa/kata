@@ -11,7 +11,7 @@ import {
   loadNeighbours,
   loadReleaseSummary,
 } from './modules/content/repository.js';
-import { isImportFailure, readVerifiedBytes } from './modules/content/releaseFiles.js';
+import { registerLabRoutes } from './modules/content/labRoutes.js';
 import {
   activitiesForLesson,
   parseActivitySet,
@@ -97,14 +97,11 @@ function activitiesOf(deps: AppDeps, candidateLessonId: string) {
 function loadLabKitForPage(db: Db, releaseRowId: number, labId: string) {
   const kit = loadLabKit(db, releaseRowId, labId);
   if (!kit) return undefined;
-  return {
-    labId: kit.labId,
-    version: kit.version,
-    fileName: kit.fileName,
-    byteSize: kit.byteSize,
-    sha256: kit.sha256,
-    lessons: kit.lessons,
-  };
+  // Rest-destructured rather than re-listed field by field: a copy list is a list somebody has to
+  // remember to extend, and a field added to `StoredLabKit` later would go missing from the page
+  // with no compiler error to say so.
+  const { sourcePath: _sourcePath, ...forPage } = kit;
+  return forPage;
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
@@ -245,51 +242,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return { state: 'set', candidateLessonId, recordedAt };
   });
 
-  /**
-   * One lab kit's bytes. The kit runs on the reader's own computer; this app has never run one and
-   * does not start here (ADR 0005, and four handoffs say so in four ways).
-   *
-   * The id is looked up, never joined to a path, so a traversal in the URL finds no row rather than
-   * escaping the release. The bytes are then re-hashed against what the release declares — the
-   * start-up check proves the file was right when the process began, and the promise the handoffs
-   * ask for is about the moment the reader takes it.
-   */
-  app.get<{ Params: { labId: string } }>('/api/labs/:labId/download', async (request, reply) => {
-    if (deps.release.state === 'failed') {
-      return { state: 'failed', failure: deps.release.failure };
-    }
-
-    const { labId } = request.params;
-    const kit = loadLabKit(deps.db, deps.release.releaseRowId, labId);
-    if (!kit) {
-      return reply.code(404).send({
-        error: 'lab_not_found',
-        message: `This release has no lab kit ${labId}.`,
-      });
-    }
-
-    let bytes: Buffer;
-    try {
-      bytes = readVerifiedBytes(deps.releaseDir, kit.sourcePath, kit.sha256);
-    } catch (error) {
-      // A kit that changed under a running app is refused, not handed over. 409 rather than 500:
-      // the app is fine and the file is not, which is the same distinction /api/release draws.
-      if (isImportFailure(error)) {
-        return reply.code(409).send({ error: error.code, message: error.message });
-      }
-      throw error;
-    }
-
-    return (
-      reply
-        .code(200)
-        .header('content-type', 'application/zip')
-        .header('content-length', String(bytes.byteLength))
-        // The author's own filename. Lesson 2 tells the reader to use a file by that name, and a
-        // download landing as the lab id would make the lesson's instruction wrong.
-        .header('content-disposition', `attachment; filename="${kit.fileName}"`)
-        .send(bytes)
-    );
+  registerLabRoutes(app, {
+    db: deps.db,
+    release: deps.release,
+    releaseDir: deps.releaseDir,
   });
 
   registerResponseRoutes(app, {

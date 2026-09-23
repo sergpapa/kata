@@ -35,7 +35,6 @@ export function CopyBlock({
   }, []);
 
   async function copy(): Promise<void> {
-    if (timer.current !== null) clearTimeout(timer.current);
     try {
       // Read at press time, not at mount: a clipboard can be absent over plain HTTP and can be
       // denied by permission, and either way the answer belongs to this press.
@@ -48,24 +47,44 @@ export function CopyBlock({
       // worked — the same false success ADR 0004 forbids for saves, in a smaller place.
       setState('failed');
     }
+    // Cleared here rather than on the way in: a second press while the first write is still in
+    // flight would otherwise leave the first press's timer running with nothing holding it, so it
+    // fires inside the second press's window and reports the second copy as over before it was.
+    if (timer.current !== null) clearTimeout(timer.current);
     timer.current = setTimeout(() => setState('idle'), SETTLE_MS);
   }
 
   const label = state === 'copied' ? 'Copied' : state === 'failed' ? 'Could not copy' : 'Copy';
   const what = language ? `the ${language} sample` : 'this sample';
+  // The sample's own first line, so four consecutive `javascript` buttons do not all announce the
+  // identical name. Trimmed short: this is a label, not the sample.
+  const opening = source.trim().split(/\r?\n/)[0]?.slice(0, 40).trim();
 
   return (
-    <button
-      // Explicit, because a button inside anything that becomes a form defaults to submit.
-      type="button"
-      className="code-block-copy"
-      // The visible word is the same on 160 buttons; the accessible name says which sample, so a
-      // screen reader is not read the word "Copy" over and over with nothing to tell them apart.
-      aria-label={`${label} ${what}`}
-      data-state={state}
-      onClick={() => void copy()}
-    >
-      {label}
-    </button>
+    <>
+      <button
+        // Explicit, because a button inside anything that becomes a form defaults to submit.
+        type="button"
+        className="code-block-copy"
+        // The visible word is the same on 155 buttons; the accessible name says which sample.
+        aria-label={opening ? `${label} ${what} starting ${opening}` : `${label} ${what}`}
+        data-state={state}
+        onClick={() => void copy()}
+      >
+        {label}
+      </button>
+      {/* The app's own convention for an async control's outcome (ResponseField does the same, and
+          for the same reason): whether a screen reader re-announces a focused button's own label
+          when that label changes varies by reader, and "Copied" against "Could not copy" is the
+          whole feedback there is.
+
+          Rendered only while there is something to say, unlike ResponseField's. There are twelve of
+          those on a lesson and up to 23 of these, and a page holding 23 permanently empty live
+          regions is machinery in its own right — one of which would sit inside every refused
+          diagram's fallback, beside the announcement that fallback already makes. */}
+      {state !== 'idle' && (
+        <span className="visually-hidden" role="status">{`${label} ${what}`}</span>
+      )}
+    </>
   );
 }
