@@ -53,7 +53,13 @@ export function bodyOrder(container: HTMLElement): string[] {
     if (element.classList.contains('activity-panel')) {
       return `panel:${element.getAttribute('data-activity-id')}`;
     }
-    return `${element.tagName.toLowerCase()}:${(element.textContent ?? '').trim()}`;
+    // A code block is named by its sample, not by its chrome. Its wrapper also holds the language
+    // label and the Copy button, and this helper's job is to say which block sat where — not to
+    // re-assert what controls a block carries, which CopyBlock.test.tsx does directly.
+    const sample = element.classList.contains('code-block')
+      ? element.querySelector('pre')?.textContent
+      : undefined;
+    return `${element.tagName.toLowerCase()}:${(sample ?? element.textContent ?? '').trim()}`;
   });
 }
 

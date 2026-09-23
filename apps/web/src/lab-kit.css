@@ -1,0 +1,102 @@
+/* The practice kit panel, between a lesson's facts and its body.
+
+   Every colour here is a theme token, measured in both schemes by labKitStyles.test.ts. The panel's
+   own edge answers the 1.15:1 separation floor the activity panel and the blockquote answer to; the
+   download control's boundary answers WCAG 1.4.11's 3:1, because it is the interactive component on
+   this panel and the edge is what tells a reader where it starts. */
+
+.lab-kit {
+  margin: 1.6rem 0 2rem;
+  padding: 1.2rem 1.4rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--background);
+}
+
+.lab-kit-eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--eyebrow);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lab-kit-file {
+  margin: 0;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  /* A kit filename is one unbroken run of 40-odd characters. At 375px it has to be allowed to
+     break, or it sets the card's width for the whole page. */
+  overflow-wrap: anywhere;
+}
+
+.lab-kit-identity {
+  margin: 0.3rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
+.lab-kit-shared {
+  margin: 0.7rem 0 0;
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+
+.lab-kit-hash-label {
+  margin: 1rem 0 0.25rem;
+  color: var(--eyebrow);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+/* 64 characters with nothing to break at. `anywhere` rather than `break-word`, which leaves an
+   unbroken run unbroken and lets it push the card past the viewport at 375px. */
+.lab-kit-hash {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.lab-kit-actions {
+  margin: 1.1rem 0 0;
+}
+
+.lab-kit-download {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lab-kit-download:hover {
+  background: var(--row-hover);
+}
+
+.lab-kit-note {
+  margin: 0.9rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* The lesson that needs no kit. Set at the panel's own size rather than as small print: it is the
+   answer to "where is my download?", and a reader who cannot find it will go looking. */
+.lab-kit-none {
+  margin: 1.6rem 0 2rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}

@@ -67,3 +67,18 @@ export interface StoredResponse {
   readonly revision: number;
   readonly updatedAt: string;
 }
+
+/**
+ * The lab kit a lesson declares, as `GET /api/lessons/:id` answers it.
+ *
+ * `lessons` carries each sharing lesson's number beside its key because the number cannot be got
+ * from the key: `LS-M021-01` is lesson 9. Nothing on this side ever parses a lesson id.
+ */
+export interface LabKit {
+  readonly labId: string;
+  readonly version: string;
+  readonly fileName: string;
+  readonly byteSize: number;
+  readonly sha256: string;
+  readonly lessons: readonly { readonly order: number; readonly candidateLessonId: string }[];
+}

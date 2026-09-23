@@ -54,7 +54,7 @@ afterEach(() => {
 
 async function servedActivities(candidateLessonId: string) {
   db = openDatabase(':memory:');
-  const app = buildApp({ db, release: importRelease(db, releaseDir) });
+  const app = buildApp({ db, release: importRelease(db, releaseDir), releaseDir: releaseDir });
   const response = await app.inject({ method: 'GET', url: `/api/lessons/${candidateLessonId}` });
   const body = response.json() as { activities: { activityId: string; sourceHeading: string }[] };
   await app.close();

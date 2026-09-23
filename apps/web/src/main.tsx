@@ -12,6 +12,7 @@ import './continue-card.css';
 import './lesson.css';
 import './navigation.css';
 import './activities.css';
+import './lab-kit.css';
 import './diagram.css';
 import './unsaved.css';
 

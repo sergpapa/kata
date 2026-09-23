@@ -125,3 +125,26 @@ export interface StoredReleaseSummary {
 export type ReleaseState =
   | { readonly state: 'imported'; readonly releaseRowId: number }
   | { readonly state: 'failed'; readonly failure: ImportFailure };
+
+/**
+ * One stored lab kit, as a lesson page and the download route need it.
+ *
+ * `fileName` rather than the release-relative path: the reader is told by the lesson's own prose to
+ * use a file by name, and the path inside the release is the app's business, not theirs.
+ */
+export interface StoredLabKit {
+  readonly labId: string;
+  readonly version: string;
+  readonly fileName: string;
+  readonly sourcePath: string;
+  readonly sha256: string;
+  readonly byteSize: number;
+  /**
+   * The lessons that share this kit, in reading order, each with the number a reader knows it by.
+   *
+   * The order travels with the id because it cannot be derived from it: `LS-M021-01` is lesson 9,
+   * not lesson 1. A client that split the id on its suffix would be right for module M020 and wrong
+   * for every lesson from 9 on.
+   */
+  readonly lessons: readonly { readonly order: number; readonly candidateLessonId: string }[];
+}

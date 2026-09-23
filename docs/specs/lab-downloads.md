@@ -301,3 +301,20 @@ section is only worth what the search behind it is worth, so here is the search:
   the seven vacuous-pass controls added before the red commit were re-verified as genuinely
   requiring the feature; and the five greps behind "no existing test is re-aimed or retired" were
   independently reconfirmed, the miscount aside.
+
+- **2026-09-23 — one test changed after the red commit, declared before the line was touched.** Two
+  tests in `e5fe851` could not both be satisfied honestly, and the conflict was mine. `labs.test.ts`
+  and `realReleaseLabs.test.ts` pinned the kit payload's sharing list as `lessonIds` — bare keys —
+  while `LabKitPanel.test.tsx` required the panel to read "lessons 6, 7 and 8". A lesson's number
+  cannot be got from its key: `LS-M021-01` is lesson 9, and the suffix only coincides with the
+  number inside module M020. An implementation that split the key on its suffix would have been
+  wrong for lessons 9–15 **and green**, because every panel fixture in the red commit is M020.
+
+  Put to the owner as a fork rather than corrected quietly. The answer taken: the server carries
+  each sharing lesson's `display_order` beside its id, so the client never parses a key. Both server
+  tests' `toEqual` moved from `lessonIds: string[]` to
+  `lessons: { order, candidateLessonId }[]` — a strictly wider assertion over the same set, with the
+  order additionally pinned. No assertion was dropped. The repository reads the list off the lessons
+  that actually name the kit, ordered by `display_order`, rather than off the manifest's own
+  `lesson_ids`: the importer already refuses a release where the two disagree, and this way the
+  panel names what the app holds rather than what it was told.

@@ -7,8 +7,10 @@ import { RouteLink } from './RouteLink.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
 import type { UnplacedActivity } from './activities/placeActivities.js';
+import { LabKitPanel } from './LabKitPanel.js';
 import type {
   ImportFailure,
+  LabKit,
   LessonActivity,
   LessonSummary,
   StoredResponse,
@@ -103,6 +105,8 @@ type LessonView =
       readonly state: 'lesson';
       readonly release: { readonly releaseId: string; readonly version: string };
       readonly lesson: LessonDetail;
+      /** The kit this lesson declares, or null when it declares none (lesson 1 alone). */
+      readonly labKit: LabKit | null;
       readonly activities: readonly LessonActivity[];
       readonly responses: readonly StoredResponse[];
       readonly previous: LessonNeighbour | null;
@@ -317,6 +321,7 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
         · release {release.releaseId} {release.version}
       </p>
       <FactList facts={lesson.facts} />
+      <LabKitPanel labKit={view.labKit ?? null} candidateLessonId={lesson.candidateLessonId} />
       <LessonMarkdown
         markdown={lesson.bodyMarkdown}
         activities={view.activities}

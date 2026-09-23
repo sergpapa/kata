@@ -6,10 +6,12 @@ import { readSchemaVersion } from './modules/lifecycle/database.js';
 import {
   lessonExists,
   loadActivitySetText,
+  loadLabKit,
   loadLesson,
   loadNeighbours,
   loadReleaseSummary,
 } from './modules/content/repository.js';
+import { isImportFailure, readVerifiedBytes } from './modules/content/releaseFiles.js';
 import {
   activitiesForLesson,
   parseActivitySet,
@@ -25,6 +27,12 @@ export interface AppDeps {
   readonly db: Db;
   /** The outcome of the import this process started with. A refusal is served, not hidden. */
   readonly release: ReleaseState;
+  /**
+   * The directory holding `learning-release.json`. Required, not defaulted: a default would let an
+   * unwired composition start and hand out a 404 for every lab kit at runtime, instead of failing
+   * at the type level where somebody is reading (CLAUDE.md).
+   */
+  readonly releaseDir: string;
   /** Built client directory. Omitted in tests and in development, where Vite serves the client. */
   readonly webDistDir?: string;
 }
@@ -79,6 +87,24 @@ function allActivities(deps: AppDeps): readonly LessonActivity[] {
 
 function activitiesOf(deps: AppDeps, candidateLessonId: string) {
   return activitiesForLesson(allActivities(deps), candidateLessonId);
+}
+
+/**
+ * A kit as the lesson page needs it. `sourcePath` is dropped on the way out: the page addresses a
+ * kit by its lab id, and publishing where the file sits inside the release tells a reader nothing
+ * they can use and tells anyone else the release's layout.
+ */
+function loadLabKitForPage(db: Db, releaseRowId: number, labId: string) {
+  const kit = loadLabKit(db, releaseRowId, labId);
+  if (!kit) return undefined;
+  return {
+    labId: kit.labId,
+    version: kit.version,
+    fileName: kit.fileName,
+    byteSize: kit.byteSize,
+    sha256: kit.sha256,
+    lessons: kit.lessons,
+  };
 }
 
 export function buildApp(deps: AppDeps): FastifyInstance {
@@ -163,6 +189,13 @@ export function buildApp(deps: AppDeps): FastifyInstance {
           deps.db,
           activities.map((activity) => activity.activityId),
         ).map(responseForPage),
+        // The kit this lesson declares, or null. Read off the stored release rather than off the
+        // lesson's own front matter: the manifest is what the download route looks up, and a page
+        // that named one file while the route served another would be the reader's problem to
+        // discover.
+        labKit: stored.labId
+          ? (loadLabKitForPage(deps.db, deps.release.releaseRowId, stored.labId) ?? null)
+          : null,
         // Manifest order, answered by the side that stores it, so previous/next can never disagree
         // with the list the dashboard shows.
         ...loadNeighbours(deps.db, deps.release.releaseRowId, stored.order),
@@ -210,6 +243,53 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const recordedAt = new Date().toISOString();
     saveResumePoint(deps.db, candidateLessonId, recordedAt);
     return { state: 'set', candidateLessonId, recordedAt };
+  });
+
+  /**
+   * One lab kit's bytes. The kit runs on the reader's own computer; this app has never run one and
+   * does not start here (ADR 0005, and four handoffs say so in four ways).
+   *
+   * The id is looked up, never joined to a path, so a traversal in the URL finds no row rather than
+   * escaping the release. The bytes are then re-hashed against what the release declares — the
+   * start-up check proves the file was right when the process began, and the promise the handoffs
+   * ask for is about the moment the reader takes it.
+   */
+  app.get<{ Params: { labId: string } }>('/api/labs/:labId/download', async (request, reply) => {
+    if (deps.release.state === 'failed') {
+      return { state: 'failed', failure: deps.release.failure };
+    }
+
+    const { labId } = request.params;
+    const kit = loadLabKit(deps.db, deps.release.releaseRowId, labId);
+    if (!kit) {
+      return reply.code(404).send({
+        error: 'lab_not_found',
+        message: `This release has no lab kit ${labId}.`,
+      });
+    }
+
+    let bytes: Buffer;
+    try {
+      bytes = readVerifiedBytes(deps.releaseDir, kit.sourcePath, kit.sha256);
+    } catch (error) {
+      // A kit that changed under a running app is refused, not handed over. 409 rather than 500:
+      // the app is fine and the file is not, which is the same distinction /api/release draws.
+      if (isImportFailure(error)) {
+        return reply.code(409).send({ error: error.code, message: error.message });
+      }
+      throw error;
+    }
+
+    return (
+      reply
+        .code(200)
+        .header('content-type', 'application/zip')
+        .header('content-length', String(bytes.byteLength))
+        // The author's own filename. Lesson 2 tells the reader to use a file by that name, and a
+        // download landing as the lab id would make the lesson's instruction wrong.
+        .header('content-disposition', `attachment; filename="${kit.fileName}"`)
+        .send(bytes)
+    );
   });
 
   registerResponseRoutes(app, {

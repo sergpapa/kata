@@ -51,6 +51,10 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  // In afterEach, not at the end of the one test that installs them: a fake clock left running by a
+  // test that failed makes `waitFor` in every later test wait for a clock nobody advances, and the
+  // suite then reports three failures for one cause.
+  vi.useRealTimers();
 });
 
 describe('every code block offers a copy', () => {
@@ -215,9 +219,10 @@ describe('what it says afterwards', () => {
     fireEvent.click(button);
     await vi.waitFor(() => expect(button.textContent).toMatch(/copied/i));
 
+    // Five seconds, not the implementation's own delay: the claim is that it goes back on its own,
+    // not that it goes back after any particular wait.
     await vi.advanceTimersByTimeAsync(5000);
-    expect(button.textContent).toMatch(/^copy/i);
-    vi.useRealTimers();
+    await vi.waitFor(() => expect(button.textContent).toMatch(/^copy$/i));
   });
 
   it('says the copy did not happen when the clipboard refuses, and never says it did', async () => {

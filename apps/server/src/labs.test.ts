@@ -62,7 +62,7 @@ describe('the kit a lesson declares, on the lesson', () => {
       fileName: 'kit-02.zip',
       byteSize: kitBytes.byteLength,
       sha256: sha256Of(kitBytes),
-      lessonIds: ['FIX-LS-02'],
+      lessons: [{ order: 2, candidateLessonId: 'FIX-LS-02' }],
     });
   });
 

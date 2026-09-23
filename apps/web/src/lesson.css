@@ -210,15 +210,49 @@ h1 + .lesson-provenance {
   overflow: hidden;
 }
 
+/* The language and the Copy button share one row above the sample. Above it rather than over it:
+   a button drawn on top of the block covers the first line, and the first line of an HTTP request
+   is the part a reader came for. */
+.code-block-header {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.6rem 0.3rem 1.2rem;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
 .code-block-language {
   margin: 0;
-  padding: 0.45rem 1.2rem;
-  border-bottom: 1px solid rgb(255 255 255 / 12%);
   color: var(--continue-muted);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.07em;
 }
+
+/* Outlined, never filled. There are up to 23 of these on one lesson, and a filled control repeated
+   that often is louder than the lesson's own navigation — the finding the previous slice's design
+   review made about the Save button, which applies here with more force. */
+.code-block-copy {
+  flex: none;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--continue-muted);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--code-ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.code-block-copy:hover {
+  border-color: var(--code-ink);
+}
+
+/* No colour for the failed state. `--state-failed` measures 2.47:1 on this surface in light, and
+   colour alone never carries a state here anyway — the button says "Could not copy", which is the
+   difference a reader actually reads. */
 
 /* `pre`, not `pre-wrap`: an HTTP sample's line breaks and runs of spaces are the lesson. A wrapped
    request line teaches the wrong shape. The block scrolls instead, and `tabindex` on it in the

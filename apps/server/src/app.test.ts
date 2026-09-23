@@ -61,8 +61,9 @@ function threeLessonDir(): string {
 describe('the walking skeleton', () => {
   it('answers /api/health with the schema version actually stored in the database', async () => {
     db = openDatabase(':memory:');
-    const release: ReleaseState = importRelease(db, releaseDir());
-    const app = buildApp({ db, release });
+    const dir = releaseDir();
+    const release: ReleaseState = importRelease(db, dir);
+    const app = buildApp({ db, release, releaseDir: dir });
 
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
@@ -90,7 +91,11 @@ describe('the walking skeleton', () => {
 describe('GET /api/release after a verified import', () => {
   it('reports the release identity and every lesson in authored order', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/release' });
 
@@ -127,7 +132,11 @@ describe('GET /api/release after a verified import', () => {
 
   it('does not ship lesson bodies to a page that only lists titles', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/release' });
 
@@ -140,7 +149,7 @@ describe('GET /api/release after a refused release', () => {
   it('answers with the named failure and no lessons at all', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
 
     const response = await app.inject({ method: 'GET', url: '/api/release' });
 
@@ -159,7 +168,7 @@ describe('GET /api/release after a refused release', () => {
   it('still answers /api/health, so a refused release does not look like a dead app', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
 
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
@@ -171,7 +180,11 @@ describe('GET /api/release after a refused release', () => {
 describe('GET /api/lessons/:candidateLessonId', () => {
   it('serves the lesson body with the front matter and the title heading already removed', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
 
@@ -192,7 +205,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('carries the identity work will later be recorded against', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
 
@@ -211,7 +228,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('selects the learner-facing front-matter facts rather than dumping the block', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
     const facts = (response.json() as { lesson: { facts: { key: string }[] } }).lesson.facts;
@@ -222,7 +243,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('answers 404 naming the ID when the release has no such lesson', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-99' });
 
@@ -237,7 +262,7 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('states the named refusal when the release was refused, rather than a bare not-found', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
 
@@ -255,7 +280,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('names its neighbours in stored order: the first lesson has no previous', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
 
@@ -271,7 +300,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('names its neighbours in stored order: the last lesson has no next', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
 
@@ -287,7 +320,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('gives a middle lesson both neighbours', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, threeLessonDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, threeLessonDir()),
+      releaseDir: threeLessonDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
 
@@ -304,7 +341,7 @@ describe('GET /api/lessons/:candidateLessonId', () => {
     db = openDatabase(':memory:');
     // The same two lessons, arriving with the array reversed: order fields still say 1 then 2.
     const dir = releaseDir((fixture) => fixture.manifest.lessons.reverse());
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
 
     const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
 
@@ -316,7 +353,11 @@ describe('GET /api/lessons/:candidateLessonId', () => {
 
   it('reads without writing: no content row changes and none is added', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
     const snapshot = (): string =>
       JSON.stringify(
         ['content_release', 'content_lesson', 'content_lab_kit', 'content_activity_set'].map(
@@ -352,7 +393,11 @@ describe('the resume point', () => {
 
   it('answers none before any lesson was ever opened', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const response = await app.inject({ method: 'GET', url: '/api/resume-point' });
 
@@ -363,7 +408,11 @@ describe('the resume point', () => {
 
   it('stores the lesson it is given and answers it back with when', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-02' });
     expect(put.statusCode).toBe(200);
@@ -382,12 +431,12 @@ describe('the resume point', () => {
   it('survives a restart: a new app over the same database still answers it', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const first = buildApp({ db, release: importRelease(db, dir) });
+    const first = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
     await putResume(first, { candidateLessonId: 'FIX-LS-01' });
     await first.close();
 
     // The same start path the real process takes: re-import (a verified no-op) and rebuild.
-    const second = buildApp({ db, release: importRelease(db, dir) });
+    const second = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
     const got = await second.inject({ method: 'GET', url: '/api/resume-point' });
 
     expect(got.json()).toMatchObject({ state: 'set', candidateLessonId: 'FIX-LS-01' });
@@ -396,7 +445,11 @@ describe('the resume point', () => {
 
   it('keeps one pointer only: the lesson opened last wins', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     await putResume(app, { candidateLessonId: 'FIX-LS-01' });
     await putResume(app, { candidateLessonId: 'FIX-LS-02' });
@@ -410,7 +463,11 @@ describe('the resume point', () => {
 
   it('refuses a lesson the release does not carry, names it, and stores nothing', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-99' });
 
@@ -425,7 +482,11 @@ describe('the resume point', () => {
 
   it('refuses a body that does not name a lesson, and stores nothing', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
 
     for (const payload of [{}, { candidateLessonId: 7 }, { candidateLessonId: '' }]) {
       const put = await putResume(app, payload);
@@ -441,7 +502,7 @@ describe('the resume point', () => {
   it('answers the named refusal while the release stands refused, and stores nothing', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
 
     const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
     expect(got.json()).toMatchObject({ state: 'failed', failure: { code: 'file_missing' } });
@@ -455,7 +516,11 @@ describe('the resume point', () => {
 
   it('answers none — without deleting the record — when the stored lesson left the release', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir()) });
+    const app = buildApp({
+      db,
+      release: importRelease(db, releaseDir()),
+      releaseDir: releaseDir(),
+    });
     // A pointer recorded under an earlier release whose lesson this release does not carry. Written
     // directly: the endpoint itself refuses to store an unknown lesson, which is its own test above.
     db.prepare(
@@ -503,7 +568,7 @@ describe('the activities in a lesson answer', () => {
 
   async function lessonAnswer(dir: string, lessonId: string) {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, dir) });
+    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
     const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
     const body = response.json() as Record<string, unknown>;
     await app.close();

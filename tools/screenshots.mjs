@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
+import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -148,6 +149,7 @@ try {
       ? decodeURIComponent(route.path.slice('/lessons/'.length))
       : null;
     let expectedActivities = { activities: 0, fields: 0 };
+    let expectedKit = null;
     if (lessonKey) {
       const answer = await fetch(`${baseUrl}/api/lessons/${encodeURIComponent(lessonKey)}`);
       const body = await answer.json();
@@ -163,6 +165,9 @@ try {
           0,
         ),
       };
+      // The kit this lesson declares, asked of the app for the same reason: a filename written here
+      // would make the gate a test of one package, and the 1.0.1 reissue already moved two kits.
+      expectedKit = body.labKit ?? null;
     }
 
     for (const size of widths) {
@@ -199,6 +204,16 @@ try {
           if (panels !== 'ok') {
             failures.push(`${route.name} (${scheme}) at ${size.width}px: ${panels}`);
           }
+
+          const kit = await checkLabKit(page, expectedKit);
+          if (kit !== 'ok') {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${kit}`);
+          }
+        }
+
+        const copies = await checkCopyButtons(page);
+        if (copies !== 'ok') {
+          failures.push(`${route.name} (${scheme}) at ${size.width}px: ${copies}`);
         }
 
         const overflow = await sidewaysScroll(page);

@@ -159,10 +159,24 @@ describe('the copy button over a code block', () => {
     expect(rule(lessonCss, '.code-block-text')).toMatch(/overflow-x:\s*auto/);
   });
 
+  it('draws its boundary and its label legibly on the code surface', () => {
+    // `--code-bg` is the same dark navy in both schemes, so one measurement covers both. 3:1 for
+    // the boundary (WCAG 1.4.11, the button is a component) and 4.5:1 for the word on it.
+    const declared = rule(lessonCss, '.code-block-copy');
+    const edge = /border:\s*[^;]*var\((--[a-z0-9-]+)/.exec(declared)?.[1];
+    const ink = /(?:^|;)\s*color:\s*var\((--[a-z0-9-]+)/.exec(declared)?.[1];
+
+    expect(edge, '.code-block-copy must draw its boundary from a theme token').toBeDefined();
+    expect(ink, '.code-block-copy must take its ink from a theme token').toBeDefined();
+    expect(contrast(light, edge as string, '--code-bg')).toBeGreaterThanOrEqual(3);
+    expect(contrast(light, ink as string, '--code-bg')).toBeGreaterThanOrEqual(4.5);
+  });
+
   it('keeps the block’s own scroll cue, which marks a sample wider than its box', () => {
     // The cue is how a reader at 375px learns an HTTP request continues past the right edge
-    // (docs/specs/content-release-first-fifteen.md). A header row above the block must not be
-    // where it goes missing.
-    expect(lessonCss).toMatch(/\.code-block(-text)?[^{]*(::after|::before)/);
+    // (docs/specs/content-release-first-fifteen.md). It is a pair of `local`/`scroll` gradients on
+    // the block itself, not a pseudo-element — asserted as the mechanism that is actually there,
+    // because a header row above the block must not be where it goes missing.
+    expect(lessonCss).toMatch(/\.code-block-text[^{]*\{[^}]*linear-gradient/);
   });
 });

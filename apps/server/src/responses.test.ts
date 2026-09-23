@@ -67,8 +67,9 @@ function releaseWith(activities: FixtureActivity[]): string {
 
 function appWith(activities: FixtureActivity[]) {
   db = openDatabase(':memory:');
-  const release: ReleaseState = importRelease(db, releaseWith(activities));
-  return buildApp({ db, release });
+  const dir = releaseWith(activities);
+  const release: ReleaseState = importRelease(db, dir);
+  return buildApp({ db, release, releaseDir: dir });
 }
 
 const oneActivity = [activityRecord()];
@@ -374,7 +375,7 @@ describe('a save the server will not make', () => {
     const fixture = makeFixture();
     fixture.manifest.lessons[0]!.sha256 = 'a'.repeat(64);
     const release: ReleaseState = importRelease(db, writeFixture(dir, fixture));
-    const app = buildApp({ db, release });
+    const app = buildApp({ db, release, releaseDir: dir });
 
     const response = await put(app, 'ACT-FIX-01', 'prediction', {
       text: 'work',

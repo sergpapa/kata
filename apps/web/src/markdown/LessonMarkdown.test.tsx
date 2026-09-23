@@ -111,7 +111,10 @@ describe('fenced code blocks', () => {
     const container = renderMarkdown(md('```', 'just some text', '```'));
 
     expect(container.querySelector('pre > code')?.className).not.toContain('language-');
-    expect(container.textContent?.trim()).toBe('just some text');
+    // Aimed at the label itself rather than at the container's whole text, which now also holds the
+    // Copy button's word. The claim is unchanged and the absence is asserted more directly.
+    expect(container.querySelector('.code-block-language')).toBeNull();
+    expect(container.querySelector('pre')?.textContent?.trim()).toBe('just some text');
   });
 
   it('can be scrolled by keyboard, so a wide block is reachable without a mouse', () => {

@@ -298,7 +298,7 @@ describe('a section that is more than one paragraph', () => {
     expect(bodyOrder(container)).toEqual([
       'h2:4. Read one request, one piece at a time',
       'p:The first paragraph of the section.',
-      'div:httpGET /menu HTTP/1.1',
+      'div:GET /menu HTTP/1.1',
       'p:A closing paragraph after the sample.',
       'h3:First subsection',
       'p:Prose inside the first subsection.',

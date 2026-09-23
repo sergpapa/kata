@@ -7,6 +7,7 @@ import type { Element, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 import { MermaidDiagram } from './MermaidDiagram.js';
+import { CopyBlock } from './CopyBlock.js';
 import { ActivityPanel } from '../activities/ActivityPanel.js';
 import {
   ACTIVITY_AUTHORED_ATTRIBUTE,
@@ -118,14 +119,21 @@ const components: Components = {
   },
 
   /**
-   * The language label sits outside the `pre`, never inside it: text inside the block would become
-   * part of the sample, and these samples are HTTP messages whose every character is the lesson.
+   * The language label and the Copy button share a header row outside the `pre`. Text inside the
+   * block would become part of the sample, and these samples are HTTP messages whose every
+   * character is the lesson.
    */
   pre({ node, children }) {
     const language = fenceLanguage(node);
     const block = (
       <div className="code-block">
-        {language ? <p className="code-block-language">{language}</p> : null}
+        {/* The header, never inside the `pre`: anything in there becomes part of the sample, and
+            these samples are HTTP messages whose every character is the lesson. It also keeps the
+            button clear of the first line, which is the line a reader is looking for. */}
+        <div className="code-block-header">
+          {language ? <p className="code-block-language">{language}</p> : <span />}
+          <CopyBlock source={fenceText(node)} language={language} />
+        </div>
         <pre
           className="code-block-text"
           tabIndex={0}

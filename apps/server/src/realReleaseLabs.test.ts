@@ -104,7 +104,11 @@ describe('the fifteen lessons and their five kits', () => {
         fileName: path.posix.basename(declared?.path ?? ''),
         byteSize: fs.statSync(path.join(releaseDir, declared?.path ?? '')).size,
         sha256: declared?.sha256.toLowerCase(),
-        lessonIds: declared?.lesson_ids,
+        // The order beside each id, because it cannot be got from the id: `LS-M021-01` is lesson 9.
+        lessons: declared?.lesson_ids.map((id) => ({
+          order: manifest.lessons.find((one) => one.lesson_id === id)?.order,
+          candidateLessonId: id,
+        })),
       });
     },
   );

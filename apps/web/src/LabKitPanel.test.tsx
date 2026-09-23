@@ -32,7 +32,11 @@ const sharedKit = {
   fileName: 'HTTP_Lessons_06_08_Local_Kit_v1.zip',
   byteSize: 39167,
   sha256: KIT_SHA,
-  lessonIds: ['LS-M020-06', 'LS-M020-07', 'LS-M020-08'],
+  lessons: [
+    { order: 6, candidateLessonId: 'LS-M020-06' },
+    { order: 7, candidateLessonId: 'LS-M020-07' },
+    { order: 8, candidateLessonId: 'LS-M020-08' },
+  ],
 };
 
 function lessonAnswer(labKit: unknown, order = 6) {
@@ -109,7 +113,14 @@ describe('the kit on a lesson that has one', () => {
 
   it('says nothing about sharing when only this lesson uses the kit', async () => {
     answerWith(
-      lessonAnswer({ ...sharedKit, labId: 'FSSE-HTTP-LAB-02', lessonIds: ['LS-M020-02'] }, 2),
+      lessonAnswer(
+        {
+          ...sharedKit,
+          labId: 'FSSE-HTTP-LAB-02',
+          lessons: [{ order: 2, candidateLessonId: 'LS-M020-02' }],
+        },
+        2,
+      ),
     );
 
     render(<LessonPage candidateLessonId="LS-M020-02" />);

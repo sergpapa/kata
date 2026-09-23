@@ -12,7 +12,7 @@ const db = openDatabase(config.databaseFile);
  * reason so the owner can read it on the page instead of hunting through a terminal.
  */
 const release = importRelease(db, config.releaseDir);
-const app = buildApp({ db, release, webDistDir: config.webDistDir });
+const app = buildApp({ db, release, releaseDir: config.releaseDir, webDistDir: config.webDistDir });
 
 if (release.state === 'failed') {
   console.error(`The learning release was refused: ${release.failure.message}`);

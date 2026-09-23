@@ -1,5 +1,7 @@
 import type { Db } from '../lifecycle/database.js';
+import path from 'node:path';
 import type {
+  StoredLabKit,
   StoredLessonDetail,
   StoredLessonSummary,
   StoredReleaseSummary,
@@ -7,6 +9,19 @@ import type {
 } from './types.js';
 
 /** The only module that may speak SQL about imported content (ADR 0002). */
+
+interface LabKitRow {
+  lab_id: string;
+  lab_version: string;
+  source_path: string;
+  sha256: string;
+  byte_size: number;
+}
+
+interface LabLessonRow {
+  display_order: number;
+  candidate_lesson_id: string;
+}
 
 interface ReleaseRow {
   id: number;
@@ -271,4 +286,48 @@ export function loadActivitySetText(db: Db, releaseRowId: number): string | unde
     .prepare('SELECT source_text FROM content_activity_set WHERE release_row_id = ?')
     .get(releaseRowId) as { source_text: string } | undefined;
   return row?.source_text;
+}
+
+/**
+ * One lab kit of one release, by the id the manifest gave it.
+ *
+ * Looked up rather than resolved: the caller hands over whatever arrived in the URL, and an id with
+ * a traversal in it finds no row instead of becoming a path. Scoped to `releaseRowId` for the same
+ * reason `loadLesson` is — a kit that advanced a version is a new row beside the old one.
+ */
+export function loadLabKit(db: Db, releaseRowId: number, labId: string): StoredLabKit | undefined {
+  const row = db
+    .prepare(
+      `SELECT lab_id, lab_version, source_path, sha256, byte_size
+         FROM content_lab_kit
+        WHERE release_row_id = ? AND lab_id = ?`,
+    )
+    .get(releaseRowId, labId) as LabKitRow | undefined;
+  if (!row) return undefined;
+
+  return {
+    labId: row.lab_id,
+    version: row.lab_version,
+    // POSIX basename explicitly: a release is a portable package whose manifest paths are written
+    // with forward slashes whatever machine reads them.
+    fileName: path.posix.basename(row.source_path),
+    sourcePath: row.source_path,
+    sha256: row.sha256,
+    byteSize: row.byte_size,
+    // Read off the lessons that actually name this kit, in reading order, rather than off the
+    // manifest's own `lesson_ids` list. The importer already refuses a release where those two
+    // disagree, and this way the panel names what the app holds rather than what it was told.
+    lessons: db
+      .prepare(
+        `SELECT display_order, candidate_lesson_id
+           FROM content_lesson
+          WHERE release_row_id = ? AND lab_id = ?
+          ORDER BY display_order`,
+      )
+      .all(releaseRowId, labId)
+      .map((lesson) => ({
+        order: (lesson as LabLessonRow).display_order,
+        candidateLessonId: (lesson as LabLessonRow).candidate_lesson_id,
+      })),
+  };
 }
