@@ -16,6 +16,7 @@ import {
   rehypePlaceActivities,
   type UnplacedActivity,
 } from '../activities/placeActivities.js';
+import type { LessonContext } from '../activities/recoveryFile.js';
 import type { LessonActivity, StoredResponse } from '../releaseTypes.js';
 
 /**
@@ -162,19 +163,40 @@ const components: Components = {
   },
 };
 
+/**
+ * The activity half of this component's props, as a union rather than three loose optionals.
+ *
+ * A panel that renders writing surfaces has to be able to name its lesson, because a recovery file
+ * carries the lesson, the version and the release (docs/specs/save-failure-recovery.md). Expressed
+ * this way, passing `activities` without `lessonContext` is a type error at the composition root
+ * rather than a page that renders a Download nobody can use. The ~55 call sites that render no
+ * activities at all are untouched by it.
+ */
+type ActivityProps =
+  | {
+      readonly activities?: undefined;
+      readonly responses?: undefined;
+      readonly lessonContext?: undefined;
+    }
+  | {
+      /** The lesson's activities, each placed at the end of the section its heading names. */
+      readonly activities: readonly LessonActivity[];
+      /** What the server has stored for those activities, so each box is drawn already filled. */
+      readonly responses?: readonly StoredResponse[] | undefined;
+      /** Which lesson these panels belong to. Named in every file a reader recovers from them. */
+      readonly lessonContext: LessonContext;
+    };
+
 export function LessonMarkdown({
   markdown,
   activities,
   responses,
+  lessonContext,
   headingIds = true,
   onOutline,
   onUnplacedActivities,
 }: {
   readonly markdown: string;
-  /** The lesson's activities, each placed at the end of the section its heading names. */
-  readonly activities?: readonly LessonActivity[];
-  /** What the server has stored for those activities, so each box is drawn already filled. */
-  readonly responses?: readonly StoredResponse[];
   /**
    * Whether headings get anchor ids. False for anything rendered beside the lesson body — a
    * second pass slugs independently, so a prompt heading matching a body heading would put the
@@ -185,7 +207,7 @@ export function LessonMarkdown({
   readonly onOutline?: (entries: readonly OutlineEntry[]) => void;
   /** Called after render with the activities whose section this body does not carry. */
   readonly onUnplacedActivities?: (unplaced: readonly UnplacedActivity[]) => void;
-}) {
+} & ActivityProps) {
   // Written by the collector plugin during the synchronous Markdown pass, read by the effect after
   // commit — a callback fired mid-render would be a state write inside someone else's render.
   const box = useRef<{ entries: OutlineEntry[] }>({ entries: [] });
@@ -222,11 +244,12 @@ export function LessonMarkdown({
             headingText={typeof heading === 'string' ? heading : null}
             authoredHeading={typeof authored === 'string' ? authored : null}
             responses={responses}
+            lessonContext={lessonContext}
           />
         );
       },
     };
-  }, [activities, responses]);
+  }, [activities, responses, lessonContext]);
 
   return (
     <div className="lesson-body">

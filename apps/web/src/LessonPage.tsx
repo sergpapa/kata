@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApi, type ApiResult } from './api.js';
 import { twoDigits } from './format.js';
 import { LessonMarkdown, type OutlineEntry } from './markdown/LessonMarkdown.js';
@@ -6,6 +6,7 @@ import { lessonHref } from './route.js';
 import { RouteLink } from './RouteLink.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
+import type { LessonContext } from './activities/recoveryFile.js';
 import type { UnplacedActivity } from './activities/placeActivities.js';
 import { LabKitPanel } from './LabKitPanel.js';
 import type {
@@ -60,9 +61,11 @@ function sameActivities(
 function UnplacedActivities({
   unplaced,
   responses,
+  lessonContext,
 }: {
   readonly unplaced: readonly UnplacedActivity[];
   readonly responses: readonly StoredResponse[];
+  readonly lessonContext: LessonContext;
 }) {
   if (unplaced.length === 0) return null;
 
@@ -75,6 +78,7 @@ function UnplacedActivities({
           headingText={null}
           notPlaced={reason}
           responses={responses}
+          lessonContext={lessonContext}
         >
           {/* The one place the prompt is rendered, and only when the section is genuinely absent.
               An ambiguous heading means the section IS on the page — twice — so showing the
@@ -109,6 +113,17 @@ type LessonView =
       readonly labKit: LabKit | null;
       readonly activities: readonly LessonActivity[];
       readonly responses: readonly StoredResponse[];
+      /**
+       * What a recovery file says about where an answer came from (criterion F4).
+       *
+       * Built here, once per answer, rather than in the render body — and that placement is
+       * load-bearing, not tidiness. `LessonMarkdown` memoises its component map on this, so a fresh
+       * object every render gives React a new component identity for the activity panels, which
+       * unmounts and remounts every box on the lesson and takes the reader's typed text with it.
+       * Found by `unsavedNavigation.test.tsx`, which noticed a field had gone missing from the
+       * unsaved registry — the visible end of losing twelve boxes of work on any re-render.
+       */
+      readonly lessonContext: LessonContext;
       readonly previous: LessonNeighbour | null;
       readonly next: LessonNeighbour | null;
     }
@@ -132,7 +147,21 @@ function toLessonView(result: ApiResult, candidateLessonId: string): LessonView 
   if (result.status !== 200) {
     return { state: 'unavailable', reason: `The app answered with status ${result.status}.` };
   }
-  if (body?.state === 'failed' || body?.state === 'lesson') return body as LessonView;
+  if (body?.state === 'failed') return body as LessonView;
+  if (body?.state === 'lesson') {
+    const answered = body as Omit<Extract<LessonView, { state: 'lesson' }>, 'lessonContext'>;
+    return {
+      ...answered,
+      lessonContext: {
+        order: answered.lesson.order,
+        candidateLessonId: answered.lesson.candidateLessonId,
+        displayTitle: answered.lesson.displayTitle,
+        contentVersion: answered.lesson.contentVersion,
+        releaseId: answered.release.releaseId,
+        releaseVersion: answered.release.version,
+      },
+    };
+  }
   return { state: 'unavailable', reason: 'The app answered in a shape this page cannot read.' };
 }
 
@@ -228,10 +257,21 @@ function NeighbourNav({
 }
 
 export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: string }) {
-  const view = toLessonView(
-    useApi(`/api/lessons/${encodeURIComponent(candidateLessonId)}`),
-    candidateLessonId,
-  );
+  const answer = useApi(`/api/lessons/${encodeURIComponent(candidateLessonId)}`);
+  /**
+   * One view per answer, not one per render — and this memo is load-bearing, not an optimisation.
+   *
+   * `LessonMarkdown` memoises the component map it hands react-markdown on the activity props, so a
+   * view rebuilt every render gives React a new component identity for the activity panels. React
+   * treats a new type as a different component: it unmounts the old subtree and mounts a fresh one,
+   * and every box on the lesson loses the text the reader had typed into it.
+   *
+   * Until slice 13 this was stable by accident — `toLessonView` returned the parsed body itself, the
+   * same object `useApi` was holding. The moment it derived anything (`lessonContext`), the accident
+   * ended and twelve boxes a lesson became droppable on any re-render. `unsavedNavigation.test.tsx`
+   * caught it as a field missing from the unsaved dialog, 2 runs in 10.
+   */
+  const view = useMemo(() => toLessonView(answer, candidateLessonId), [answer, candidateLessonId]);
 
   // The top bar's trail ends in this page's name, and the authored title is content only this
   // request has seen. Reported before any early return, because a hook cannot be conditional.
@@ -307,7 +347,7 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
     );
   }
 
-  const { lesson, release } = view;
+  const { lesson, release, lessonContext } = view;
   return (
     <article className="card lesson-reader">
       <BackToLessons />
@@ -326,10 +366,15 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
         markdown={lesson.bodyMarkdown}
         activities={view.activities}
         responses={view.responses}
+        lessonContext={lessonContext}
         onOutline={handleOutline}
         onUnplacedActivities={handleUnplaced}
       />
-      <UnplacedActivities unplaced={unplaced} responses={view.responses} />
+      <UnplacedActivities
+        unplaced={unplaced}
+        responses={view.responses}
+        lessonContext={lessonContext}
+      />
       <NeighbourNav previous={view.previous} next={view.next} />
     </article>
   );

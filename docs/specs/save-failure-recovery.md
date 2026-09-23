@@ -10,15 +10,15 @@ unsaved text" to this slice by name; `docs/specs/prediction-history.md` and
 `ResponseHistory.tsx`'s own comment, which defers a copy affordance on an earlier version to this
 slice by name; `docs/roadmap.md` Milestone 2 item 4.
 
-Since slice 10 a refused save keeps the reader's text in the box and says so. That is the *present*
-half of ADR 0004's sentence. The *recoverable* half is still the reader's own selection and Ctrl-C,
+Since slice 10 a refused save keeps the reader's text in the box and says so. That is the _present_
+half of ADR 0004's sentence. The _recoverable_ half is still the reader's own selection and Ctrl-C,
 and there are two places where the app itself takes typed work away: **Use stored** in the conflict
 panel replaces the box with the stored text and nothing survives the press, and a **Leave anyway**
 out of the dialog drops every unsaved box on the lesson. This slice gives the reader a way to get
 their characters out of the app before either of those happens, and out of a failed save at all.
 
 It closes Milestone 2. Nothing here is Export: Export (Milestone 3) carries the owner's
-*acknowledged* work with the review forms, and is a different artefact for a different reader.
+_acknowledged_ work with the review forms, and is a different artefact for a different reader.
 
 ## Facts established before the criteria were written
 
@@ -40,13 +40,15 @@ Measured against the code at commit `5dc6414`:
   `UnplacedActivities` → `ActivityPanel`.
 - **`LessonMarkdown` has 65 render sites across 10 files**, and about 55 of them pass no activities
   at all — they are markdown-rendering tests that have no lesson to name.
-- **`.response-save` and `.response-secondary` carry `padding: 0.4rem 0.9rem` and no `min-height`**,
-  which measures about 30px. That clears WCAG 2.2 SC 2.5.8 (24 × 24) and does not reach the 44px
-  guideline. `docs/specs/lab-downloads.md` already records the same compromise for
-  `.code-block-copy` at 39px, and the acknowledged-saves design review already declined to grow the
-  twelve Save buttons on density grounds.
+- **`.response-save` and `.response-secondary` carry `padding: 0.4rem 0.9rem` and no `min-height`.**
+  ~~This measures about 30px, short of the 44px guideline.~~ **Corrected at Stage 4 by measuring
+  instead of calculating: all three buttons in the row measure exactly 44px in real Chromium at
+  375px.** `.response-actions` is `display: flex` with the default `align-items: stretch`, so every
+  button in the row takes the height of the tallest. The arithmetic above counted padding and line
+  height and never looked at the flex context, which is why an estimate stood in for a measurement
+  and was wrong. The guideline is met, not compromised.
 - **jsdom does not implement `URL.createObjectURL`.** Every download assertion in this slice is
-  therefore about the file's *bytes and name*, stubbed at that boundary — not about the browser
+  therefore about the file's _bytes and name_, stubbed at that boundary — not about the browser
   actually writing a file. That limit is stated in the verification report, not papered over.
 - `stubFetch` in `testkit/responseFieldHarness.tsx` throws on any request it was not queued to
   answer. That strictness is what proves criterion A2 for free.
@@ -61,7 +63,7 @@ Measured against the code at commit `5dc6414`:
    history — ADR 0001 refused device-local state as the architecture, ADR 0004 refused optimistic
    local-first because it shows a state the write has not earned, ADR 0010 refused `localStorage`
    for the resume point. A draft cache would add a second place text can live and a new
-   stale-draft-versus-server question on every load, which is a new way for work to *look* safe.
+   stale-draft-versus-server question on every load, which is a new way for work to _look_ safe.
    **The cost is real and is stated rather than hidden:** a reader who dismisses the browser's own
    refresh warning still loses the text. This slice makes recovery possible, not automatic.
 2. **Three surfaces get a recovery affordance**, because each is a distinct place work is lost: the
@@ -84,11 +86,13 @@ Measured against the code at commit `5dc6414`:
    `unsaved` state has Save right beside it and pressing it is the recovery; adding two permanent
    buttons under all twelve boxes is the density the acknowledged-saves design review already
    declined to add to. A page where nothing has gone wrong gains 0px.
-7. **The new buttons match the existing button family's height rather than reaching 44px.** Same
-   row, same treatment; a row of three where one is 44px and two are 30px reads as broken. The
-   family sits above SC 2.5.8's floor and below the guideline, which is the compromise
-   `docs/specs/lab-downloads.md` already recorded for `.code-block-copy`. These appear only when
-   something has already failed, so they are not a control repeated down a healthy page.
+7. **The new buttons match the existing button family's height.** Same row, same treatment; a row
+   of three where the heights disagree reads as broken. Written expecting that to mean *settling
+   for* about 30px, which is what the fact above assumed — the Stage 4 measurement showed the row
+   stretches every button to the tallest, so all three come out at 44px and the guideline is met
+   outright. The decision stands; only the reason it was thought to cost something was wrong. These
+   appear only once something has already failed, so they are not a control repeated down a healthy
+   page either way.
 
 ## Assumptions
 
@@ -182,7 +186,24 @@ Measured against the code at commit `5dc6414`:
 
 ## Existing tests this slice re-aims or retires
 
-None. No claim already pinned is removed or weakened by this slice.
+**Correction, written during implementation.** This section first said "None", and that was wrong —
+written from the criteria rather than from the suite, and found only when the test went red. One
+test is re-aimed, and the claim it protects is named below with what changed and what did not.
+
+1. `ResponseHistory.test.tsx` — _"offers nothing that would edit, restore or remove an earlier
+   version"_. **Re-aimed, claim unchanged, assertion narrowed to an allow-list.** ADR 0012's rule —
+   nothing edits or deletes a revision, including the app, and there is no Restore — still holds and
+   is still what this test is for. What moved is the _proxy_. When the test was written, an entry
+   had no controls of any kind, so "no buttons at all" and "nothing that mutates" were the same
+   sentence. Decision 5 puts a Copy on each entry, and a Copy takes a revision out of the app
+   without being able to change one, so the emptiness check is now false while the claim is not.
+   The assertion becomes an exact list of the buttons an entry may carry (`['Copy', 'Copy']` for two
+   entries), which fails on a Restore, a Delete or an Edit added later — the three things the test
+   names. Its `textbox` and `contenteditable` halves are untouched.
+
+   Recorded in full because slice 12's own spec recorded the lesson that makes it necessary: a
+   re-aim that keeps a test's name and changes one of its assertions reads, in a diff, like the same
+   test.
 
 Two mechanical changes touch existing test files without changing what they assert, and both are
 listed here so that a diff showing movement in a test file has a stated reason:

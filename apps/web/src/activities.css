@@ -308,3 +308,52 @@
     padding: 0.85rem 0.9rem;
   }
 }
+
+/*
+ * The way out of a box the app could not store.
+ *
+ * Quieter than Save and the same height as it, because they share a row: Save is still the thing to
+ * press, and a taller neighbour beside it would read as the recommended action when it is the
+ * fallback. The family sits above WCAG 2.2 SC 2.5.8's 24x24 floor and below the 44px guideline —
+ * the compromise docs/specs/lab-downloads.md already recorded for .code-block-copy, and these
+ * appear only once something has already failed rather than down a healthy page.
+ */
+.response-recover {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    border-color var(--dur-quick) var(--ease-out);
+}
+
+.response-recover:hover {
+  color: var(--foreground);
+  border-color: var(--foreground);
+}
+
+.response-recover:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* No colour on the refused state. `--state-failed` is already carrying the save's own failure a
+   line above, and a second red word beside it competes with the one that matters. The button says
+   "Could not copy", which is the difference a reader actually reads — the same reasoning
+   .code-block-copy records. */
+.response-recover[data-state='copied'],
+.response-recover[data-state='downloaded'] {
+  color: var(--foreground);
+  border-color: var(--foreground);
+}
+
+/* Inside an opened earlier-versions entry the row is decoration until it is wanted, so it sits
+   tight under the text it copies rather than adding a gap to every entry. */
+.response-version .response-actions {
+  margin-top: 0.35rem;
+}

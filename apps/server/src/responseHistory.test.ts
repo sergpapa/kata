@@ -349,7 +349,10 @@ describe('a save the server refuses outright leaves what is already stored alone
     const app = freshApp();
     await saveAll(app, ['first guess', 'corrected']);
 
-    const answer = await put(app, 'not_a_declared_field', { text: 'anything', expectedRevision: 0 });
+    const answer = await put(app, 'not_a_declared_field', {
+      text: 'anything',
+      expectedRevision: 0,
+    });
 
     // 404 with `field_not_declared`, the contract `responses.test.ts` already pins.
     expect(answer.statusCode).toBe(404);

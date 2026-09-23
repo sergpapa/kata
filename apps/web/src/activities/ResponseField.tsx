@@ -3,7 +3,9 @@ import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 import { setUnsaved } from '../unsavedGuard.js';
 import { storedWhen } from '../format.js';
 import { ConflictPanel } from './ConflictPanel.js';
+import { RecoverActions } from './RecoverActions.js';
 import { ResponseHistory } from './ResponseHistory.js';
+import type { LessonContext, RecoverySubject } from './recoveryFile.js';
 
 /**
  * One recorded field: a box, a state the server decides, and a save the reader asks for.
@@ -70,11 +72,14 @@ export function ResponseField({
   activityId,
   fieldName,
   stored,
+  lessonContext,
 }: {
   readonly activityId: string;
   readonly fieldName: string;
   /** What the server said was stored when this lesson answered. Absent means nothing is. */
   readonly stored?: StoredResponse | undefined;
+  /** Which lesson this box belongs to, so a recovery file can say where the answer came from. */
+  readonly lessonContext: LessonContext;
 }) {
   const label = fieldLabel(fieldName);
   // Unique without `useId`, and deliberately: an activity id appears once on a lesson page and a
@@ -231,6 +236,21 @@ export function ResponseField({
     });
   }
 
+  /**
+   * This answer as it stands right now, for whichever way out the reader takes.
+   *
+   * Rebuilt on every render rather than memoised, and deliberately: the box is a controlled input,
+   * so a render is exactly what a keystroke causes, and the press-time text is the whole claim of
+   * criteria F7 and C1. Memoising it here would be the defect those criteria were written to catch.
+   */
+  const subject: RecoverySubject = {
+    lesson: lessonContext,
+    activityId,
+    fieldName,
+    label,
+    text,
+  };
+
   return (
     <div className="response-field" data-field-name={fieldName} data-state={state}>
       <div className="response-head">
@@ -261,6 +281,7 @@ export function ResponseField({
         <ConflictPanel
           stored={conflict.text}
           scope={scope}
+          mine={subject}
           onUseStored={useStored}
           onKeepMine={save}
         />
@@ -283,6 +304,13 @@ export function ResponseField({
           >
             {inFlight ? 'Saving…' : 'Save'}
           </button>
+
+          {/* Only here, and only in this state (decision 6). A box in the plain unsaved state has
+              Save an inch away and pressing it is the recovery; two more controls under all twelve
+              boxes is height on a page where nothing has gone wrong. */}
+          {state === 'failed' && (
+            <RecoverActions subject={subject} scope={scope} offerDownload={true} />
+          )}
         </p>
       )}
 
@@ -294,6 +322,7 @@ export function ResponseField({
         label={label}
         activityId={activityId}
         fieldName={fieldName}
+        lessonContext={lessonContext}
       />
     </div>
   );

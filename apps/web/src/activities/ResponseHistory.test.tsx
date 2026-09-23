@@ -160,11 +160,26 @@ describe('the earlier-versions disclosure', () => {
     expect(entries[1]?.textContent).toContain('1.0.0-draft');
   });
 
+  /**
+   * **Re-aimed in slice 13, and the claim is unchanged.** ADR 0012 says nothing edits or deletes a
+   * revision, including the app, and there is no Restore. What moved is the proxy: when this was
+   * written, "no buttons at all" and "nothing that mutates" were the same sentence, because the
+   * entry had no controls of any kind. Since `docs/specs/save-failure-recovery.md` decision 5 each
+   * entry carries a Copy, which takes a revision *out* of the app and cannot change one.
+   *
+   * So the assertion is now an exact allow-list rather than an emptiness check. That is the
+   * strongest true form of the same claim: a Restore, a Delete or an Edit added later fails this,
+   * which is what the test is for. The textbox and `contenteditable` halves are untouched.
+   */
   it('offers nothing that would edit, restore or remove an earlier version', () => {
     const { container } = renderPanel({}, [stored({ earlierVersions: twoEarlier })]);
 
     const history = historyOf(container, 'prediction') as HTMLDetailsElement;
-    expect(within(history).queryAllByRole('button')).toEqual([]);
+    expect(
+      within(history)
+        .queryAllByRole('button')
+        .map((one) => one.textContent?.trim()),
+    ).toEqual(['Copy', 'Copy']);
     expect(within(history).queryAllByRole('textbox')).toEqual([]);
     expect(history.querySelectorAll('[contenteditable]')).toHaveLength(0);
   });

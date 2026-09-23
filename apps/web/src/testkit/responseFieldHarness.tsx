@@ -1,8 +1,7 @@
 import { afterEach, vi } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
-import { activity, lessonBody, panelOf } from './activityFixture.js';
-import type { LessonContext } from '../activities/recoveryFile.js';
+import { activity, lessonBody, lessonContext, panelOf } from './activityFixture.js';
 import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 
 /**
@@ -109,19 +108,7 @@ export const offline = () => async () => {
 /** Never settles, so a test can look at the page while the request is still in flight. */
 export const inFlight = () => () => new Promise<Response>(() => {});
 
-/**
- * Which lesson the panel under test belongs to. Required wherever activities are rendered since
- * slice 13: a recovery file names the lesson, the version and the release, and a page that cannot
- * name them has nothing to write into one.
- */
-export const lessonContext: LessonContext = {
-  order: 4,
-  candidateLessonId: 'LS-FIX-01',
-  displayTitle: 'How a request is shaped',
-  contentVersion: '1.0.0-draft',
-  releaseId: 'FSSE-FIX',
-  releaseVersion: '1.0.1-draft',
-};
+export { lessonContext };
 
 export function renderPanel(
   over: Parameters<typeof activity>[0] = {},
@@ -196,11 +183,11 @@ export function stubDownloads(mode: DownloadMode = 'ok') {
     url.revokeObjectURL = (href: string) => revoked.push(href);
   }
 
-  const click = vi
-    .spyOn(HTMLAnchorElement.prototype, 'click')
-    .mockImplementation(function (this: HTMLAnchorElement) {
-      clicked.push({ name: this.download, href: this.href });
-    });
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
+    clicked.push({ name: this.download, href: this.href });
+  });
 
   return {
     clicked,
@@ -242,12 +229,19 @@ export function buttonWords(scope: HTMLElement): string[] {
   return [...scope.querySelectorAll('button')].map((one) => one.textContent?.trim() ?? '');
 }
 
+/*
+ * Both locators name every word the control can be showing, because the accessible name tracks the
+ * state — so a test about the refused outcome has to be able to find the control that refused.
+ * These are locators, not claims: what each state *says* is asserted in the tests themselves.
+ */
 export function copyButton(scope: HTMLElement): HTMLElement {
-  return within(scope).getByRole('button', { name: /^cop/i });
+  return within(scope).getByRole('button', { name: /^(copy|copied|could not copy)\b/i });
 }
 
 export function downloadButton(scope: HTMLElement): HTMLElement {
-  return within(scope).getByRole('button', { name: /^(download|could not download)/i });
+  return within(scope).getByRole('button', {
+    name: /^(download|downloaded|could not download)\b/i,
+  });
 }
 
 export function stored(over: Partial<StoredResponse> = {}): StoredResponse {

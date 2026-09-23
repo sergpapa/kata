@@ -5,6 +5,9 @@
  * it. Nothing about it changed in the move; the tests already on it are what prove that.
  */
 
+import { RecoverActions } from './RecoverActions.js';
+import type { RecoverySubject } from './recoveryFile.js';
+
 /**
  * Both texts, side by side, and the reader decides. Keep mine re-sends against the revision the
  * conflict reported — a deliberate overwrite they asked for, which is not the silent one ADR 0004
@@ -17,12 +20,22 @@
 export function ConflictPanel({
   stored,
   scope,
+  mine,
   onUseStored,
   onKeepMine,
 }: {
   /** null when the server reported holding nothing at all for this field. */
   readonly stored: string | null;
   readonly scope: string;
+  /**
+   * The reader's own answer, as the box holds it now — not the stored text shown above it.
+   *
+   * Use stored is the one control in this app that destroys typed work, and until slice 13 it was
+   * the only thing on offer beside it. Passed live rather than captured when the conflict arrived,
+   * because the box stays editable through this panel and reading the stored text is exactly what
+   * makes somebody improve their own (criterion C1).
+   */
+  readonly mine: RecoverySubject;
   readonly onUseStored: () => void;
   readonly onKeepMine: () => void;
 }) {
@@ -43,6 +56,12 @@ export function ConflictPanel({
       )}
 
       <p className="response-conflict-label">What you typed here, still in the box above</p>
+
+      {/* Above the choice, not below it: one of the two buttons underneath replaces the box, and a
+          way to keep what it replaces has to be visible before the press, not after it. */}
+      <p className="response-actions">
+        <RecoverActions subject={mine} scope={scope} offerDownload={true} />
+      </p>
 
       <p className="response-actions">
         <button

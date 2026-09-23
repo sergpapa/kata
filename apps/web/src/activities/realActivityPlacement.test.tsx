@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import type { LessonActivity } from '../releaseTypes.js';
+import { lessonContext } from '../testkit/activityFixture.js';
 
 /**
  * Criterion P4 in docs/specs/activity-placement.md: all 45 activities, against the author's own
@@ -85,6 +86,7 @@ describe('the author’s own forty-five activities, placed', () => {
       const { container } = render(
         <LessonMarkdown
           markdown={bodyOf(lessonPath)}
+          lessonContext={lessonContext}
           activities={activities}
           onUnplacedActivities={unplaced}
         />,
@@ -157,7 +159,11 @@ describe('the author’s own forty-five activities, placed', () => {
     const lesson = manifest.lessons[0] as ManifestLesson;
     const activities = activitiesFor(lesson.lesson_id);
     const { container } = render(
-      <LessonMarkdown markdown={bodyOf(lesson.path)} activities={activities} />,
+      <LessonMarkdown
+        markdown={bodyOf(lesson.path)}
+        activities={activities}
+        lessonContext={lessonContext}
+      />,
     );
 
     await waitFor(() => expect(container.querySelectorAll('.activity-panel')).toHaveLength(3));

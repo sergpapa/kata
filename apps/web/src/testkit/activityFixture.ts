@@ -1,4 +1,5 @@
 import type { LessonActivity } from '../releaseTypes.js';
+import type { LessonContext } from '../activities/recoveryFile.js';
 
 /**
  * The fixtures the activity tests share: one activity, one lesson body with the shapes that matter,
@@ -7,6 +8,23 @@ import type { LessonActivity } from '../releaseTypes.js';
  * Shared rather than duplicated because `lessonBody`'s exact headings are load-bearing in both
  * files — a copy that drifted by one word would make one suite quietly assert nothing.
  */
+
+/**
+ * Which lesson the panels under test belong to. Required wherever activities render since slice 13:
+ * a recovery file names the lesson, the version and the release, and a page that cannot name them
+ * has nothing to write into one (docs/specs/save-failure-recovery.md).
+ *
+ * Here rather than in `responseFieldHarness`, because the placement suites need it too and they
+ * must not pick up that file's `afterEach`.
+ */
+export const lessonContext: LessonContext = {
+  order: 4,
+  candidateLessonId: 'LS-FIX-01',
+  displayTitle: 'How a request is shaped',
+  contentVersion: '1.0.0-draft',
+  releaseId: 'FSSE-FIX',
+  releaseVersion: '1.0.1-draft',
+};
 
 export function activity(over: Partial<LessonActivity> = {}): LessonActivity {
   return {

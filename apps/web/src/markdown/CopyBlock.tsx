@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCopyToClipboard } from '../clipboard.js';
 
 /**
  * The Copy button that sits on every fenced code block.
@@ -12,11 +12,6 @@ import { useEffect, useRef, useState } from 'react';
  * trusting React's text nodes to have preserved whitespace that is load-bearing in an HTTP message.
  */
 
-/** How long "Copied" stays up before the button offers Copy again. */
-const SETTLE_MS = 2000;
-
-type State = 'idle' | 'copied' | 'failed';
-
 export function CopyBlock({
   source,
   language,
@@ -25,34 +20,10 @@ export function CopyBlock({
   /** The fence's info string, or undefined for a bare fence. Names the sample for a screen reader. */
   readonly language: string | undefined;
 }) {
-  const [state, setState] = useState<State>('idle');
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timer.current !== null) clearTimeout(timer.current);
-    };
-  }, []);
-
-  async function copy(): Promise<void> {
-    try {
-      // Read at press time, not at mount: a clipboard can be absent over plain HTTP and can be
-      // denied by permission, and either way the answer belongs to this press.
-      const clipboard = navigator.clipboard;
-      if (!clipboard?.writeText) throw new Error('This browser gave the page no clipboard.');
-      await clipboard.writeText(source);
-      setState('copied');
-    } catch {
-      // Named, never swallowed. A button that reports nothing is a button the reader believes
-      // worked — the same false success ADR 0004 forbids for saves, in a smaller place.
-      setState('failed');
-    }
-    // Cleared here rather than on the way in: a second press while the first write is still in
-    // flight would otherwise leave the first press's timer running with nothing holding it, so it
-    // fires inside the second press's window and reports the second copy as over before it was.
-    if (timer.current !== null) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setState('idle'), SETTLE_MS);
-  }
+  // Shared with the recovery controls on a failed save since slice 13. Every decision this button
+  // paid for — the press-time read, the named refusal, the timer cleared on the way out — now lives
+  // in `clipboard.ts`, and this file's own tests are what prove the move changed nothing.
+  const { state, copy } = useCopyToClipboard();
 
   const label = state === 'copied' ? 'Copied' : state === 'failed' ? 'Could not copy' : 'Copy';
   const what = language ? `the ${language} sample` : 'this sample';
@@ -69,7 +40,7 @@ export function CopyBlock({
         // The visible word is the same on 155 buttons; the accessible name says which sample.
         aria-label={opening ? `${label} ${what} starting ${opening}` : `${label} ${what}`}
         data-state={state}
-        onClick={() => void copy()}
+        onClick={() => copy(source)}
       >
         {label}
       </button>

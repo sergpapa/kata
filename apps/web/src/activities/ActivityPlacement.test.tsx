@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import type { LessonActivity } from '../releaseTypes.js';
-import { activity, bodyOrder, lessonBody } from '../testkit/activityFixture.js';
+import { activity, bodyOrder, lessonBody, lessonContext } from '../testkit/activityFixture.js';
 
 /**
  * Criterion P and U in docs/specs/activity-placement.md: an activity's panel lands at the end of
@@ -21,6 +21,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-A' }),
           activity({
@@ -53,6 +54,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-LAST',
@@ -70,6 +72,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-LASTSUB',
@@ -90,6 +93,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-A', promptMarkdown: 'A prompt nobody should see twice.' }),
         ]}
@@ -104,7 +108,12 @@ describe('where an activity panel lands', () => {
   it('places nothing and reports nothing when the lesson carries no activities', () => {
     const unplaced = vi.fn();
     const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[]} onUnplacedActivities={unplaced} />,
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[]}
+        onUnplacedActivities={unplaced}
+        lessonContext={lessonContext}
+      />,
     );
 
     expect(container.querySelectorAll('.activity-panel')).toHaveLength(0);
@@ -117,6 +126,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[activity({ activityId: 'ACT-A' })]}
         onOutline={withActivities}
       />,
@@ -135,6 +145,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={body}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-RAW',
@@ -158,6 +169,7 @@ describe('where an activity panel lands', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={body}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-RENDERED',
@@ -182,6 +194,7 @@ describe('an activity whose section is not there', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-A' }),
           activity({
@@ -210,6 +223,7 @@ describe('an activity whose section is not there', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={body}
+        lessonContext={lessonContext}
         activities={[activity({ activityId: 'ACT-TWICE', sourceHeading: 'Practice A' })]}
         onUnplacedActivities={unplaced}
       />,
@@ -238,6 +252,7 @@ describe('an activity whose section is not there', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={activities}
         onUnplacedActivities={unplaced}
       />,
@@ -285,6 +300,7 @@ describe('a section that is more than one paragraph', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={richBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-WHOLE',
@@ -314,6 +330,7 @@ describe('a section that is more than one paragraph', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={richBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-SUB',
@@ -346,6 +363,7 @@ describe('a section that is more than one paragraph', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={diagramBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-DIAGRAM',
@@ -376,6 +394,7 @@ describe('the review findings in the renderer', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-SECOND', sourceHeading: 'Practice explanations' }),
           activity({ activityId: 'ACT-THIRD', sourceHeading: 'Practice explanations' }),
@@ -399,6 +418,7 @@ describe('the review findings in the renderer', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={body}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-PARENT', sourceHeading: 'Parent' }),
           activity({ activityId: 'ACT-CHILD', sourceHeading: 'Child' }),

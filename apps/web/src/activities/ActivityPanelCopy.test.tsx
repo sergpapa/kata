@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
-import { activity, lessonBody, panelOf } from '../testkit/activityFixture.js';
+import { activity, lessonBody, lessonContext, panelOf } from '../testkit/activityFixture.js';
 
 /**
  * Criterion C in docs/specs/activity-placement.md: what an activity panel says, and what it must
@@ -15,6 +15,7 @@ describe('what the panel says', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[activity({ activityId: 'ACT-A', kind: 'prediction_and_observation' })]}
       />,
     );
@@ -29,7 +30,11 @@ describe('what the panel says', () => {
     // the fields; that sentence is gone, and the claim lands on the labelled controls the reader
     // actually meets, which is where the order matters.
     const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A' })]}
+        lessonContext={lessonContext}
+      />,
     );
 
     const labels = [...panelOf(container, 'ACT-A').querySelectorAll('.response-field label')].map(
@@ -47,6 +52,7 @@ describe('what the panel says', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-A', kind: 'sketch_and_defend', responseFields: ['sketch'] }),
         ]}
@@ -64,7 +70,11 @@ describe('what the panel says', () => {
     // stronger: the word is tied to a server acknowledgement rather than forbidden outright. The
     // other words stay forbidden — nothing in this app submits, completes or grades anything.
     const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A' })]}
+        lessonContext={lessonContext}
+      />,
     );
 
     const text = panelOf(container, 'ACT-A').textContent ?? '';
@@ -84,7 +94,11 @@ describe('what the panel says', () => {
     // keeps nothing was the dishonesty worth refusing; a box backed by an acknowledged write is the
     // thing Milestone 2 exists to build.
     const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A' })]}
+        lessonContext={lessonContext}
+      />,
     );
 
     const panel = panelOf(container, 'ACT-A');
@@ -94,7 +108,11 @@ describe('what the panel says', () => {
 
   it('does not repeat the title when it is the heading the panel sits under', () => {
     const { container } = render(
-      <LessonMarkdown markdown={lessonBody} activities={[activity({ activityId: 'ACT-A' })]} />,
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A' })]}
+        lessonContext={lessonContext}
+      />,
     );
 
     expect(panelOf(container, 'ACT-A').textContent).not.toContain(
@@ -106,6 +124,7 @@ describe('what the panel says', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({ activityId: 'ACT-A', title: 'Record your reading of the exchange' }),
         ]}
@@ -138,6 +157,7 @@ describe('the review findings in the panel', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={body}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-RAW',
@@ -157,6 +177,7 @@ describe('the review findings in the panel', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[activity({ activityId: 'ACT-NONE', responseFields: [] })]}
       />,
     );
@@ -170,6 +191,7 @@ describe('the review findings in the panel', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[activity({ activityId: 'ACT-A', kind: 'prediction_and_observation' })]}
       />,
     );

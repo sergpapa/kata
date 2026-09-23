@@ -1,5 +1,7 @@
 import type { EarlierVersion } from '../releaseTypes.js';
 import { storedWhen } from '../format.js';
+import { RecoverActions } from './RecoverActions.js';
+import type { LessonContext } from './recoveryFile.js';
 
 /**
  * What the owner wrote before, under the box that replaced it (ADR 0012).
@@ -9,19 +11,26 @@ import { storedWhen } from '../format.js';
  * panels a lesson before the owner has written anything.
  *
  * Read-only by design and not by omission: there is no Restore here. Putting an earlier text back
- * in the box is a copy affordance, and copying work out of this app is the next slice's subject.
+ * in the box is a copy affordance, and since slice 13 that is exactly what each entry offers — a
+ * Copy, and the reader pastes it wherever they want it. There is no Download: this text is on the
+ * server already and is the one text on the page that cannot be lost, so a file per revision would
+ * be machinery for a danger that does not exist here (docs/specs/save-failure-recovery.md,
+ * decision 5).
  */
 export function ResponseHistory({
   earlierVersions,
   label,
   activityId,
   fieldName,
+  lessonContext,
 }: {
   /** Newest first, as the server orders them. Never the text the box now holds. */
   readonly earlierVersions: readonly EarlierVersion[];
   readonly label: string;
   readonly activityId: string;
   readonly fieldName: string;
+  /** Carried so a copied revision keeps the same shape of provenance a recovered answer has. */
+  readonly lessonContext: LessonContext;
 }) {
   if (earlierVersions.length === 0) return null;
 
@@ -53,6 +62,21 @@ export function ResponseHistory({
                   untrusted as lesson content is (ADR 0005), and `pre` keeps the whitespace they
                   typed — wrapped, because this is prose in a narrow column and not a sample. */}
               <pre className="response-version-text">{version.text}</pre>
+              <p className="response-actions">
+                <RecoverActions
+                  subject={{
+                    lesson: lessonContext,
+                    activityId,
+                    fieldName,
+                    label,
+                    text: version.text,
+                  }}
+                  // The revision, because a field can show several of these at once and "Copy your
+                  // prediction" three times over names none of them.
+                  scope={`revision ${version.revision} of ${label}, ${activityId}`}
+                  offerDownload={false}
+                />
+              </p>
             </li>
           );
         })}

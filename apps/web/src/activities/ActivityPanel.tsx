@@ -1,4 +1,5 @@
 import type { LessonActivity, StoredResponse } from '../releaseTypes.js';
+import type { LessonContext } from './recoveryFile.js';
 import type { UnplacedReason } from './placeActivities.js';
 import { ResponseField } from './ResponseField.js';
 
@@ -41,6 +42,7 @@ export function ActivityPanel({
   authoredHeading,
   notPlaced,
   responses,
+  lessonContext,
   children,
 }: {
   readonly activity: LessonActivity;
@@ -51,6 +53,12 @@ export function ActivityPanel({
   readonly notPlaced?: UnplacedReason;
   /** What the server has stored for this activity. Absent fields have nothing stored. */
   readonly responses?: readonly StoredResponse[] | undefined;
+  /**
+   * Which lesson this panel belongs to. Required, not defaulted: every box here can be asked for a
+   * recovery file, and a file that cannot name its lesson, version and release is not one anybody
+   * can place back a week later (docs/specs/save-failure-recovery.md, criterion F4).
+   */
+  readonly lessonContext: LessonContext;
   /** The rendered prompt, supplied only where the authored section is not on the page. */
   readonly children?: React.ReactNode;
 }) {
@@ -89,6 +97,7 @@ export function ActivityPanel({
           stored={responses?.find(
             (one) => one.activityId === activity.activityId && one.fieldName === fieldName,
           )}
+          lessonContext={lessonContext}
         />
       ))}
     </aside>

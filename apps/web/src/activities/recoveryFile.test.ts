@@ -129,9 +129,7 @@ describe('the reader’s own text inside the file', () => {
 
 describe('what the file is called', () => {
   it('names the lesson, the activity and the field, and ends .md', () => {
-    expect(recoveryFileName(subject())).toBe(
-      'unsaved-lesson-04-ACT-M020-04-02-prediction.md',
-    );
+    expect(recoveryFileName(subject())).toBe('unsaved-lesson-04-ACT-M020-04-02-prediction.md');
   });
 
   it('pads the lesson number, so a folder of fifteen sorts the way they are read', () => {
@@ -152,7 +150,9 @@ describe('what the file is called', () => {
   });
 
   it('collapses runs and trims, so no name ends in a dangling dash', () => {
-    const name = recoveryFileName(subject({ activityId: '  ACT -- 07  ', fieldName: 'prediction' }));
+    const name = recoveryFileName(
+      subject({ activityId: '  ACT -- 07  ', fieldName: 'prediction' }),
+    );
 
     expect(name).toBe('unsaved-lesson-04-ACT-07-prediction.md');
   });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, waitFor, within } from '@testing-library/react';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
-import { activity, lessonBody, panelOf } from '../testkit/activityFixture.js';
+import { activity, lessonBody, lessonContext, panelOf } from '../testkit/activityFixture.js';
 import {
   boxOf,
   fieldOf,
@@ -59,6 +59,7 @@ describe('the writing surfaces on a panel', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-A',
@@ -87,6 +88,7 @@ describe('the writing surfaces on a panel', () => {
     const { container } = render(
       <LessonMarkdown
         markdown={lessonBody}
+        lessonContext={lessonContext}
         activities={[
           activity({
             activityId: 'ACT-NONE',
