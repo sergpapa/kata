@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import type { StoredResponse } from '../releaseTypes.js';
 import { setUnsaved } from '../unsavedGuard.js';
 
@@ -134,12 +134,19 @@ export function ResponseField({
 
   // What the navigation guard is holding. Registered by key so the dialog can name it, and cleared
   // on unmount — a registry the last caller forgot to leave would block every later navigation.
+  //
+  // A layout effect, not a passive one, because of *who reads this*. Three synchronous handlers do:
+  // the link veto in `navigate()`, the `popstate` handler, and `beforeunload`. Any of them can fire
+  // in the very next task after a commit, so the registry has to agree with the DOM that commit
+  // produced rather than trail it by a scheduler tick. Written passively, a field that has just
+  // rendered itself `saved` is still registered as unsaved for one task, and a click or a refresh
+  // arriving inside that task is refused over work that is safe.
   const guardKey = `${activityId}/${fieldName}`;
   const unsaved = !matchesAcknowledged;
-  useEffect(() => {
+  useLayoutEffect(() => {
     setUnsaved(guardKey, unsaved ? { label, activityId } : null);
   }, [guardKey, unsaved, label, activityId]);
-  useEffect(() => () => setUnsaved(guardKey, null), [guardKey]);
+  useLayoutEffect(() => () => setUnsaved(guardKey, null), [guardKey]);
 
   /** One save attempt against a revision the caller names. Returns nothing; it sets the state. */
   async function send(body: string, expectedRevision: number): Promise<void> {

@@ -42,17 +42,21 @@ export function UnsavedDialog() {
     };
   }, []);
 
-  // The refresh and tab-close path, registered only while there is something to lose. An always-on
-  // handler makes every ordinary page reload ask a question with no answer behind it.
+  // The refresh and tab-close path. The listener is attached for as long as this dialog is mounted
+  // and asks the registry at the moment the browser asks it, rather than being attached and
+  // detached as the answer changes. Attaching a listener is not what makes a reload ask a question
+  // — only `preventDefault()` is — and deciding at registration time means deciding from a
+  // re-render that has not happened yet: a save that has just landed would still stop the refresh
+  // after it.
   useEffect(() => {
-    if (entries.length === 0) return;
     function onBeforeUnload(event: BeforeUnloadEvent): void {
+      if (!hasUnsaved()) return;
       event.preventDefault();
       event.returnValue = '';
     }
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [entries.length]);
+  }, []);
 
   useEffect(() => {
     if (pending === null) return;
