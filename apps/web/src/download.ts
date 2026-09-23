@@ -46,7 +46,18 @@ export function useFileDownload(): {
       const anchor = document.createElement('a');
       anchor.href = href;
       anchor.download = fileName;
-      anchor.click();
+      // In the document for the press, and out again straight after. Chromium obliges a detached
+      // anchor; Firefox and several WebViews ignore the click entirely, so the reader would be
+      // told "Downloaded" and get no file — the exact false success this whole slice exists to
+      // prevent, in the control meant to prevent it. Hidden, because it is machinery and not
+      // something anybody should see land on the page.
+      anchor.style.display = 'none';
+      document.body.append(anchor);
+      try {
+        anchor.click();
+      } finally {
+        anchor.remove();
+      }
       setState('downloaded');
     } catch {
       setState('failed');
@@ -64,17 +75,24 @@ export function useFileDownload(): {
   return { state, download };
 }
 
+/** Long enough that no browser is still reading the blob, short enough to be unmistakably a hand-back. */
+const REVOKE_AFTER_MS = 60_000;
+
 /**
  * Release the object URL, but not in the same task that clicked the anchor.
  *
- * Revoking immediately after `click()` is the common shortcut and it races the browser: in some
- * browsers the download is still reading the blob when the URL goes away, and the reader gets an
- * empty or failed file for no reason they can see. A task later is enough, and never clearing this
- * timer is deliberate — an unmounted component must still give the URL back, and this touches no
- * React state, so it is safe to let it run.
+ * Revoking beside `click()` is the common shortcut and it races the browser: the download may still
+ * be reading the blob when the URL goes away, and the reader gets an empty file and a button that
+ * says Downloaded. A single task later — `setTimeout(…, 0)` — was the first fix and is still a
+ * race, because nothing promises the read has started by then. A minute is not a guess at the read
+ * time; it is long enough that no read is outstanding, and the cost of holding one recovery file's
+ * bytes that long is a few kilobytes of somebody's own prose.
+ *
+ * Never cleared, deliberately: an unmounted component must still give the URL back, and this
+ * touches no React state, so it is safe to let it run.
  */
 function revokeSoon(href: string): void {
   setTimeout(() => {
     if (typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(href);
-  }, 0);
+  }, REVOKE_AFTER_MS);
 }

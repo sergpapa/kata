@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, waitFor, within } from '@testing-library/react';
 import {
   boxOf,
   buttonWords,
@@ -21,8 +21,11 @@ import {
   stubDownloads,
   stubFetch,
   stubNoClipboard,
+  stubDeferredClipboard,
   conflict as conflictAnswer,
 } from '../testkit/responseFieldHarness.js';
+import { activity, lessonBody } from '../testkit/activityFixture.js';
+import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 
 /**
  * Criteria F1–F7, C1, H1–H2, A2, D1 and D3 in docs/specs/save-failure-recovery.md.
@@ -264,13 +267,23 @@ describe('F6 — a download that cannot happen says so, and one that can leaves 
   });
 
   it('revokes the object URL it made, so a lesson of failed saves leaks none', async () => {
-    const downloads = stubDownloads();
-    const { field } = await failASave();
+    // Fake timers because the revoke is deliberately a long way after the press: revoking beside
+    // the click races the browser still reading the blob (review finding 2), so the hand-back waits
+    // out any possible read rather than guessing at one. The claim is unchanged — the URL is given
+    // back — only the clock is.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const downloads = stubDownloads();
+      const { field } = await failASave();
 
-    fireEvent.click(downloadButton(field));
+      fireEvent.click(downloadButton(field));
+      await waitFor(() => expect(downloads.clicked).toHaveLength(1));
+      await vi.advanceTimersByTimeAsync(120_000);
 
-    await waitFor(() => expect(downloads.clicked).toHaveLength(1));
-    await waitFor(() => expect(downloads.revoked).toEqual([downloads.clicked[0]?.href]));
+      expect(downloads.revoked).toEqual([downloads.clicked[0]?.href]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -509,5 +522,179 @@ describe('D1, D3 — reachable, named and announced', () => {
     const { field } = await failASave();
 
     expect(within(field).getByText(/your text is still here/i)).toBeTruthy();
+  });
+});
+
+/**
+ * The review findings, pinned before they were fixed.
+ *
+ * Four of these came out of `/code-review` and test-guardian POST at the end of this slice, and
+ * every one of them is a way for a control to *say* it worked when it did not — which is the exact
+ * dishonesty ADR 0004 forbids of a save, in the machinery meant to rescue one.
+ */
+describe('the review findings', () => {
+  it('clicks an anchor that is actually in the document, or no browser starts the download', async () => {
+    const downloads = stubDownloads();
+    const { field } = await failASave();
+
+    fireEvent.click(downloadButton(field));
+
+    await waitFor(() => expect(downloads.clicked).toHaveLength(1));
+    // Chromium obliges a detached anchor; Firefox and several WebViews ignore it and the reader
+    // gets "Downloaded" and no file. Found by `/code-review`, invisible to every other test here
+    // because the jsdom stub records the press either way.
+    expect(downloads.clicked[0]?.connected).toBe(true);
+  });
+
+  it('leaves no anchor of its own behind on the page', async () => {
+    stubDownloads();
+    const { field, container } = await failASave();
+    const before = container.ownerDocument.querySelectorAll('a[download]').length;
+
+    fireEvent.click(downloadButton(field));
+    fireEvent.click(downloadButton(field));
+
+    await waitFor(() =>
+      expect(container.ownerDocument.querySelectorAll('a[download]')).toHaveLength(before),
+    );
+  });
+
+  it('does not revoke the file’s URL while the browser could still be reading it', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const downloads = stubDownloads();
+      const { field } = await failASave();
+
+      fireEvent.click(downloadButton(field));
+
+      // Revoking beside the click, or a single task after it, races the browser still reading the
+      // blob: the reader gets an empty file and a button that says Downloaded.
+      expect(downloads.revoked).toEqual([]);
+      await vi.advanceTimersByTimeAsync(1_000);
+      expect(downloads.revoked).toEqual([]);
+
+      await vi.advanceTimersByTimeAsync(120_000);
+      expect(downloads.revoked).toEqual([downloads.clicked[0]?.href]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('reports the press the reader made last, not the one that answers last', async () => {
+    const pending = stubDeferredClipboard();
+    const { container, field } = await failASave('first text');
+
+    fireEvent.click(copyButton(field));
+    fireEvent.change(boxOf(container, 'prediction'), { target: { value: 'second text' } });
+    fireEvent.click(copyButton(field));
+    await waitFor(() => expect(pending).toHaveLength(2));
+
+    // The newer press succeeds; the older one then fails. Without a guard the stale answer lands
+    // last and writes "Could not copy" over a copy that worked — the reader re-copies text that is
+    // already on their clipboard, or worse, believes the one that failed.
+    pending[1]?.resolve();
+    await waitFor(() => expect(copyButton(field).textContent).toMatch(/copied/i));
+    pending[0]?.reject();
+
+    await new Promise((settle) => setTimeout(settle, 0));
+    expect(copyButton(field).textContent).toMatch(/copied/i);
+    expect(copyButton(field).textContent).not.toMatch(/could not/i);
+  });
+
+  it('does not let a stale success overwrite a fresher refusal either', async () => {
+    const pending = stubDeferredClipboard();
+    const { field } = await failASave();
+
+    fireEvent.click(copyButton(field));
+    fireEvent.click(copyButton(field));
+    await waitFor(() => expect(pending).toHaveLength(2));
+
+    pending[1]?.reject();
+    await waitFor(() => expect(copyButton(field).textContent).toMatch(/could not copy/i));
+    pending[0]?.resolve();
+
+    await new Promise((settle) => setTimeout(settle, 0));
+    expect(copyButton(field).textContent).toMatch(/could not copy/i);
+  });
+
+  it('does not let an earlier press’s settle timer cut short a later press’s outcome', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      stubClipboard();
+      const { field } = await failASave();
+
+      fireEvent.click(copyButton(field));
+      await waitFor(() => expect(copyButton(field).textContent).toMatch(/copied/i));
+      await vi.advanceTimersByTimeAsync(1500);
+
+      fireEvent.click(copyButton(field));
+      await waitFor(() => expect(copyButton(field).textContent).toMatch(/copied/i));
+      // 2100ms after the first press, 600ms after the second. The first press's timer is due here
+      // and must have been cleared: left running it resets the button while the second press's
+      // "Copied" is still the truth. `clipboard.ts` clears on the way out for exactly this, and
+      // test-guardian POST found that deleting that line broke no test in the repo.
+      await vi.advanceTimersByTimeAsync(600);
+
+      expect(copyButton(field).textContent).toMatch(/copied/i);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+/**
+ * The defect this slice found in somebody else's code, kept so it cannot come back.
+ *
+ * `LessonMarkdown` builds the component map it hands react-markdown inside a `useMemo`. React
+ * compares elements by their component's *identity*, so a rebuilt map is a different component
+ * type: the activity panels are unmounted and mounted afresh, and every box on the lesson drops the
+ * text in it. Until this slice that map's inputs were stable by accident, because `toLessonView`
+ * returned the parsed body itself; the moment it derived anything the accident ended.
+ *
+ * Memoising the view fixed the trigger. It does not fix the hazard — React documents a `useMemo`
+ * cache as discardable, and an eviction of *either* memo brings the whole thing back — so the claim
+ * is written here as what the reader must never see, not as which cache holds.
+ */
+describe('a re-render never costs the reader what they have typed', () => {
+  const panel = (context = lessonContext) => (
+    <LessonMarkdown
+      markdown={lessonBody}
+      activities={[activity({ activityId: 'ACT-A' })]}
+      responses={[]}
+      lessonContext={context}
+    />
+  );
+
+  it('keeps typed text when the same lesson is handed over again in fresh objects', () => {
+    const { container, rerender } = render(panel());
+    fireEvent.change(boxOf(container, 'prediction'), { target: { value: 'nearly lost' } });
+
+    // Fresh arrays and a fresh context object carrying the identical lesson — which is exactly what
+    // re-deriving the view produces, and what a discarded memo would hand down.
+    rerender(panel({ ...lessonContext }));
+
+    expect(boxOf(container, 'prediction').value).toBe('nearly lost');
+  });
+
+  it('keeps the very same box on the page rather than replacing it', () => {
+    const { container, rerender } = render(panel());
+    const before = boxOf(container, 'prediction');
+    fireEvent.change(before, { target: { value: 'nearly lost' } });
+
+    rerender(panel({ ...lessonContext }));
+
+    // The sharper half: a remount that happened to restore the text would still drop focus and
+    // scroll position mid-sentence, and would still have discarded any state the field holds.
+    expect(boxOf(container, 'prediction')).toBe(before);
+    expect(before.isConnected).toBe(true);
+  });
+
+  it('keeps it across several such re-renders, not just the first', () => {
+    const { container, rerender } = render(panel());
+    fireEvent.change(boxOf(container, 'prediction'), { target: { value: 'nearly lost' } });
+
+    for (let pass = 0; pass < 3; pass += 1) rerender(panel({ ...lessonContext }));
+
+    expect(boxOf(container, 'prediction').value).toBe('nearly lost');
   });
 });

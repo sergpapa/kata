@@ -145,6 +145,27 @@ export function stubClipboard(): { written: string[]; fail?: boolean } {
   return state;
 }
 
+/**
+ * A clipboard whose writes the test settles by hand, so two presses can be made to overlap and to
+ * land out of order. That ordering is the whole point: the second press is the reader's newer
+ * intent, and whatever the first one eventually says must not overwrite what the second reported.
+ */
+export function stubDeferredClipboard() {
+  const pending: { text: string; resolve: () => void; reject: () => void }[] = [];
+  vi.stubGlobal('navigator', {
+    ...globalThis.navigator,
+    clipboard: {
+      writeText: vi.fn(
+        (text: string) =>
+          new Promise<void>((resolve, reject) => {
+            pending.push({ text, resolve, reject: () => reject(new Error('refused')) });
+          }),
+      ),
+    },
+  });
+  return pending;
+}
+
 /** A browser with no clipboard at all, which is what plain HTTP gives a page in some browsers. */
 export function stubNoClipboard(): void {
   vi.stubGlobal('navigator', { ...globalThis.navigator, clipboard: undefined });
@@ -165,7 +186,7 @@ export type DownloadMode = 'ok' | 'absent' | 'throws';
 export function stubDownloads(mode: DownloadMode = 'ok') {
   const blobs: Blob[] = [];
   const revoked: string[] = [];
-  const clicked: { name: string; href: string }[] = [];
+  const clicked: { name: string; href: string; connected: boolean }[] = [];
 
   const url = URL as unknown as Record<string, unknown>;
   if (mode === 'absent') {
@@ -186,7 +207,10 @@ export function stubDownloads(mode: DownloadMode = 'ok') {
   const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
     this: HTMLAnchorElement,
   ) {
-    clicked.push({ name: this.download, href: this.href });
+    // `isConnected` at the moment of the press, because that is what decides whether a real browser
+    // starts the download at all — Firefox and several WebViews ignore a click on an anchor that is
+    // not in the document.
+    clicked.push({ name: this.download, href: this.href, connected: this.isConnected });
   });
 
   return {

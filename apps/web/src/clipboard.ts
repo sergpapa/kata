@@ -17,6 +17,11 @@ import { useEffect, useRef, useState } from 'react';
  *   write is still in flight would otherwise leave the first press's timer running with nothing
  *   holding it, so it fires inside the second press's window and reports the second copy as over
  *   before it was.
+ * - **Only the latest press may report.** `writeText` is awaited, and two presses can settle in
+ *   either order, so an older one landing last would write its outcome over a newer one's: "Could
+ *   not copy" on a copy that worked, or worse the reverse. This is the read → await → write
+ *   every async control in this repo needs a guard for, and it was added after `/code-review`
+ *   found it — the extraction inherited it from `CopyBlock`, where the same race has always been.
  */
 
 export type CopyState = 'idle' | 'copied' | 'failed';
@@ -30,6 +35,8 @@ export function useCopyToClipboard(): {
 } {
   const [state, setState] = useState<CopyState>('idle');
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Which press is allowed to speak. Bumped on the way in; checked after every await. */
+  const press = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -38,14 +45,22 @@ export function useCopyToClipboard(): {
   }, []);
 
   async function attempt(text: string): Promise<void> {
+    press.current += 1;
+    const mine = press.current;
+    let outcome: CopyState;
     try {
       const clipboard = navigator.clipboard;
       if (!clipboard?.writeText) throw new Error('This browser gave the page no clipboard.');
       await clipboard.writeText(text);
-      setState('copied');
+      outcome = 'copied';
     } catch {
-      setState('failed');
+      outcome = 'failed';
     }
+    // A press that has been overtaken says nothing at all — it does not report, and it does not
+    // restart the settle timer either, which would cut the newer press's outcome short.
+    if (mine !== press.current) return;
+
+    setState(outcome);
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = setTimeout(() => setState('idle'), COPY_SETTLE_MS);
   }

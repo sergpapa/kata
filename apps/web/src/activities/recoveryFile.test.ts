@@ -165,3 +165,92 @@ describe('what the file is called', () => {
     expect(name).not.toContain('--');
   });
 });
+
+/**
+ * Criterion F4's boundary, against content this app does not trust (ADR 0005).
+ *
+ * A lesson title, an activity id and a field label all come out of the release. The whole contract
+ * of this file is "everything after the rule is the reader's characters and nothing else", and that
+ * sentence is only true if nothing *above* the rule can write a rule of its own. A release whose
+ * title carried a newline and three dashes would move the boundary, and the reader's recovered
+ * answer would start in the middle of our header — or their first paragraph would vanish into it.
+ */
+describe('the header cannot be made to forge the boundary', () => {
+  const forged = '\n---\n\nnot the reader’s text';
+
+  it('keeps the rule the reader’s text sits behind, whatever the lesson title contains', () => {
+    const text = 'the only thing that should be down there';
+
+    const document = recoveryDocument(
+      subject({ text, lesson: { ...lesson, displayTitle: `A title${forged}` } }),
+      writtenAt,
+    );
+
+    expect(bodyOf(document)).toBe(text);
+  });
+
+  it('keeps it whatever the activity id contains', () => {
+    const text = 'mine';
+
+    const document = recoveryDocument(subject({ text, activityId: `ACT-A${forged}` }), writtenAt);
+
+    expect(bodyOf(document)).toBe(text);
+  });
+
+  it('keeps it whatever the field label and name contain', () => {
+    const text = 'mine';
+
+    const document = recoveryDocument(
+      subject({ text, label: `Your prediction${forged}`, fieldName: `prediction${forged}` }),
+      writtenAt,
+    );
+
+    expect(bodyOf(document)).toBe(text);
+  });
+
+  it('keeps it whatever the version and release strings contain', () => {
+    const text = 'mine';
+
+    const document = recoveryDocument(
+      subject({
+        text,
+        lesson: {
+          ...lesson,
+          candidateLessonId: `LS-01${forged}`,
+          contentVersion: `1.0.0${forged}`,
+          releaseId: `REL${forged}`,
+          releaseVersion: `1.0.1${forged}`,
+        },
+      }),
+      writtenAt,
+    );
+
+    expect(bodyOf(document)).toBe(text);
+  });
+
+  it('keeps every header line on one line, so the list cannot be broken open', () => {
+    const document = recoveryDocument(
+      subject({ activityId: 'ACT\nA', label: 'Your\nprediction', text: 'mine' }),
+      writtenAt,
+    );
+
+    const header = document.slice(0, document.indexOf('\n---\n\n'));
+    // Every line of the header is either the title, a blank, or one `- ` item. A value that broke
+    // across lines would leave a line that is none of those.
+    for (const line of header.split('\n')) {
+      expect(line === '' || line.startsWith('# ') || line.startsWith('- ')).toBe(true);
+    }
+  });
+
+  it('still shows the characters it replaced, rather than dropping the value', () => {
+    // Replaced, not deleted: the same rule the rest of this app follows for untrusted content
+    // (ADR 0005). A title whose newline was silently swallowed would misname the lesson.
+    const document = recoveryDocument(
+      subject({ lesson: { ...lesson, displayTitle: 'First\nSecond' } }),
+      writtenAt,
+    );
+
+    expect(document).toContain('First');
+    expect(document).toContain('Second');
+  });
+});

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import Markdown, { type Components } from 'react-markdown';
+import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import Markdown, { type Components, type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeSlug from 'rehype-slug';
@@ -164,6 +164,58 @@ const components: Components = {
 };
 
 /**
+ * What an activity panel needs to draw itself, handed down by context rather than closed over.
+ *
+ * **This indirection is load-bearing and is not a style choice.** React identifies an element by its
+ * component's identity, so a component map rebuilt for new data is a *different* `div` component:
+ * React unmounts the panels it drew and mounts fresh ones, and every box on the lesson loses the
+ * text the reader had typed into it. Closing over the data — the obvious way to write this — makes
+ * that rebuild necessary on every change.
+ *
+ * So the component below is defined once, at module scope, and reads what changes out of a context.
+ * Its identity is a constant, a context change re-renders rather than remounts, and the hazard is
+ * gone rather than merely unlikely: the earlier fix rested on two `useMemo` caches, which React
+ * documents as discardable, so an eviction would silently bring the data loss back
+ * (docs/specs/save-failure-recovery.md, review finding 3).
+ */
+interface ActivitySlot {
+  readonly byId: ReadonlyMap<string, LessonActivity>;
+  readonly responses: readonly StoredResponse[] | undefined;
+  readonly lessonContext: LessonContext;
+}
+
+const ActivitySlotContext = createContext<ActivitySlot | null>(null);
+
+/** The marker the placement plugin leaves behind, turned back into the author's panel. */
+function ActivityMarker({
+  node,
+  children,
+  ...rest
+}: React.ComponentPropsWithoutRef<'div'> & ExtraProps) {
+  const slot = useContext(ActivitySlotContext);
+  const activityId = node?.properties?.[ACTIVITY_ID_ATTRIBUTE];
+  if (typeof activityId !== 'string') {
+    return <div {...rest}>{children}</div>;
+  }
+  const activity = slot?.byId.get(activityId);
+  if (!activity || !slot) return null;
+  const heading = node?.properties?.[ACTIVITY_HEADING_ATTRIBUTE];
+  const authored = node?.properties?.[ACTIVITY_AUTHORED_ATTRIBUTE];
+  return (
+    <ActivityPanel
+      activity={activity}
+      headingText={typeof heading === 'string' ? heading : null}
+      authoredHeading={typeof authored === 'string' ? authored : null}
+      responses={slot.responses}
+      lessonContext={slot.lessonContext}
+    />
+  );
+}
+
+/** Both maps are module constants, so neither can ever hand React a new component identity. */
+const componentsWithActivities: Components = { ...components, div: ActivityMarker };
+
+/**
  * The activity half of this component's props, as a union rather than three loose optionals.
  *
  * A panel that renders writing surfaces has to be able to name its lesson, because a recovery file
@@ -221,58 +273,41 @@ export function LessonMarkdown({
     onUnplacedActivities?.(placement.current.unplaced);
   }, [markdown, activities, onUnplacedActivities]);
 
-  // The placed panels are looked up by the marker the plugin left behind, so the component map has
-  // to know this lesson's activities. Everything else in it is static.
-  const withActivities: Components = useMemo(() => {
-    if (!activities || activities.length === 0) return components;
-    const byId = new Map(activities.map((activity) => [activity.activityId, activity]));
-
+  // What the panel component reads, rebuilt whenever the lesson's own data changes. A *value*, not
+  // a component: changing it re-renders the panels and never remounts them.
+  const slot: ActivitySlot | null = useMemo(() => {
+    if (!activities || activities.length === 0 || !lessonContext) return null;
     return {
-      ...components,
-      div({ node, children, ...rest }) {
-        const activityId = node?.properties?.[ACTIVITY_ID_ATTRIBUTE];
-        if (typeof activityId !== 'string') {
-          return <div {...rest}>{children}</div>;
-        }
-        const activity = byId.get(activityId);
-        if (!activity) return null;
-        const heading = node?.properties?.[ACTIVITY_HEADING_ATTRIBUTE];
-        const authored = node?.properties?.[ACTIVITY_AUTHORED_ATTRIBUTE];
-        return (
-          <ActivityPanel
-            activity={activity}
-            headingText={typeof heading === 'string' ? heading : null}
-            authoredHeading={typeof authored === 'string' ? authored : null}
-            responses={responses}
-            lessonContext={lessonContext}
-          />
-        );
-      },
+      byId: new Map(activities.map((activity) => [activity.activityId, activity])),
+      responses,
+      lessonContext,
     };
   }, [activities, responses, lessonContext]);
 
   return (
-    <div className="lesson-body">
-      <Markdown
-        remarkPlugins={[remarkGfm, remarkInertContent]}
-        // Order matters twice over: the guard has to run before the sanitizer, or the sanitizer
-        // strips an unsafe href first and the target it names can never be shown to the reader;
-        // and the slugger runs before the sanitizer so its ids pick up the clobber prefix that
-        // keeps authored heading text from capturing the app's own element ids. The collector runs
-        // last, on the settled tree.
-        rehypePlugins={[
-          rehypeInertElements,
-          ...(headingIds ? [rehypeSlug] : []),
-          rehypeSanitize,
-          () => rehypeCollectOutline(box.current),
-          // Last of all, and after the outline is settled: the panels are the app's own furniture,
-          // so they can neither be stripped by the sanitizer nor appear in the contents list.
-          () => rehypePlaceActivities(activities ?? [], markdown, placement.current),
-        ]}
-        components={withActivities}
-      >
-        {markdown}
-      </Markdown>
-    </div>
+    <ActivitySlotContext.Provider value={slot}>
+      <div className="lesson-body">
+        <Markdown
+          remarkPlugins={[remarkGfm, remarkInertContent]}
+          // Order matters twice over: the guard has to run before the sanitizer, or the sanitizer
+          // strips an unsafe href first and the target it names can never be shown to the reader;
+          // and the slugger runs before the sanitizer so its ids pick up the clobber prefix that
+          // keeps authored heading text from capturing the app's own element ids. The collector runs
+          // last, on the settled tree.
+          rehypePlugins={[
+            rehypeInertElements,
+            ...(headingIds ? [rehypeSlug] : []),
+            rehypeSanitize,
+            () => rehypeCollectOutline(box.current),
+            // Last of all, and after the outline is settled: the panels are the app's own furniture,
+            // so they can neither be stripped by the sanitizer nor appear in the contents list.
+            () => rehypePlaceActivities(activities ?? [], markdown, placement.current),
+          ]}
+          components={slot ? componentsWithActivities : components}
+        >
+          {markdown}
+        </Markdown>
+      </div>
+    </ActivitySlotContext.Provider>
   );
 }

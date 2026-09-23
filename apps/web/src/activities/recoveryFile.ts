@@ -39,18 +39,34 @@ export interface RecoverySubject {
  */
 const RULE = '\n---\n\n';
 
+/**
+ * One header value, forced onto one line.
+ *
+ * Every value in the header comes out of the release except the reader's own text, and this app
+ * does not trust content (ADR 0005). The rule below the header is the whole contract of this file —
+ * everything after it is the reader's characters and nothing else — and a title carrying a newline
+ * and three dashes would write a rule of its own, so the reader's recovered answer would begin in
+ * the middle of our header or disappear into it.
+ *
+ * Replaced with a space rather than deleted, for the same reason nothing else in this app deletes
+ * content silently: a lesson title whose newline was swallowed misnames the lesson.
+ */
+function oneLine(value: string): string {
+  return value.replace(/[\r\n]+/g, ' ');
+}
+
 export function recoveryDocument(subject: RecoverySubject, writtenAt: Date): string {
   const { lesson } = subject;
   const header = [
-    `# Unsaved answer — Lesson ${twoDigits(lesson.order)}: ${lesson.displayTitle}`,
+    `# Unsaved answer — Lesson ${twoDigits(lesson.order)}: ${oneLine(lesson.displayTitle)}`,
     '',
-    `- Activity: ${subject.activityId}`,
+    `- Activity: ${oneLine(subject.activityId)}`,
     // Both names: the label is what the reader recognises on the page, and the authored name is
     // what the release and any later export key on. A file carrying one of them cannot be placed
     // back against the other.
-    `- Field: ${subject.label} (${subject.fieldName})`,
-    `- Lesson: ${lesson.candidateLessonId}, content version ${lesson.contentVersion}`,
-    `- Release: ${lesson.releaseId} ${lesson.releaseVersion}`,
+    `- Field: ${oneLine(subject.label)} (${oneLine(subject.fieldName)})`,
+    `- Lesson: ${oneLine(lesson.candidateLessonId)}, content version ${oneLine(lesson.contentVersion)}`,
+    `- Release: ${oneLine(lesson.releaseId)} ${oneLine(lesson.releaseVersion)}`,
     // An instant, not `storedWhen`'s locale wording. This file is written to be kept, and possibly
     // to be sent to the content author, which means it is read on a machine that is not this one.
     `- Written out: ${writtenAt.toISOString()}`,

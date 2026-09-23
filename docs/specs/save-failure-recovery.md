@@ -87,8 +87,8 @@ Measured against the code at commit `5dc6414`:
    buttons under all twelve boxes is the density the acknowledged-saves design review already
    declined to add to. A page where nothing has gone wrong gains 0px.
 7. **The new buttons match the existing button family's height.** Same row, same treatment; a row
-   of three where the heights disagree reads as broken. Written expecting that to mean *settling
-   for* about 30px, which is what the fact above assumed — the Stage 4 measurement showed the row
+   of three where the heights disagree reads as broken. Written expecting that to mean _settling
+   for_ about 30px, which is what the fact above assumed — the Stage 4 measurement showed the row
    stretches every button to the tallest, so all three come out at 44px and the guideline is met
    outright. The decision stands; only the reason it was thought to cost something was wrong. These
    appear only once something has already failed, so they are not a control repeated down a healthy
@@ -101,8 +101,21 @@ Measured against the code at commit `5dc6414`:
   data in hand. This is the point: the save failing is frequently the server being unreachable, and
   a recovery path that needs the server is not one.
 - **The copy state machine is extracted from `CopyBlock`, not rewritten.** Its callers already
-  exist, so the extraction is wired in the same slice and `CopyBlock.test.tsx`'s existing
-  assertions are what prove it behaviour-neutral. This is the extraction exception, not new code.
+  exist, so the extraction is wired in the same slice. This is the extraction exception, not new
+  code.
+
+  **Correction, after test-guardian POST.** This assumption went on to say "`CopyBlock.test.tsx`'s
+  existing assertions are what prove it behaviour-neutral", and that overstated what that file
+  proves. Of the three decisions the extracted code's own comment names, the suite covered one — the
+  named refusal. It never varied `navigator.clipboard`'s presence between render and press, so a
+  regression that captured the clipboard once would have passed; and nothing anywhere in the repo
+  fired two presses close enough together to exercise the settle timer, so **deleting the
+  `clearTimeout` that the comment exists to explain would have left all 1037 tests green**. The file
+  is still untouched and the extraction is still faithful — `/code-review` checked it line for line
+  — but the proof was thinner than the sentence claimed. Both gaps are now covered, in
+  `saveFailureRecovery.test.tsx`'s review-findings block rather than in `CopyBlock.test.tsx`, which
+  stays untouched.
+
 - **Lesson context becomes a required prop wherever activities are rendered**, expressed as a
   union so that passing `activities` without `lessonContext` is a type error rather than a runtime
   hole (CLAUDE.md: a new dependency at a composition root is required, not optional-with-default).
@@ -218,3 +231,78 @@ listed here so that a diff showing movement in a test file has a stated reason:
 ## Slice log
 
 _(appended as the slice runs)_
+
+### 2026-09-23 — built, reviewed and corrected
+
+Red commit `1c3dc47` (56 tests, 34 of them failing), green commit `dfceddc`, review fixes after
+that. Final: **1052 tests across 45 files**, `npm run typecheck`, `npm run lint`,
+`npm run format:check`, `npm run build` and `npm run screenshots` all pass locally, plus an 11-check
+end-to-end run in real Chromium (below).
+
+**test-guardian PRE — pass, two findings taken before any implementation.** The conflict panel's
+Copy had no press-time test though its box stays editable through a conflict — the same claim F7
+makes for the failed field, on the surface where the stakes are higher. And F6's two failure paths
+checked that the button said "Could not download" without checking that no file was claimed.
+
+**test-guardian POST — pass, no test weakened.** It confirmed the one re-aim is a genuine re-aim
+(the allow-list still fails on a Restore, a Delete or an Edit), that the locator widening could only
+ever have made a test throw rather than pass falsely, and that the four mechanical files changed no
+assertion. Its own finding is recorded as the correction in Assumptions above: the claim that
+`CopyBlock.test.tsx` proved the extraction behaviour-neutral was thinner than stated, and deleting
+the settle timer's `clearTimeout` would have broken no test in the repo. Both gaps are now covered.
+
+**`/code-review` at medium — five findings, all five taken.** Every one of them is a way for a
+control to say it worked when it did not, which is the dishonesty ADR 0004 forbids of a save, in the
+machinery built to rescue one.
+
+1. **The download anchor was clicked while detached from the document.** Chromium obliges; Firefox
+   and several WebViews ignore it entirely, so the reader would get "Downloaded" and no file. The
+   anchor is now put in the document for the press and taken out again in a `finally`. Invisible to
+   every test that existed, because the jsdom stub records the press either way — now pinned by
+   `isConnected` at click time.
+2. **The object URL was revoked one task after the click.** Nothing promises the browser has started
+   reading the blob by then, and losing the race gives an empty file under a button that says
+   Downloaded. It now waits 60 seconds, which is not a guess at the read time but long enough that
+   no read is outstanding; the cost is a few kilobytes of the reader's own prose held that long.
+3. **The dropped-answers fix rested on two `useMemo` caches, which React documents as
+   discardable.** This was the sharpest finding and it reopened a defect this slice had already
+   fixed once. `LessonMarkdown` built its component map inside a memo, so the map's identity — and
+   therefore React's identity for the activity panels — depended on a cache nobody promises to keep.
+   An eviction remounts every panel and drops every box of typed text. The memo on the lesson view
+   fixed the _trigger_; it did not remove the _hazard_, and the hazard predates this slice. The
+   panel component is now defined once at module scope and reads what changes out of a React
+   context, so its identity is a constant and a data change re-renders rather than remounts. Pinned
+   by three tests that hand the same lesson down again in fresh objects and require the typed text,
+   and the box element itself, to survive.
+4. **Untrusted header values could forge the file's boundary rule.** A lesson title, activity id or
+   version carrying a newline and three dashes would write a `---` of its own, and the contract that
+   everything after the rule is the reader's characters would quietly stop being true. Content is
+   untrusted (ADR 0005) and this is content. Header values are now forced onto one line, replacing
+   rather than deleting, as the rest of the app does.
+5. **The copy had no in-flight guard across its `await`.** Two presses can settle in either order,
+   so an older one landing last wrote its outcome over a newer one's — "Could not copy" on a copy
+   that worked, and the reverse. This is the read → await → write pattern CLAUDE.md names, inherited
+   from `CopyBlock`, where the same race has always been. Only the latest press may now report, and
+   an overtaken press does not restart the settle timer either.
+
+**The defect that mattered was not in this feature.** It was finding 3, and it was found twice: once
+by `unsavedNavigation.test.tsx` going red two runs in ten when a derived `lessonContext` made
+`toLessonView` allocate per render, and once by `/code-review` pointing out that the fix for that was
+itself only as durable as a cache React may throw away. The visible symptom both times is the worst
+one this milestone has: a reader types into twelve boxes, the page re-renders for any reason, and
+every word is gone — in the slice whose whole subject is not losing the reader's text. The accident
+that hid it for three slices is that `toLessonView` used to return the parsed body itself, so the
+view was stable without anybody deciding it should be.
+
+**Verified end to end in real Chromium** (`data/verify-recovery`, port 8319, outside the screenshot
+gate): a refused save keeps the text character for character; the row reads Save / Copy / Download;
+Copy reaches the real system clipboard with only Windows' own CRLF difference; Download writes a
+real file to disk named `unsaved-lesson-01-ACT-M020-01-01-prediction.md` whose tail is the reader's
+answer byte for byte and whose header names the lesson, field, release and that nothing was stored;
+the store holds nothing after the refusal; a healthy lesson shows twelve buttons, all Save; and at
+375px there is no sideways scroll and all three buttons measure 44px.
+
+**Not covered, and stated rather than left to be discovered.** The screenshot gate still never
+simulates a failed save, so no capture in `screenshots/` shows these controls — the design review
+below was done from code and measurements, not from a picture of the thing. Nothing here protects a
+reader who dismisses the browser's own refresh warning; decision 1 accepts that cost by name.
