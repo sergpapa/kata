@@ -11,3 +11,6 @@ content/releases/** -text
 *.zip binary
 *.png binary
 *.jpg binary
+
+# The salvaged authoring transcript is kept exactly as exported, CRLF included.
+docs/authoring/history/** -text
