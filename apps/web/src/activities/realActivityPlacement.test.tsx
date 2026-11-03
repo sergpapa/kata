@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
+import { CourseScope } from '../course.js';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import type { LessonActivity } from '../releaseTypes.js';
 import { lessonContext } from '../testkit/activityFixture.js';
@@ -84,12 +85,14 @@ describe('the author’s own forty-five activities, placed', () => {
       const activities = activitiesFor(lessonId);
       const unplaced = vi.fn();
       const { container } = render(
-        <LessonMarkdown
-          markdown={bodyOf(lessonPath)}
-          lessonContext={lessonContext}
-          activities={activities}
-          onUnplacedActivities={unplaced}
-        />,
+        <CourseScope courseId="FSSE">
+          <LessonMarkdown
+            markdown={bodyOf(lessonPath)}
+            lessonContext={lessonContext}
+            activities={activities}
+            onUnplacedActivities={unplaced}
+          />
+        </CourseScope>,
       );
 
       await waitFor(() => expect(unplaced).toHaveBeenCalled());
@@ -159,11 +162,13 @@ describe('the author’s own forty-five activities, placed', () => {
     const lesson = manifest.lessons[0] as ManifestLesson;
     const activities = activitiesFor(lesson.lesson_id);
     const { container } = render(
-      <LessonMarkdown
-        markdown={bodyOf(lesson.path)}
-        activities={activities}
-        lessonContext={lessonContext}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={bodyOf(lesson.path)}
+          activities={activities}
+          lessonContext={lessonContext}
+        />
+      </CourseScope>,
     );
 
     await waitFor(() => expect(container.querySelectorAll('.activity-panel')).toHaveLength(3));

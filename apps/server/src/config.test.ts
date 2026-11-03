@@ -5,7 +5,7 @@ import { loadConfig } from './config.js';
 
 /**
  * Criterion C1 in docs/specs/content-release-first-fifteen.md and C4 in
- * docs/specs/content-release-first-thirteen.md — the defaults the app runs with when the owner
+ * docs/specs/content-release-first-thirteen.md, and C1 in docs/specs/multi-course.md — the defaults the app runs with when the owner
  * starts it plain, with no environment set.
  */
 describe('the default configuration', () => {
@@ -23,18 +23,51 @@ describe('the default configuration', () => {
     expect(loadConfig({ EDUCODE_PORT: '5000' }).port).toBe(5000);
   });
 
-  it('points at the corrected fifteen-lesson release, and that directory really holds a manifest', () => {
-    const releaseDir = loadConfig({}).releaseDir;
+  it('serves the full-stack course and then the QA course, in that order (multi-course C1)', () => {
+    const courses = loadConfig({}).courses;
 
-    expect(releaseDir.split(path.sep).join('/')).toContain(
-      'content/releases/http-first-fifteen-v1_0_1/content',
-    );
-    expect(fs.existsSync(path.join(releaseDir, 'learning-release.json'))).toBe(true);
+    expect(courses.map((course) => [course.courseId, course.title])).toEqual([
+      ['FSSE', 'Full-Stack Software Engineering'],
+      ['QAAE', 'QA Automation Engineering'],
+    ]);
   });
 
-  it('still lets EDUCODE_RELEASE_DIR choose the release directory', () => {
+  it('points the full-stack course at the corrected fifteen-lesson release, which really holds a manifest', () => {
+    const fsse = loadConfig({}).courses.find((course) => course.courseId === 'FSSE');
+
+    expect(fsse?.releaseDir.split(path.sep).join('/')).toContain(
+      'content/releases/http-first-fifteen-v1_0_1/content',
+    );
+    expect(fs.existsSync(path.join(fsse?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
+  });
+
+  it('points the QA course at its first-lesson release, which really holds a manifest (C15)', () => {
+    const qaae = loadConfig({}).courses.find((course) => course.courseId === 'QAAE');
+
+    expect(qaae?.releaseDir.split(path.sep).join('/')).toContain(
+      'content/releases/qaae-lesson-01-v1/content',
+    );
+    expect(fs.existsSync(path.join(qaae?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
+  });
+
+  it('lets EDUCODE_RELEASE_DIR_FSSE and EDUCODE_RELEASE_DIR_QAAE move each course on its own', () => {
+    const elsewhere = path.join('somewhere', 'else');
+    const courses = loadConfig({ EDUCODE_RELEASE_DIR_QAAE: elsewhere }).courses;
+
+    expect(courses.find((course) => course.courseId === 'QAAE')?.releaseDir).toBe(elsewhere);
+    expect(courses.find((course) => course.courseId === 'FSSE')?.releaseDir).not.toBe(elsewhere);
+    expect(
+      loadConfig({ EDUCODE_RELEASE_DIR_FSSE: elsewhere }).courses.find(
+        (course) => course.courseId === 'FSSE',
+      )?.releaseDir,
+    ).toBe(elsewhere);
+  });
+
+  it('no longer reads EDUCODE_RELEASE_DIR, which named one release for a one-course app', () => {
     const elsewhere = path.join('somewhere', 'else');
 
-    expect(loadConfig({ EDUCODE_RELEASE_DIR: elsewhere }).releaseDir).toBe(elsewhere);
+    for (const course of loadConfig({ EDUCODE_RELEASE_DIR: elsewhere }).courses) {
+      expect(course.releaseDir).not.toBe(elsewhere);
+    }
   });
 });

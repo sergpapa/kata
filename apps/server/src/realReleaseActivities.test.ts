@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 
@@ -54,8 +55,8 @@ afterEach(() => {
 
 async function servedActivities(candidateLessonId: string) {
   db = openDatabase(':memory:');
-  const app = buildApp({ db, release: importRelease(db, releaseDir), releaseDir: releaseDir });
-  const response = await app.inject({ method: 'GET', url: `/api/lessons/${candidateLessonId}` });
+  const app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
+  const response = await app.inject({ method: 'GET', url: `/api/courses/FSSE/lessons/${candidateLessonId}` });
   const body = response.json() as { activities: { activityId: string; sourceHeading: string }[] };
   await app.close();
   return body.activities;

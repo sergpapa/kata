@@ -77,16 +77,16 @@ describe('a lesson the release carries', () => {
   it('asks the app for that lesson by its stable key', async () => {
     answerWith(lessonAnswer);
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/lessons/LS-M020-01');
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe('/api/courses/FSSE/lessons/LS-M020-01');
   });
 
   it('makes the authored title the page heading', async () => {
     answerWith(lessonAnswer);
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     const title = await screen.findByRole('heading', { level: 1 });
     expect(title.textContent).toBe('Lesson 1: What happens when your browser asks for something?');
@@ -95,7 +95,7 @@ describe('a lesson the release carries', () => {
 
   it('renders the body below the title without repeating it', async () => {
     answerWith(lessonAnswer);
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-01" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
 
@@ -110,7 +110,7 @@ describe('a lesson the release carries', () => {
   it('shows the front-matter facts with their labels, lists as lists', async () => {
     answerWith(lessonAnswer);
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     expect(await screen.findByText('Status')).toBeDefined();
     expect(
@@ -122,7 +122,7 @@ describe('a lesson the release carries', () => {
 
   it('shows no YAML key anywhere on the page', async () => {
     answerWith(lessonAnswer);
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-01" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
 
@@ -139,7 +139,7 @@ describe('a lesson the release carries', () => {
   it('names the lesson key, content version and release the words came from', async () => {
     answerWith(lessonAnswer);
 
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-01" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
     const page = container.textContent ?? '';
@@ -151,10 +151,10 @@ describe('a lesson the release carries', () => {
   it('offers the way back to the lesson list', async () => {
     answerWith(lessonAnswer);
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
-    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/');
+    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/courses/FSSE');
   });
 });
 
@@ -164,11 +164,11 @@ describe('a lesson the release does not carry', () => {
       { error: 'lesson_not_found', message: 'This release has no lesson LS-M020-09.' },
       404,
     );
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-09" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-09" />);
 
     expect(await screen.findByText(/LS-M020-09/)).toBeDefined();
     expect(container.querySelector('h1')).toBeNull();
-    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/');
+    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/courses/FSSE');
   });
 });
 
@@ -183,7 +183,7 @@ describe('a lesson asked for while the release stands refused', () => {
         file: 'lessons/HTTP_Lesson_03_Student_Edition_v1.md',
       },
     });
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-03" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-03" />);
 
     expect(await screen.findByText(/does not match the hash/)).toBeDefined();
     expect(container.querySelector('h1')).toBeNull();
@@ -198,7 +198,7 @@ describe('a lesson asked for while the local app is not answering', () => {
         throw new Error('connection refused');
       }),
     );
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-01" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     expect(await screen.findByText(/connection refused/)).toBeDefined();
     expect(container.querySelector('h1')).toBeNull();

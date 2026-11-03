@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 
@@ -64,7 +65,7 @@ let app: FastifyInstance;
 
 beforeAll(() => {
   db = openDatabase(':memory:');
-  app = buildApp({ db, release: importRelease(db, releaseDir), releaseDir });
+  app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
 });
 
 afterAll(() => {
@@ -88,7 +89,7 @@ describe('the fifteen lessons and their five kits', () => {
   it.each(manifest.lessons.map((lesson) => [lesson.lesson_id, lesson] as const))(
     'serves %s the kit the manifest gives it, and nothing invented',
     async (lessonId, lesson) => {
-      const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+      const response = await app.inject({ method: 'GET', url: `/api/courses/FSSE/lessons/${lessonId}` });
       const served = response.json().labKit;
 
       if (!lesson.lab_id) {
@@ -122,7 +123,7 @@ describe('the fifteen lessons and their five kits', () => {
     async (lessonId, lesson) => {
       // A release where these disagree would have the page hand over one kit while the lesson's
       // prose names another. The importer does not check it, so this does.
-      const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+      const response = await app.inject({ method: 'GET', url: `/api/courses/FSSE/lessons/${lessonId}` });
 
       expect(response.json().labKit.fileName).toBe(exerciseKitOf(lesson.path));
     },
@@ -133,7 +134,7 @@ describe('every kit the author shipped, downloaded', () => {
   it.each(manifest.lab_downloads.map((lab) => [lab.lab_id, lab] as const))(
     'hands over %s with the bytes the registry describes',
     async (labId, lab) => {
-      const response = await app.inject({ method: 'GET', url: `/api/labs/${labId}/download` });
+      const response = await app.inject({ method: 'GET', url: `/api/courses/FSSE/labs/${labId}/download` });
 
       expect(response.statusCode).toBe(200);
       expect(sha256Of(response.rawPayload)).toBe(lab.sha256.toLowerCase());
@@ -148,7 +149,7 @@ describe('every kit the author shipped, downloaded', () => {
       manifest.lab_downloads.map(async (lab) => {
         const response = await app.inject({
           method: 'GET',
-          url: `/api/labs/${lab.lab_id}/download`,
+          url: `/api/courses/FSSE/labs/${lab.lab_id}/download`,
         });
         return [lab.lab_id, response.statusCode] as const;
       }),

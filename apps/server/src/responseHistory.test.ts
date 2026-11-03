@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 import type { ReleaseState } from './modules/content/types.js';
@@ -76,7 +77,7 @@ function releaseDir(corrected = false): string {
 
 function appOn(dir: string) {
   const release: ReleaseState = importRelease(db as Db, dir);
-  return buildApp({ db: db as Db, release, releaseDir: dir });
+  return buildApp({ db: db as Db, courses: [testCourse('FIX', dir, release)] });
 }
 
 function freshApp(corrected = false) {
@@ -105,7 +106,7 @@ interface PageResponse {
 function put(app: ReturnType<typeof buildApp>, fieldName: string, payload: unknown) {
   return app.inject({
     method: 'PUT',
-    url: `/api/activities/ACT-FIX-01/responses/${fieldName}`,
+    url: `/api/courses/FIX/activities/ACT-FIX-01/responses/${fieldName}`,
     payload: payload as Record<string, unknown>,
   });
 }
@@ -130,7 +131,7 @@ async function responsesOf(
   app: ReturnType<typeof buildApp>,
   lessonId = 'FIX-LS-01',
 ): Promise<PageResponse[]> {
-  const answer = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+  const answer = await app.inject({ method: 'GET', url: `/api/courses/FIX/lessons/${lessonId}` });
   return (answer.json() as { responses?: PageResponse[] }).responses ?? [];
 }
 

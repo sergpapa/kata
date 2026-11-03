@@ -50,14 +50,14 @@ function serve(activities: LessonActivity[], second?: LessonActivity[]): void {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (url === '/api/resume-point') {
+      if (url === '/api/courses/FSSE/resume-point') {
         return new Response(JSON.stringify({ state: init?.method === 'PUT' ? 'set' : 'none' }), {
           status: 200,
           headers: jsonHeaders,
         });
       }
-      if (url.startsWith('/api/lessons/')) {
-        const key = decodeURIComponent(url.slice('/api/lessons/'.length));
+      if (url.startsWith('/api/courses/FSSE/lessons/')) {
+        const key = decodeURIComponent(url.slice('/api/courses/FSSE/lessons/'.length));
         return new Response(JSON.stringify(answers.get(key) ?? answerFor(1, activities)), {
           status: 200,
           headers: jsonHeaders,
@@ -72,7 +72,7 @@ function openLesson(): void {
   window.history.replaceState(
     {},
     '',
-    `/lessons/${encodeURIComponent(fiveLessons[0]?.candidateLessonId ?? '')}`,
+    `/courses/FSSE/lessons/${encodeURIComponent(fiveLessons[0]?.candidateLessonId ?? '')}`,
   );
   render(<App />);
 }
@@ -198,7 +198,7 @@ describe('the review findings on the lesson page', () => {
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     try {
-      window.history.pushState({}, '', `/lessons/${fiveLessons[1]?.candidateLessonId}`);
+      window.history.pushState({}, '', `/courses/FSSE/lessons/${fiveLessons[1]?.candidateLessonId}`);
       window.dispatchEvent(new PopStateEvent('popstate'));
       await waitFor(() =>
         expect(document.querySelector('.lesson-reader h1')?.textContent).toContain('Lesson 2'),
@@ -238,13 +238,13 @@ describe('the review findings on the lesson page', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
-        if (url === '/api/resume-point') {
+        if (url === '/api/courses/FSSE/resume-point') {
           return new Response(JSON.stringify({ state: 'none' }), {
             status: 200,
             headers: jsonHeaders,
           });
         }
-        if (url.startsWith('/api/lessons/')) {
+        if (url.startsWith('/api/courses/FSSE/lessons/')) {
           return new Response(JSON.stringify(answer), { status: 200, headers: jsonHeaders });
         }
         return new Response(JSON.stringify(importedRelease()), {
@@ -299,13 +299,13 @@ describe('the review findings on the lesson page', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
-        if (url === '/api/resume-point') {
+        if (url === '/api/courses/FSSE/resume-point') {
           return new Response(JSON.stringify({ state: 'none' }), {
             status: 200,
             headers: jsonHeaders,
           });
         }
-        if (url.startsWith('/api/lessons/')) {
+        if (url.startsWith('/api/courses/FSSE/lessons/')) {
           return new Response(JSON.stringify(answer), { status: 200, headers: jsonHeaders });
         }
         return new Response(JSON.stringify(importedRelease()), {

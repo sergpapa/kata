@@ -78,7 +78,7 @@ describe('the kit on a lesson that has one', () => {
   it('names the file, the lab, its version, its size and its whole hash', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     const text = panel().textContent ?? '';
@@ -94,17 +94,17 @@ describe('the kit on a lesson that has one', () => {
   it('offers a download that goes to this kit by its lab id', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     const link = within(panel()).getByRole('link', { name: /download/i });
-    expect(link.getAttribute('href')).toBe('/api/labs/FSSE-HTTP-LAB-06-08/download');
+    expect(link.getAttribute('href')).toBe('/api/courses/FSSE/labs/FSSE-HTTP-LAB-06-08/download');
   });
 
   it('says which lessons share a kit, by number', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     const text = panel().textContent ?? '';
@@ -129,7 +129,7 @@ describe('the kit on a lesson that has one', () => {
       ),
     );
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     expect(panel().textContent ?? '').toContain('lessons 14 and 15');
@@ -138,7 +138,7 @@ describe('the kit on a lesson that has one', () => {
   it('never names the reader’s own lesson as one the kit is *shared with*', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     // The list includes the lesson being read, so the wording has to be "used by" and not
@@ -149,7 +149,7 @@ describe('the kit on a lesson that has one', () => {
   it('keeps the checksum and the version out of the reader’s way, behind a disclosure', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     // Open, this panel measured ~605px on a 375px phone and put the lesson's first sentence more
@@ -184,7 +184,7 @@ describe('the kit on a lesson that has one', () => {
       ),
     );
 
-    render(<LessonPage candidateLessonId="LS-M020-02" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-02" />);
     await screen.findByRole('heading', { level: 1 });
 
     expect(panel().textContent ?? '').not.toMatch(/shared|also used by/i);
@@ -193,7 +193,7 @@ describe('the kit on a lesson that has one', () => {
   it('says the kit runs on the reader’s computer and that this app never runs it', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     const text = panel().textContent ?? '';
@@ -204,7 +204,7 @@ describe('the kit on a lesson that has one', () => {
   it('sits between the facts and the lesson body, on every lesson that has a kit', async () => {
     answerWith(lessonAnswer(sharedKit));
 
-    const { container } = render(<LessonPage candidateLessonId="LS-M020-06" />);
+    const { container } = render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
 
     const article = container.querySelector('.lesson-reader') as HTMLElement;
@@ -224,7 +224,7 @@ describe('a lesson with no kit', () => {
   it('says so rather than showing nothing at all', async () => {
     answerWith(lessonAnswer(null, 1));
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     await screen.findByRole('heading', { level: 1 });
 
     expect(screen.queryByRole('link', { name: /download/i })).toBeNull();
@@ -239,7 +239,7 @@ describe('a release the app refused', () => {
     // The same lesson served twice: once imported, once refused. Without the first half this case
     // passes against an app that has no kit panel anywhere.
     answerWith(lessonAnswer(sharedKit));
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('heading', { level: 1 });
     expect(screen.getByRole('link', { name: /download/i })).toBeTruthy();
     cleanup();
@@ -248,7 +248,7 @@ describe('a release the app refused', () => {
       state: 'failed',
       failure: { code: 'hash_mismatch', message: 'The release was refused.', file: 'labs/kit.zip' },
     });
-    render(<LessonPage candidateLessonId="LS-M020-06" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-06" />);
     await screen.findByRole('alert');
 
     expect(screen.queryByRole('link', { name: /download/i })).toBeNull();

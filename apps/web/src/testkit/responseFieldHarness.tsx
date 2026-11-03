@@ -1,5 +1,6 @@
 import { afterEach, vi } from 'vitest';
 import { cleanup, render, within } from '@testing-library/react';
+import { CourseScope } from '../course.js';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import { activity, lessonBody, lessonContext, panelOf } from './activityFixture.js';
 import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
@@ -115,12 +116,14 @@ export function renderPanel(
   responses: readonly StoredResponse[] = [],
 ) {
   return render(
-    <LessonMarkdown
-      markdown={lessonBody}
-      activities={[activity({ activityId: 'ACT-A', ...over })]}
-      responses={responses}
-      lessonContext={lessonContext}
-    />,
+    <CourseScope courseId="FSSE">
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A', ...over })]}
+        responses={responses}
+        lessonContext={lessonContext}
+      />
+    </CourseScope>,
   );
 }
 

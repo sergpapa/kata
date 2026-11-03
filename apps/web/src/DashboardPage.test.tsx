@@ -21,7 +21,7 @@ import {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  window.history.replaceState({}, '', '/');
+  window.history.replaceState({}, '', '/courses/FSSE');
 });
 
 function firstCard(): HTMLElement {
@@ -30,7 +30,7 @@ function firstCard(): HTMLElement {
 
 describe('the card that says where to begin', () => {
   it('names the first lesson in manifest order, by its authored title', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
     await screen.findByTestId('current-lesson');
@@ -41,20 +41,20 @@ describe('the card that says where to begin', () => {
   });
 
   it('offers Start, not Continue, because nothing records that anything was read', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
     await screen.findByTestId('current-lesson');
 
     const action = within(firstCard()).getByRole('link', { name: /start lesson/i });
-    expect(action.getAttribute('href')).toBe('/lessons/LS-M020-01');
+    expect(action.getAttribute('href')).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(firstCard().textContent).not.toMatch(/continue/i);
   });
 
   it('takes the first lesson from the release, not from its position in the file', async () => {
     // The manifest's own order, arriving out of array order: the card must follow `order`.
     answerRoutes({
-      '/api/release': importedRelease([
+      '/api/courses/FSSE/release': importedRelease([
         lesson(3, 'Third by order, first in the array'),
         lesson(1, 'First by order'),
       ]),
@@ -70,7 +70,7 @@ describe('the card that says where to begin', () => {
 describe('the counts on the dashboard', () => {
   it('derives every total from the release, so a three-lesson release says three', async () => {
     answerRoutes({
-      '/api/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two'), lesson(3, 'Three')]),
+      '/api/courses/FSSE/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two'), lesson(3, 'Three')]),
     });
 
     render(<App />);
@@ -82,7 +82,7 @@ describe('the counts on the dashboard', () => {
   });
 
   it('claims no lesson has been read, studied or completed', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
     await screen.findByTestId('current-lesson');
@@ -103,7 +103,7 @@ describe('the counts on the dashboard', () => {
   // recorded" stopped being true when the resume point arrived. The card now has to state both
   // truths — what is kept, and what still is not.
   it('says plainly what is kept and what is not recorded yet', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -115,7 +115,7 @@ describe('the counts on the dashboard', () => {
 
 describe('the list of lessons', () => {
   it('gives every lesson a row, in manifest order, carrying its authored title', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -128,12 +128,12 @@ describe('the list of lessons', () => {
       fiveLessons.map((entry) => entry.displayTitle),
     );
     expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual(
-      fiveLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
+      fiveLessons.map((entry) => `/courses/FSSE/lessons/${entry.candidateLessonId}`),
     );
   });
 
   it('scales to the fifteen-lesson release without truncating or reordering', async () => {
-    answerRoutes({ '/api/release': importedRelease(fifteenLessons) });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease(fifteenLessons) });
 
     render(<App />);
 
@@ -143,12 +143,12 @@ describe('the list of lessons', () => {
       fifteenLessons.map((entry) => entry.displayTitle),
     );
     expect(rows.map((row) => within(row).getByRole('link').getAttribute('href'))).toEqual(
-      fifteenLessons.map((entry) => `/lessons/${entry.candidateLessonId}`),
+      fifteenLessons.map((entry) => `/courses/FSSE/lessons/${entry.candidateLessonId}`),
     );
   });
 
   it('keeps release identifiers, lab kits and hashes out of an ordinary row', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -162,7 +162,7 @@ describe('the list of lessons', () => {
   });
 
   it('keeps those facts on the page, behind a closed disclosure rather than deleted', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -191,15 +191,15 @@ describe('the card once a lesson has been opened', () => {
 
   it('offers Continue to the last-opened lesson, by its number and authored title', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/resume-point': resumeAt('LS-M020-03'),
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/resume-point': resumeAt('LS-M020-03'),
     });
 
     render(<App />);
     await screen.findByTestId('current-lesson');
 
     const action = await within(firstCard()).findByRole('link', { name: /continue lesson/i });
-    expect(action.getAttribute('href')).toBe('/lessons/LS-M020-03');
+    expect(action.getAttribute('href')).toBe('/courses/FSSE/lessons/LS-M020-03');
     expect(firstCard().textContent).toContain('Lesson 3: One menu, three ways to carry it');
     expect(firstCard().textContent).toContain('03');
     expect(within(firstCard()).queryByRole('link', { name: /start lesson/i })).toBeNull();
@@ -207,8 +207,8 @@ describe('the card once a lesson has been opened', () => {
 
   it('says last opened, and still claims nothing was read, studied or completed', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/resume-point': resumeAt('LS-M020-03'),
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/resume-point': resumeAt('LS-M020-03'),
     });
 
     render(<App />);
@@ -228,15 +228,15 @@ describe('the card once a lesson has been opened', () => {
 
   it('falls back to Start when the resume point names a lesson this release does not carry', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/resume-point': resumeAt('LS-GONE-99'),
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/resume-point': resumeAt('LS-GONE-99'),
     });
 
     render(<App />);
     await screen.findByTestId('current-lesson');
 
     const action = within(firstCard()).getByRole('link', { name: /start lesson/i });
-    expect(action.getAttribute('href')).toBe('/lessons/LS-M020-01');
+    expect(action.getAttribute('href')).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(firstCard().textContent).not.toMatch(/continue/i);
   });
 
@@ -246,7 +246,7 @@ describe('the card once a lesson has been opened', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
-        if (url === '/api/resume-point') return new Promise<Response>(() => {});
+        if (url === '/api/courses/FSSE/resume-point') return new Promise<Response>(() => {});
         return Promise.resolve(
           new Response(JSON.stringify(importedRelease()), {
             status: 200,
@@ -265,8 +265,8 @@ describe('the card once a lesson has been opened', () => {
 
   it('offers Start when the answer is plainly none', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/resume-point': { state: 'none' },
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/resume-point': { state: 'none' },
     });
 
     render(<App />);
@@ -279,7 +279,7 @@ describe('the card once a lesson has been opened', () => {
 
 describe("the author's own caveat", () => {
   it('stays visible on the dashboard, outside any disclosure', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 

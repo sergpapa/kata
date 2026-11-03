@@ -40,7 +40,7 @@ function serveApp(
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (url === '/api/resume-point') {
+      if (url === '/api/courses/FSSE/resume-point') {
         if (init?.method === 'PUT') {
           puts.push(JSON.parse(String(init.body)));
           return new Response(JSON.stringify({ state: 'set' }), {
@@ -53,8 +53,8 @@ function serveApp(
           headers: jsonHeaders,
         });
       }
-      if (url.startsWith('/api/lessons/')) {
-        const key = decodeURIComponent(url.slice('/api/lessons/'.length));
+      if (url.startsWith('/api/courses/FSSE/lessons/')) {
+        const key = decodeURIComponent(url.slice('/api/courses/FSSE/lessons/'.length));
         const body = lessons[key];
         return new Response(
           JSON.stringify(
@@ -99,12 +99,12 @@ function contentsAnchors(): readonly HTMLAnchorElement[] {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  window.history.pushState({}, '', '/');
+  window.history.pushState({}, '', '/courses/FSSE');
 });
 
 describe('the contents list in the sidebar', () => {
   it('lists the open lesson’s sections in authored order, each an anchor to its heading', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, sectionedBody, { previous: null, next: neighbourOf(2) }),
     });
@@ -137,7 +137,7 @@ describe('the contents list in the sidebar', () => {
   it('leaks no outline from a lesson onto a standby page or the not-found page', async () => {
     // The leak scenario PRE named: outline state left behind by a lesson route surviving onto a
     // route that is not a lesson. So this test starts where the state exists.
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, sectionedBody, { previous: null, next: neighbourOf(2) }),
     });
@@ -159,7 +159,7 @@ describe('the contents list in the sidebar', () => {
   });
 
   it('shows no contents block for a lesson whose body has no sections', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, 'Only prose.\n', { previous: null, next: neighbourOf(2) }),
     });
@@ -172,7 +172,7 @@ describe('the contents list in the sidebar', () => {
   });
 
   it('replaces the outline when moving to the next lesson, and removes it on leaving', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, sectionedBody, { previous: null, next: neighbourOf(2) }),
       'LS-M020-02': lessonAnswer(2, '## Only in lesson two\n\nProse.\n', {
@@ -199,7 +199,7 @@ describe('the contents list in the sidebar', () => {
   });
 
   it('closes the drawer when a contents entry is followed', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, sectionedBody, { previous: null, next: neighbourOf(2) }),
     });
@@ -216,7 +216,7 @@ describe('the contents list in the sidebar', () => {
   });
 
   it('keeps the drawer’s focus trap cycling through the contents anchors', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, sectionedBody, { previous: null, next: neighbourOf(2) }),
     });
@@ -244,7 +244,7 @@ describe('the contents list in the sidebar', () => {
 
 describe('previous and next', () => {
   it('offers the neighbours the server names, as real links carrying their titles', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-02');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-02');
     serveApp({
       'LS-M020-02': lessonAnswer(2, 'Body two.', {
         previous: neighbourOf(1),
@@ -259,18 +259,18 @@ describe('previous and next', () => {
     const previous = within(nav).getByRole('link', { name: /previous/i });
     const next = within(nav).getByRole('link', { name: /next/i });
 
-    expect(previous.getAttribute('href')).toBe('/lessons/LS-M020-01');
+    expect(previous.getAttribute('href')).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(previous.textContent).toContain('01');
     expect(previous.textContent).toContain(
       'Lesson 1: What happens when your browser asks for something?',
     );
-    expect(next.getAttribute('href')).toBe('/lessons/LS-M020-03');
+    expect(next.getAttribute('href')).toBe('/courses/FSSE/lessons/LS-M020-03');
     expect(next.textContent).toContain('03');
     expect(next.textContent).toContain('Lesson 3: One menu, three ways to carry it');
   });
 
   it('offers no previous on the first lesson, absent rather than disabled', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     serveApp({
       'LS-M020-01': lessonAnswer(1, 'Body one.', { previous: null, next: neighbourOf(2) }),
     });
@@ -285,7 +285,7 @@ describe('previous and next', () => {
   });
 
   it('offers no next on the last lesson, absent rather than disabled', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-05');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-05');
     serveApp({
       'LS-M020-05': lessonAnswer(5, 'Body five.', { previous: neighbourOf(4), next: null }),
     });
@@ -299,7 +299,7 @@ describe('previous and next', () => {
   });
 
   it('opens the neighbour at the top with focus moved, like any navigation', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     const scrollTo = vi.fn();
     vi.stubGlobal('scrollTo', scrollTo);
     serveApp({
@@ -313,7 +313,7 @@ describe('previous and next', () => {
     fireEvent.click(screen.getByRole('link', { name: /next/i }));
 
     await screen.findByText('Body two.');
-    expect(window.location.pathname).toBe('/lessons/LS-M020-02');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02');
     expect(scrollTo).toHaveBeenCalledWith(0, 0);
     expect(document.activeElement).toBe(screen.getByRole('main'));
   });
@@ -321,7 +321,7 @@ describe('previous and next', () => {
 
 describe('recording the lesson last opened', () => {
   it('records the lesson once it answers, against its stable key', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-02');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-02');
     const puts = serveApp({
       'LS-M020-02': lessonAnswer(2, 'Body two.', { previous: neighbourOf(1), next: null }),
     });
@@ -334,7 +334,7 @@ describe('recording the lesson last opened', () => {
   });
 
   it('records each lesson as the reader moves, so the last one opened wins', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     const puts = serveApp({
       'LS-M020-01': lessonAnswer(1, 'Body one.', { previous: null, next: neighbourOf(2) }),
       'LS-M020-02': lessonAnswer(2, 'Body two.', { previous: neighbourOf(1), next: null }),
@@ -349,7 +349,7 @@ describe('recording the lesson last opened', () => {
   });
 
   it('records nothing for a lesson the release does not carry', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-09');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-09');
     const puts = serveApp({});
 
     render(<App />);
@@ -359,7 +359,7 @@ describe('recording the lesson last opened', () => {
   });
 
   it('records nothing while the release stands refused', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     const failed = {
       state: 'failed',
       failure: { code: 'hash_mismatch', message: 'lesson-01.md does not match.', file: null },
@@ -373,19 +373,19 @@ describe('recording the lesson last opened', () => {
   });
 
   it('records nothing when the app does not answer the lesson at all', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     const puts: unknown[] = [];
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string, init?: RequestInit) => {
-        if (url === '/api/resume-point' && init?.method === 'PUT') {
+        if (url === '/api/courses/FSSE/resume-point' && init?.method === 'PUT') {
           puts.push(JSON.parse(String(init.body)));
           return new Response(JSON.stringify({ state: 'set' }), {
             status: 200,
             headers: jsonHeaders,
           });
         }
-        if (url.startsWith('/api/lessons/')) throw new Error('connection refused');
+        if (url.startsWith('/api/courses/FSSE/lessons/')) throw new Error('connection refused');
         return new Response(JSON.stringify(importedRelease()), {
           status: 200,
           headers: jsonHeaders,
@@ -400,7 +400,7 @@ describe('recording the lesson last opened', () => {
   });
 
   it('keeps reading intact when the recording write fails, with no claim anywhere', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     const puts = serveApp(
       { 'LS-M020-01': lessonAnswer(1, 'Body one.', { previous: null, next: neighbourOf(2) }) },
       { resumePutStatus: 500 },

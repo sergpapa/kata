@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, waitFor, within } from '@testing-library/react';
+import { CourseScope } from '../course.js';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import { activity, lessonBody, lessonContext, panelOf } from '../testkit/activityFixture.js';
 import {
@@ -57,17 +58,19 @@ describe('the writing surfaces on a panel', () => {
 
   it('gives every box on the page a different id', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-A',
-            sourceHeading: 'Practice A: explain a supplied exchange',
-          }),
-          activity({ activityId: 'ACT-B', sourceHeading: 'Practice B: repair an explanation' }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-A',
+              sourceHeading: 'Practice A: explain a supplied exchange',
+            }),
+            activity({ activityId: 'ACT-B', sourceHeading: 'Practice B: repair an explanation' }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     const ids = [...container.querySelectorAll('textarea')].map((box) => box.id);
@@ -86,18 +89,20 @@ describe('the writing surfaces on a panel', () => {
     // fields are declared" on its own passes just as well against an app that renders no boxes at
     // all — which is what the PRE audit caught it doing.
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-NONE',
-            responseFields: [],
-            sourceHeading: 'Practice A: explain a supplied exchange',
-          }),
-          activity({ activityId: 'ACT-SOME', sourceHeading: 'Practice B: repair an explanation' }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-NONE',
+              responseFields: [],
+              sourceHeading: 'Practice A: explain a supplied exchange',
+            }),
+            activity({ activityId: 'ACT-SOME', sourceHeading: 'Practice B: repair an explanation' }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(panelOf(container, 'ACT-NONE').querySelectorAll('.response-field')).toHaveLength(0);
@@ -190,7 +195,7 @@ describe('the four states', () => {
     fireEvent.click(saveButton(container, 'prediction'));
     await waitFor(() => expect(stateOf(container, 'prediction')).toBe('saved'));
 
-    expect(calls[0]?.url).toBe('/api/activities/ACT-A/responses/prediction');
+    expect(calls[0]?.url).toBe('/api/courses/FSSE/activities/ACT-A/responses/prediction');
     expect(calls[0]?.body).toEqual({ text: 'a better answer', expectedRevision: 3 });
   });
 

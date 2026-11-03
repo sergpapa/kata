@@ -6,6 +6,10 @@ import type { CourseState, ReleaseState } from '../types.js';
  * without repeating the wiring. The id is the test's choice: `FIX` for the fixture release, whose
  * `release_id` is `FIX-RELEASE`, and `FSSE` for the real full-stack release.
  */
-export function testCourse(courseId: string, releaseDir: string, release: ReleaseState): CourseState {
+export function testCourse(
+  courseId: string,
+  releaseDir: string,
+  release: ReleaseState,
+): CourseState {
   return { courseId, title: `${courseId} test course`, releaseDir, release };
 }

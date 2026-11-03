@@ -25,6 +25,7 @@ import {
   conflict as conflictAnswer,
 } from '../testkit/responseFieldHarness.js';
 import { activity, lessonBody } from '../testkit/activityFixture.js';
+import { CourseScope } from '../course.js';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 
 /**
@@ -657,12 +658,14 @@ describe('the review findings', () => {
  */
 describe('a re-render never costs the reader what they have typed', () => {
   const panel = (context = lessonContext) => (
-    <LessonMarkdown
-      markdown={lessonBody}
-      activities={[activity({ activityId: 'ACT-A' })]}
-      responses={[]}
-      lessonContext={context}
-    />
+    <CourseScope courseId="FSSE">
+      <LessonMarkdown
+        markdown={lessonBody}
+        activities={[activity({ activityId: 'ACT-A' })]}
+        responses={[]}
+        lessonContext={context}
+      />
+    </CourseScope>
   );
 
   it('keeps typed text when the same lesson is handed over again in fresh objects', () => {

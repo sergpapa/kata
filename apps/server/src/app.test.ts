@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { migrate, openDatabase, readSchemaVersion, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 import type { ReleaseState } from './modules/content/types.js';
@@ -63,14 +64,14 @@ describe('the walking skeleton', () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
     const release: ReleaseState = importRelease(db, dir);
-    const app = buildApp({ db, release, releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, release)] });
 
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(200);
-    // '5' since slice 12 added the learner_response_revision table; declared in
-    // docs/specs/prediction-history.md (re-aim 1). It was '4' from slice 10's learner_response.
-    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '5' });
+    // '6' since migration 6 gave each course its own resume point; declared in
+    // docs/specs/multi-course.md (re-aim 1). It was '5' from slice 12's learner_response_revision.
+    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '6' });
     await app.close();
   });
 
@@ -81,20 +82,20 @@ describe('the walking skeleton', () => {
 
     const rows = db.prepare('SELECT count(*) AS n FROM schema_meta').get() as { n: number };
     expect(rows.n).toBe(1);
-    // '5' since slice 12 added learner_response_revision; declared in
-    // docs/specs/prediction-history.md (re-aim 2). The claim is unchanged: running every migration
-    // twice leaves one row, at the version the last migration set.
-    expect(readSchemaVersion(db)).toBe('5');
+    // '6' since migration 6 (per-course resume point); declared in docs/specs/multi-course.md
+    // (re-aim 2). The claim is unchanged: running every migration twice leaves one row, at the
+    // version the last migration set.
+    expect(readSchemaVersion(db)).toBe('6');
   });
 });
 
-describe('GET /api/release after a verified import', () => {
+describe('GET /api/courses/FIX/release after a verified import', () => {
   it('reports the release identity and every lesson in authored order', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/release' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/release' });
 
     expect(response.statusCode).toBe(200);
     const body = response.json() as Record<string, unknown>;
@@ -130,22 +131,22 @@ describe('GET /api/release after a verified import', () => {
   it('does not ship lesson bodies to a page that only lists titles', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/release' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/release' });
 
     expect(response.body).not.toContain('Authored prose for lesson');
     await app.close();
   });
 });
 
-describe('GET /api/release after a refused release', () => {
+describe('GET /api/courses/FIX/release after a refused release', () => {
   it('answers with the named failure and no lessons at all', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/release' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/release' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
@@ -162,7 +163,7 @@ describe('GET /api/release after a refused release', () => {
   it('still answers /api/health, so a refused release does not look like a dead app', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
@@ -171,13 +172,13 @@ describe('GET /api/release after a refused release', () => {
   });
 });
 
-describe('GET /api/lessons/:candidateLessonId', () => {
+describe('GET /api/courses/FIX/lessons/:candidateLessonId', () => {
   it('serves the lesson body with the front matter and the title heading already removed', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
 
     expect(response.statusCode).toBe(200);
     const body = response.json() as {
@@ -197,9 +198,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('carries the identity work will later be recorded against', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-02' });
 
     expect(response.json()).toMatchObject({
       state: 'lesson',
@@ -217,9 +218,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('selects the learner-facing front-matter facts rather than dumping the block', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
     const facts = (response.json() as { lesson: { facts: { key: string }[] } }).lesson.facts;
 
     expect(facts.map((fact) => fact.key)).toEqual(['prerequisites']);
@@ -229,9 +230,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('answers 404 naming the ID when the release has no such lesson', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-99' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-99' });
 
     // The code matters: a bare routing 404 would also carry the ID in its message, and would tell
     // the reader nothing about whether the release has that lesson.
@@ -244,9 +245,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('states the named refusal when the release was refused, rather than a bare not-found', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
@@ -263,9 +264,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('names its neighbours in stored order: the first lesson has no previous', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
 
     const body = response.json() as { previous: unknown; next: unknown };
     expect(body.previous).toBeNull();
@@ -280,9 +281,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('names its neighbours in stored order: the last lesson has no next', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-02' });
 
     const body = response.json() as { previous: unknown; next: unknown };
     expect(body.next).toBeNull();
@@ -297,9 +298,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('gives a middle lesson both neighbours', async () => {
     db = openDatabase(':memory:');
     const dir = threeLessonDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-02' });
 
     const body = response.json() as {
       previous: { candidateLessonId: string };
@@ -314,9 +315,9 @@ describe('GET /api/lessons/:candidateLessonId', () => {
     db = openDatabase(':memory:');
     // The same two lessons, arriving with the array reversed: order fields still say 1 then 2.
     const dir = releaseDir((fixture) => fixture.manifest.lessons.reverse());
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
 
     const body = response.json() as { previous: unknown; next: { candidateLessonId: string } };
     expect(body.previous).toBeNull();
@@ -327,7 +328,7 @@ describe('GET /api/lessons/:candidateLessonId', () => {
   it('reads without writing: no content row changes and none is added', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
     const snapshot = (): string =>
       JSON.stringify(
         ['content_release', 'content_lesson', 'content_lab_kit', 'content_activity_set'].map(
@@ -336,8 +337,8 @@ describe('GET /api/lessons/:candidateLessonId', () => {
       );
     const before = snapshot();
 
-    const first = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-01' });
-    const second = await app.inject({ method: 'GET', url: '/api/lessons/FIX-LS-02' });
+    const first = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-01' });
+    const second = await app.inject({ method: 'GET', url: '/api/courses/FIX/lessons/FIX-LS-02' });
 
     expect([first.statusCode, second.statusCode]).toEqual([200, 200]);
     expect(snapshot()).toBe(before);
@@ -355,7 +356,7 @@ describe('the resume point', () => {
   async function putResume(app: FastifyInstance, payload: unknown) {
     return app.inject({
       method: 'PUT',
-      url: '/api/resume-point',
+      url: '/api/courses/FIX/resume-point',
       headers: { 'content-type': 'application/json' },
       payload: JSON.stringify(payload),
     });
@@ -364,9 +365,9 @@ describe('the resume point', () => {
   it('answers none before any lesson was ever opened', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ state: 'none' });
@@ -376,12 +377,12 @@ describe('the resume point', () => {
   it('stores the lesson it is given and answers it back with when', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-02' });
     expect(put.statusCode).toBe(200);
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toEqual({
       state: 'set',
       candidateLessonId: 'FIX-LS-02',
@@ -395,13 +396,13 @@ describe('the resume point', () => {
   it('survives a restart: a new app over the same database still answers it', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const first = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const first = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
     await putResume(first, { candidateLessonId: 'FIX-LS-01' });
     await first.close();
 
     // The same start path the real process takes: re-import (a verified no-op) and rebuild.
-    const second = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
-    const got = await second.inject({ method: 'GET', url: '/api/resume-point' });
+    const second = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
+    const got = await second.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
 
     expect(got.json()).toMatchObject({ state: 'set', candidateLessonId: 'FIX-LS-01' });
     await second.close();
@@ -410,12 +411,12 @@ describe('the resume point', () => {
   it('keeps one pointer only: the lesson opened last wins', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
     await putResume(app, { candidateLessonId: 'FIX-LS-01' });
     await putResume(app, { candidateLessonId: 'FIX-LS-02' });
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toMatchObject({ state: 'set', candidateLessonId: 'FIX-LS-02' });
     const rows = db.prepare('SELECT count(*) AS n FROM resume_point').get() as { n: number };
     expect(rows.n).toBe(1);
@@ -425,7 +426,7 @@ describe('the resume point', () => {
   it('refuses a lesson the release does not carry, names it, and stores nothing', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-99' });
 
@@ -433,7 +434,7 @@ describe('the resume point', () => {
     expect(put.json()).toMatchObject({ error: 'lesson_not_found' });
     expect(JSON.stringify(put.json())).toContain('FIX-LS-99');
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toEqual({ state: 'none' });
     await app.close();
   });
@@ -441,7 +442,7 @@ describe('the resume point', () => {
   it('refuses a body that does not name a lesson, and stores nothing', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
     for (const payload of [{}, { candidateLessonId: 7 }, { candidateLessonId: '' }]) {
       const put = await putResume(app, payload);
@@ -449,7 +450,7 @@ describe('the resume point', () => {
       expect(put.json()).toMatchObject({ error: 'resume_point_invalid' });
     }
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toEqual({ state: 'none' });
     await app.close();
   });
@@ -457,9 +458,9 @@ describe('the resume point', () => {
   it('answers the named refusal while the release stands refused, and stores nothing', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir((fixture) => fixture.files.delete('lessons/lesson-02.md'));
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toMatchObject({ state: 'failed', failure: { code: 'file_missing' } });
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-01' });
@@ -472,14 +473,14 @@ describe('the resume point', () => {
   it('answers none — without deleting the record — when the stored lesson left the release', async () => {
     db = openDatabase(':memory:');
     const dir = releaseDir();
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
     // A pointer recorded under an earlier release whose lesson this release does not carry. Written
     // directly: the endpoint itself refuses to store an unknown lesson, which is its own test above.
     db.prepare(
       "INSERT INTO resume_point (id, candidate_lesson_id, recorded_at) VALUES (1, 'OLD-LS-77', '2026-09-01T08:00:00.000Z')",
     ).run();
 
-    const got = await app.inject({ method: 'GET', url: '/api/resume-point' });
+    const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
 
     expect(got.json()).toEqual({ state: 'none' });
     const row = db.prepare('SELECT candidate_lesson_id FROM resume_point WHERE id = 1').get() as {
@@ -520,8 +521,8 @@ describe('the activities in a lesson answer', () => {
 
   async function lessonAnswer(dir: string, lessonId: string) {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, dir), releaseDir: dir });
-    const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
+    const response = await app.inject({ method: 'GET', url: `/api/courses/FIX/lessons/${lessonId}` });
     const body = response.json() as Record<string, unknown>;
     await app.close();
     return body;

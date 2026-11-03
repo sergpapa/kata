@@ -58,13 +58,13 @@ function answerLesson(options: {
         method: init?.method ?? 'GET',
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
-      if (url.startsWith('/api/activities/')) {
+      if (url.startsWith('/api/courses/FSSE/activities/')) {
         return new Response(
           JSON.stringify({ state: 'saved', revision: 1, updatedAt: '2026-09-22T14:00:00.000Z' }),
           { status: 200, headers: { 'content-type': 'application/json' } },
         );
       }
-      if (url.startsWith('/api/resume-point')) {
+      if (url.startsWith('/api/courses/FSSE/resume-point')) {
         return new Response(JSON.stringify({ state: 'none' }), {
           status: 200,
           headers: { 'content-type': 'application/json' },
@@ -114,7 +114,7 @@ describe('stored work reaching the boxes', () => {
       ],
     });
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     const box = (await screen.findByLabelText(/your prediction/i)) as HTMLTextAreaElement;
 
     // The claim is about the first appearance, not the settled page: the box must never have been
@@ -137,7 +137,7 @@ describe('stored work reaching the boxes', () => {
       ],
     });
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     await screen.findByLabelText(/your prediction/i);
 
     const observation = within(fieldOf('ACT-A', 'observation')).getByRole(
@@ -161,7 +161,7 @@ describe('stored work reaching the boxes', () => {
       ],
     });
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     await screen.findByLabelText(/what you observed/i);
 
     const foot = document.querySelector('.activity-foot');
@@ -173,7 +173,7 @@ describe('stored work reaching the boxes', () => {
   it('addresses the save to the activity, whatever lesson page it was typed on', async () => {
     const seen = answerLesson({ activities: [activity()], responses: [] });
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     const box = await screen.findByLabelText(/your prediction/i);
     fireEvent.change(box, { target: { value: 'my answer' } });
     fireEvent.click(within(fieldOf('ACT-A', 'prediction')).getByRole('button', { name: /^save/i }));
@@ -184,14 +184,14 @@ describe('stored work reaching the boxes', () => {
       ),
     );
     const put = seen.find((call) => call.url.includes('/responses/'));
-    expect(put?.url).toBe('/api/activities/ACT-A/responses/prediction');
+    expect(put?.url).toBe('/api/courses/FSSE/activities/ACT-A/responses/prediction');
     expect(put?.body).toEqual({ text: 'my answer', expectedRevision: 0 });
   });
 
   it('asks for nothing about responses beyond the lesson request itself', async () => {
     const seen = answerLesson({ activities: [activity()], responses: [] });
 
-    render(<LessonPage candidateLessonId="LS-M020-01" />);
+    render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
     await screen.findByLabelText(/your prediction/i);
 
     // A second request for responses would be the flash-of-empty F2 forbids, arriving by another

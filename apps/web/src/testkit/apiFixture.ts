@@ -79,7 +79,12 @@ export const fifteenLessons = [
 ];
 
 export function importedRelease(lessons = fiveLessons) {
-  return { state: 'imported', release: releaseSummary, lessons };
+  return {
+    state: 'imported',
+    course: { courseId: 'FSSE', title: 'Full-Stack Software Engineering' },
+    release: releaseSummary,
+    lessons,
+  };
 }
 
 export function lessonDetail(order: number, bodyMarkdown = '## A heading\n\nSome prose.\n') {

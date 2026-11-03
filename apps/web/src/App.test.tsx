@@ -18,6 +18,7 @@ function answerWith(body: unknown): void {
 
 const importedRelease = {
   state: 'imported',
+  course: { courseId: 'FSSE', title: 'Full-Stack Software Engineering' },
   release: {
     releaseId: 'FSSE-HTTP-FIRST-FIVE',
     version: '1.0.0-draft',
@@ -60,7 +61,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   // Each test starts at the lesson list. jsdom keeps one window across a file, so an address left
   // behind by a routing test would decide what the next test renders.
-  window.history.pushState({}, '', '/');
+  window.history.pushState({}, '', '/courses/FSSE');
 });
 
 describe('the page after a verified import', () => {
@@ -161,7 +162,7 @@ describe('the page when the local app does not answer', () => {
     // The release was asked for — by URL, not by call position: since slice 4 the dashboard also
     // asks for the resume point, and effect order between the two is not this test's claim.
     // Declared in docs/specs/reader-navigation-and-resume.md.
-    expect(vi.mocked(fetch).mock.calls.map((call) => call[0])).toContain('/api/release');
+    expect(vi.mocked(fetch).mock.calls.map((call) => call[0])).toContain('/api/courses/FSSE/release');
   });
 });
 
@@ -191,7 +192,7 @@ describe('moving between the list and one lesson', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
-        const body = url.startsWith('/api/lessons/') ? lessonAnswer : importedRelease;
+        const body = url.startsWith('/api/courses/FSSE/lessons/') ? lessonAnswer : importedRelease;
         return new Response(JSON.stringify(body), {
           status: 200,
           headers: { 'content-type': 'application/json' },
@@ -207,8 +208,8 @@ describe('moving between the list and one lesson', () => {
 
     const links = await screen.findAllByRole('link', { name: /^Lesson \d:/ });
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/lessons/LS-M020-01',
-      '/lessons/LS-M020-02',
+      '/courses/FSSE/lessons/LS-M020-01',
+      '/courses/FSSE/lessons/LS-M020-02',
     ]);
   });
 
@@ -220,7 +221,7 @@ describe('moving between the list and one lesson', () => {
     fireEvent.click(link);
 
     await screen.findByText('The opening paragraph of the lesson.');
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
   });
 
   it('moves focus to the new page, so a keyboard reader is not left on the old one', async () => {
@@ -259,7 +260,7 @@ describe('moving between the list and one lesson', () => {
   });
 
   it('renders the lesson when the address is opened directly, with no list visited first', async () => {
-    window.history.pushState({}, '', '/lessons/LS-M020-01');
+    window.history.pushState({}, '', '/courses/FSSE/lessons/LS-M020-01');
     answerBothEndpoints();
 
     render(<App />);
@@ -282,7 +283,7 @@ describe('moving between the list and one lesson', () => {
     await waitFor(() => {
       expect(screen.queryByText('The opening paragraph of the lesson.')).toBeNull();
     });
-    expect(window.location.pathname).toBe('/');
+    expect(window.location.pathname).toBe('/courses/FSSE');
     expect(await screen.findAllByRole('link', { name: /^Lesson \d:/ })).toHaveLength(2);
   });
 

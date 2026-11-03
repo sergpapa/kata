@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
+import { CourseScope } from '../course.js';
 import { LessonMarkdown } from '../markdown/LessonMarkdown.js';
 import type { LessonActivity } from '../releaseTypes.js';
 import { activity, bodyOrder, lessonBody, lessonContext } from '../testkit/activityFixture.js';
@@ -19,18 +20,20 @@ afterEach(cleanup);
 describe('where an activity panel lands', () => {
   it('sits at the end of its own section, before the next heading a reader sees as a peer', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({ activityId: 'ACT-A' }),
-          activity({
-            activityId: 'ACT-B',
-            title: 'Practice B: repair an explanation',
-            sourceHeading: 'Practice B: repair an explanation',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({ activityId: 'ACT-A' }),
+            activity({
+              activityId: 'ACT-B',
+              title: 'Practice B: repair an explanation',
+              sourceHeading: 'Practice B: repair an explanation',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container)).toEqual([
@@ -52,17 +55,19 @@ describe('where an activity panel lands', () => {
 
   it('sits at the very end when its section is the lesson’s last', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-LAST',
-            title: '10. What you should be able to explain now',
-            sourceHeading: '10. What you should be able to explain now',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-LAST',
+              title: '10. What you should be able to explain now',
+              sourceHeading: '10. What you should be able to explain now',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container).at(-1)).toBe('panel:ACT-LAST');
@@ -70,17 +75,19 @@ describe('where an activity panel lands', () => {
 
   it('ends a deeper section at the next shallower heading, not at the lesson’s end', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-LASTSUB',
-            title: 'Practice explanations',
-            sourceHeading: 'Practice explanations',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-LASTSUB',
+              title: 'Practice explanations',
+              sourceHeading: 'Practice explanations',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     const order = bodyOrder(container);
@@ -91,13 +98,15 @@ describe('where an activity panel lands', () => {
 
   it('renders the authored excerpt exactly once and never repeats the prompt', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({ activityId: 'ACT-A', promptMarkdown: 'A prompt nobody should see twice.' }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({ activityId: 'ACT-A', promptMarkdown: 'A prompt nobody should see twice.' }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(container.querySelectorAll('.activity-panel')).toHaveLength(1);
@@ -108,12 +117,14 @@ describe('where an activity panel lands', () => {
   it('places nothing and reports nothing when the lesson carries no activities', () => {
     const unplaced = vi.fn();
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        activities={[]}
-        onUnplacedActivities={unplaced}
-        lessonContext={lessonContext}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          activities={[]}
+          onUnplacedActivities={unplaced}
+          lessonContext={lessonContext}
+        />
+      </CourseScope>,
     );
 
     expect(container.querySelectorAll('.activity-panel')).toHaveLength(0);
@@ -124,12 +135,14 @@ describe('where an activity panel lands', () => {
     const withActivities = vi.fn();
     const without = vi.fn();
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[activity({ activityId: 'ACT-A' })]}
-        onOutline={withActivities}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[activity({ activityId: 'ACT-A' })]}
+          onOutline={withActivities}
+        />
+      </CourseScope>,
     );
     render(<LessonMarkdown markdown={lessonBody} onOutline={without} />);
 
@@ -143,17 +156,19 @@ describe('where an activity panel lands', () => {
   it('matches a heading carrying inline code, by the markdown the author wrote', () => {
     const body = ['### What kind of action? `GET`', '', 'Prose.', '', '## Next section'].join('\n');
     const { container } = render(
-      <LessonMarkdown
-        markdown={body}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-RAW',
-            title: 'What kind of action? `GET`',
-            sourceHeading: 'What kind of action? `GET`',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={body}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-RAW',
+              title: 'What kind of action? `GET`',
+              sourceHeading: 'What kind of action? `GET`',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container)).toEqual([
@@ -167,17 +182,19 @@ describe('where an activity panel lands', () => {
   it('matches the same heading by the text a reader sees', () => {
     const body = ['### What kind of action? `GET`', '', 'Prose.'].join('\n');
     const { container } = render(
-      <LessonMarkdown
-        markdown={body}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-RENDERED',
-            title: 'What kind of action? GET',
-            sourceHeading: 'What kind of action? GET',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={body}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-RENDERED',
+              title: 'What kind of action? GET',
+              sourceHeading: 'What kind of action? GET',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container)).toEqual([
@@ -192,19 +209,21 @@ describe('an activity whose section is not there', () => {
   it('is reported as unplaced rather than dropped or guessed at', async () => {
     const unplaced = vi.fn();
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({ activityId: 'ACT-A' }),
-          activity({
-            activityId: 'ACT-GONE',
-            title: 'Practice Z: a section the author renamed',
-            sourceHeading: 'Practice Z: a section the author renamed',
-          }),
-        ]}
-        onUnplacedActivities={unplaced}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({ activityId: 'ACT-A' }),
+            activity({
+              activityId: 'ACT-GONE',
+              title: 'Practice Z: a section the author renamed',
+              sourceHeading: 'Practice Z: a section the author renamed',
+            }),
+          ]}
+          onUnplacedActivities={unplaced}
+        />
+      </CourseScope>,
     );
 
     await waitFor(() => expect(unplaced).toHaveBeenCalled());
@@ -221,12 +240,14 @@ describe('an activity whose section is not there', () => {
     const unplaced = vi.fn();
     const body = ['## Practice A', '', 'One.', '', '## Practice A', '', 'Two.'].join('\n');
     const { container } = render(
-      <LessonMarkdown
-        markdown={body}
-        lessonContext={lessonContext}
-        activities={[activity({ activityId: 'ACT-TWICE', sourceHeading: 'Practice A' })]}
-        onUnplacedActivities={unplaced}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={body}
+          lessonContext={lessonContext}
+          activities={[activity({ activityId: 'ACT-TWICE', sourceHeading: 'Practice A' })]}
+          onUnplacedActivities={unplaced}
+        />
+      </CourseScope>,
     );
 
     await waitFor(() => expect(unplaced).toHaveBeenCalled());
@@ -250,12 +271,14 @@ describe('an activity whose section is not there', () => {
       }),
     ];
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={activities}
-        onUnplacedActivities={unplaced}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={activities}
+          onUnplacedActivities={unplaced}
+        />
+      </CourseScope>,
     );
 
     await waitFor(() => expect(unplaced).toHaveBeenCalled());
@@ -298,17 +321,19 @@ describe('a section that is more than one paragraph', () => {
 
   it('puts the panel after every block the section holds, not under its heading', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={richBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-WHOLE',
-            sourceHeading: '4. Read one request, one piece at a time',
-            title: '4. Read one request, one piece at a time',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={richBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-WHOLE',
+              sourceHeading: '4. Read one request, one piece at a time',
+              title: '4. Read one request, one piece at a time',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container)).toEqual([
@@ -328,17 +353,19 @@ describe('a section that is more than one paragraph', () => {
 
   it('ends a subsection at its sibling, not at its parent’s end', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={richBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-SUB',
-            sourceHeading: 'First subsection',
-            title: 'First subsection',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={richBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-SUB',
+              sourceHeading: 'First subsection',
+              title: 'First subsection',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     const order = bodyOrder(container);
@@ -361,17 +388,19 @@ describe('a section that is more than one paragraph', () => {
     ].join('\n');
 
     const { container } = render(
-      <LessonMarkdown
-        markdown={diagramBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({
-            activityId: 'ACT-DIAGRAM',
-            sourceHeading: 'A section with a diagram',
-            title: 'A section with a diagram',
-          }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={diagramBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({
+              activityId: 'ACT-DIAGRAM',
+              sourceHeading: 'A section with a diagram',
+              title: 'A section with a diagram',
+            }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     const order = bodyOrder(container);
@@ -392,14 +421,16 @@ describe('a section that is more than one paragraph', () => {
 describe('the review findings in the renderer', () => {
   it('stacks two activities naming the same section in the file’s order', () => {
     const { container } = render(
-      <LessonMarkdown
-        markdown={lessonBody}
-        lessonContext={lessonContext}
-        activities={[
-          activity({ activityId: 'ACT-SECOND', sourceHeading: 'Practice explanations' }),
-          activity({ activityId: 'ACT-THIRD', sourceHeading: 'Practice explanations' }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={lessonBody}
+          lessonContext={lessonContext}
+          activities={[
+            activity({ activityId: 'ACT-SECOND', sourceHeading: 'Practice explanations' }),
+            activity({ activityId: 'ACT-THIRD', sourceHeading: 'Practice explanations' }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     const order = bodyOrder(container);
@@ -416,14 +447,16 @@ describe('the review findings in the renderer', () => {
     // come first; the reverse would put the parent's panel inside the child's section.
     const body = ['## Parent', '', 'Parent prose.', '', '### Child', '', 'Child prose.'].join('\n');
     const { container } = render(
-      <LessonMarkdown
-        markdown={body}
-        lessonContext={lessonContext}
-        activities={[
-          activity({ activityId: 'ACT-PARENT', sourceHeading: 'Parent' }),
-          activity({ activityId: 'ACT-CHILD', sourceHeading: 'Child' }),
-        ]}
-      />,
+      <CourseScope courseId="FSSE">
+        <LessonMarkdown
+          markdown={body}
+          lessonContext={lessonContext}
+          activities={[
+            activity({ activityId: 'ACT-PARENT', sourceHeading: 'Parent' }),
+            activity({ activityId: 'ACT-CHILD', sourceHeading: 'Child' }),
+          ]}
+        />
+      </CourseScope>,
     );
 
     expect(bodyOrder(container)).toEqual([

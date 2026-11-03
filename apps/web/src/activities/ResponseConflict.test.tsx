@@ -289,7 +289,7 @@ describe('the review findings', () => {
     fireEvent.click(within(field).getByRole('button', { name: /^save/i }));
 
     await waitFor(() => expect(calls).toHaveLength(1));
-    expect(calls[0]?.url).toBe('/api/activities/ACT%20M020%2F01/responses/prediction');
+    expect(calls[0]?.url).toBe('/api/courses/FSSE/activities/ACT%20M020%2F01/responses/prediction');
   });
 
   it('says the importer own words when the release stands refused, not the status code', async () => {

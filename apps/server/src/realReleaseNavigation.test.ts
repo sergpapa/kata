@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 
@@ -46,7 +47,7 @@ afterEach(() => {
 describe('the neighbour chain across the real fifteen-lesson release', () => {
   it('names every neighbour in manifest order, carrying that lesson’s own served title', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, release: importRelease(db, releaseDir), releaseDir: releaseDir });
+    const app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
 
     const manifest = JSON.parse(
       fs.readFileSync(path.join(releaseDir, 'learning-release.json'), 'utf8'),
@@ -58,7 +59,7 @@ describe('the neighbour chain across the real fifteen-lesson release', () => {
     for (const entry of ordered) {
       const response = await app.inject({
         method: 'GET',
-        url: `/api/lessons/${encodeURIComponent(entry.lesson_id)}`,
+        url: `/api/courses/FSSE/lessons/${encodeURIComponent(entry.lesson_id)}`,
       });
       expect(response.statusCode).toBe(200);
       const body = response.json() as {

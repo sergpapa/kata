@@ -33,7 +33,7 @@ const pages = [
 
 describe.each(pages)('the $path page', ({ path, heading, milestone }) => {
   it('has a heading, says what it will hold, and names the milestone that builds it', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
     window.history.replaceState({}, '', path);
 
     render(<App />);
@@ -46,7 +46,7 @@ describe.each(pages)('the $path page', ({ path, heading, milestone }) => {
   });
 
   it('shows no count, no record and no control that does nothing', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
     window.history.replaceState({}, '', path);
 
     render(<App />);

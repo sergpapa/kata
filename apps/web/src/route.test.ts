@@ -1,55 +1,93 @@
 import { describe, expect, it } from 'vitest';
-import { lessonHref, parseRoute } from './route.js';
+import { courseHref, lessonHref, parseRoute } from './route.js';
 
-/** Criterion C1 in docs/specs/markdown-rendering.md: a lesson is an address, not a piece of state. */
+/**
+ * Criterion C1 in docs/specs/markdown-rendering.md — a lesson is an address, not a piece of state —
+ * as re-scoped by C10–C12 in docs/specs/multi-course.md: every lesson address names its course.
+ */
 
 describe('reading a route out of the address bar', () => {
-  it('treats the root as the lesson list', () => {
+  it('treats the root as the course list', () => {
     expect(parseRoute('/')).toEqual({ kind: 'home' });
   });
 
-  it('reads the lesson key out of /lessons/<id>', () => {
-    expect(parseRoute('/lessons/LS-M020-03')).toEqual({
+  it('reads a course dashboard out of /courses/<id>', () => {
+    expect(parseRoute('/courses/QAAE')).toEqual({ kind: 'course', courseId: 'QAAE' });
+    expect(parseRoute('/courses/QAAE/')).toEqual({ kind: 'course', courseId: 'QAAE' });
+  });
+
+  it('reads the course and the lesson key out of /courses/<id>/lessons/<id>', () => {
+    expect(parseRoute('/courses/FSSE/lessons/LS-M020-03')).toEqual({
       kind: 'lesson',
+      courseId: 'FSSE',
       candidateLessonId: 'LS-M020-03',
     });
   });
 
   it('decodes a lesson key that was percent-encoded into the path', () => {
-    expect(parseRoute('/lessons/LS%2DM020%2D03')).toEqual({
+    expect(parseRoute('/courses/FSSE/lessons/LS%2DM020%2D03')).toEqual({
       kind: 'lesson',
+      courseId: 'FSSE',
       candidateLessonId: 'LS-M020-03',
     });
   });
 
   it('ignores a trailing slash rather than reading an empty lesson key', () => {
-    expect(parseRoute('/lessons/LS-M020-03/')).toEqual({
+    expect(parseRoute('/courses/FSSE/lessons/LS-M020-03/')).toEqual({
       kind: 'lesson',
+      courseId: 'FSSE',
       candidateLessonId: 'LS-M020-03',
     });
   });
 
-  it('reports an address it does not serve, instead of silently showing the list', () => {
-    expect(parseRoute('/lessons')).toMatchObject({ kind: 'unknown' });
-    expect(parseRoute('/lessons/')).toMatchObject({ kind: 'unknown' });
-    expect(parseRoute('/something-else')).toMatchObject({ kind: 'unknown' });
-    expect(parseRoute('/lessons/LS-M020-03/notes')).toMatchObject({ kind: 'unknown' });
+  it('reads the old one-course lesson address as a forward to be made, not as a lesson (C12)', () => {
+    expect(parseRoute('/lessons/LS-M020-03')).toEqual({
+      kind: 'legacyLesson',
+      candidateLessonId: 'LS-M020-03',
+    });
+  });
+
+  it('reports an address it does not serve, instead of silently showing a list', () => {
+    for (const path of [
+      '/lessons',
+      '/lessons/',
+      '/lessons/LS-M020-03/notes',
+      '/courses',
+      '/courses/',
+      '/courses/FSSE/lessons',
+      '/courses/FSSE/lessons/',
+      '/courses/FSSE/notes',
+      '/courses/FSSE/lessons/LS-M020-03/notes',
+      '/courses/FSSE/lessons/%',
+      '/something-else',
+    ]) {
+      expect(parseRoute(path), path).toMatchObject({ kind: 'unknown' });
+    }
   });
 });
 
-describe('building a lesson address', () => {
-  it('round-trips a lesson key through the address it produces', () => {
-    expect(parseRoute(lessonHref('LS-M020-05'))).toEqual({
+describe('building course and lesson addresses', () => {
+  it('round-trips a course id through the dashboard address it produces', () => {
+    expect(parseRoute(courseHref('QAAE'))).toEqual({ kind: 'course', courseId: 'QAAE' });
+  });
+
+  it('round-trips a course and lesson key through the address it produces', () => {
+    expect(parseRoute(lessonHref('QAAE', 'LS-Q01-01'))).toEqual({
       kind: 'lesson',
-      candidateLessonId: 'LS-M020-05',
+      courseId: 'QAAE',
+      candidateLessonId: 'LS-Q01-01',
     });
   });
 
   it('encodes a key containing characters a path would otherwise split on', () => {
-    const href = lessonHref('LS/M020 01');
+    const href = lessonHref('FSSE', 'LS/M020 01');
 
     expect(href).not.toContain('LS/M020 01');
-    expect(parseRoute(href)).toEqual({ kind: 'lesson', candidateLessonId: 'LS/M020 01' });
+    expect(parseRoute(href)).toEqual({
+      kind: 'lesson',
+      courseId: 'FSSE',
+      candidateLessonId: 'LS/M020 01',
+    });
   });
 });
 

@@ -15,18 +15,18 @@ function at(path: string): void {
 }
 
 beforeEach(() => {
-  at('/');
+  at('/courses/FSSE');
 });
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  at('/');
+  at('/courses/FSSE');
 });
 
 describe('the shell around every page', () => {
   it('gives the page a sidebar, a top bar and a main region, and the skip link points at main', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -39,7 +39,7 @@ describe('the shell around every page', () => {
   });
 
   it('lists the four destinations in order, each a real address', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -52,7 +52,7 @@ describe('the shell around every page', () => {
       'Progress',
     ]);
     expect(destinations.map((link) => link.getAttribute('href'))).toEqual([
-      '/',
+      '/courses/FSSE',
       '/practice',
       '/reviews',
       '/progress',
@@ -60,7 +60,7 @@ describe('the shell around every page', () => {
   });
 
   it('marks exactly one destination as the current page', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
     at('/reviews');
 
     render(<App />);
@@ -75,10 +75,10 @@ describe('the shell around every page', () => {
 
   it('keeps Learn marked while a lesson is open, because a lesson is where Learn leads', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/lessons/': lessonDetail(1),
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/lessons/': lessonDetail(1),
     });
-    at('/lessons/LS-M020-01');
+    at('/courses/FSSE/lessons/LS-M020-01');
 
     render(<App />);
 
@@ -91,10 +91,10 @@ describe('the shell around every page', () => {
 
   it('ends the top-bar trail in the name of the page being read', async () => {
     answerRoutes({
-      '/api/release': importedRelease(),
-      '/api/lessons/': lessonDetail(1),
+      '/api/courses/FSSE/release': importedRelease(),
+      '/api/courses/FSSE/lessons/': lessonDetail(1),
     });
-    at('/lessons/LS-M020-01');
+    at('/courses/FSSE/lessons/LS-M020-01');
 
     render(<App />);
 
@@ -109,7 +109,7 @@ describe('the shell around every page', () => {
   });
 
   it('names the workspace in the trail on the lesson list', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -120,7 +120,7 @@ describe('the shell around every page', () => {
   });
 
   it('carries the product name in the sidebar, not in a page header of its own', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -135,7 +135,7 @@ describe('the shell around every page', () => {
 
   /** Criterion D2 reaches the shell too: the sidebar describes the release it actually loaded. */
   it('describes the loaded release in the sidebar, counted from the release itself', async () => {
-    answerRoutes({ '/api/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two')]) });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two')]) });
 
     render(<App />);
 
@@ -147,7 +147,7 @@ describe('the shell around every page', () => {
 
 describe('the sidebar as a drawer on a narrow screen', () => {
   it('is closed to begin with, and the trigger says so', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -159,7 +159,7 @@ describe('the sidebar as a drawer on a narrow screen', () => {
   });
 
   it('opens on the trigger and puts focus inside, so the next Tab is in the drawer', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -172,7 +172,7 @@ describe('the sidebar as a drawer on a narrow screen', () => {
   });
 
   it('closes on Escape and gives focus back to the trigger', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -185,7 +185,7 @@ describe('the sidebar as a drawer on a narrow screen', () => {
   });
 
   it('closes when a destination inside it is followed, rather than covering the page it opened', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -200,7 +200,7 @@ describe('the sidebar as a drawer on a narrow screen', () => {
 
 describe('an address the app does not serve', () => {
   it('still renders inside the shell, so the reader can navigate away', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
     at('/nowhere');
 
     render(<App />);
@@ -219,7 +219,7 @@ describe('an address the app does not serve', () => {
  */
 describe('where focus lands when the page changes', () => {
   it('leaves focus on the new page when a destination is followed from the open drawer', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 
@@ -237,7 +237,7 @@ describe('where focus lands when the page changes', () => {
   });
 
   it('moves focus between two sections that differ only by name', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
     at('/practice');
 
     render(<App />);
@@ -256,7 +256,7 @@ describe('where focus lands when the page changes', () => {
   });
 
   it('steals no focus on first paint, even under StrictMode’s doubled mount effects', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     // main.tsx mounts the app inside StrictMode. Its dev-only second effect run used to look like
     // a navigation to the settled flag, dropping a keyboard reader onto <main> before they had
@@ -272,7 +272,7 @@ describe('where focus lands when the page changes', () => {
   });
 
   it('keeps Tab inside the open drawer, which covers the page behind it', async () => {
-    answerRoutes({ '/api/release': importedRelease() });
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
 

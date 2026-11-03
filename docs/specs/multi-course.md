@@ -38,14 +38,17 @@ Design recorded in ADR 0018.
     (`lesson_id_collision`).
 
   The same lesson ID with the same document ID, and the same activity ID with the same lesson ID,
-  are a shared lesson and are accepted.
+  are a shared lesson and are accepted. Only courses that imported claim IDs: a refused course
+  stored nothing, so a later course reusing its IDs contradicts nothing the app serves.
 
 ### API
 
 - **C5** Every course endpoint moves under `/api/courses/:courseId/`: `release`, `lessons/:id`,
   `resume-point` (GET and PUT), `labs/:labId/download`, and
   `activities/:activityId/responses/:fieldName`. Each answers exactly as its unscoped predecessor
-  did, against that course's release. The unscoped addresses no longer exist and answer 404.
+  did, against that course's release, and the `release` answer also carries
+  `course: { courseId, title }` so a page can name its course without a second request. The
+  unscoped addresses no longer exist and answer 404.
 - **C6** An unknown course ID answers 404 with `error: "course_not_found"` and a message naming
   the ID, on every course endpoint.
 - **C7** `GET /api/courses` lists every configured course in config order. An imported course
@@ -69,9 +72,11 @@ Design recorded in ADR 0018.
   "no page at this address" page, with a link to `/`.
 - **C12** The old address `/lessons/:id` is replaced by `/courses/FSSE/lessons/:id` without adding
   a history entry, so the owner's bookmarks keep working.
-- **C13** In a course, the sidebar's Learn link leads to that course's dashboard, the sidebar note
-  names the course and its release, and the breadcrumb reads `EduCode › <course title> › <page>`.
-  On the course list, Learn leads to `/` and no course note is shown.
+- **C13** In a course, the sidebar's Learn link leads to that course's dashboard and the sidebar
+  note names the course above its release's audience and size. On the course list, Learn leads to
+  `/`, no course note is shown, and the breadcrumb reads `EduCode › Courses`. Breadcrumbs inside a
+  course are unchanged. Outside any course (Practice, Reviews, Progress, an unknown address), Learn
+  leads to `/` as on the course list.
 - **C14** Every link and request a course page makes stays inside that course: lesson cards,
   previous/next, the resume card, lab downloads and saves.
 
@@ -95,16 +100,34 @@ Design recorded in ADR 0018.
 
 About 127 request URLs in about 20 existing test files call the unscoped endpoints, and about 22
 places build the app with `{ release, releaseDir }`. Criterion C5 deliberately changes that
-contract. Those tests are migrated mechanically: the URL gains `/api/courses/<id>`, and the app is
-built from a course list. **No assertion, expected value or test name changes.** The test-guardian
-PRE review checks the migration diff for exactly that.
+contract. Those tests are migrated mechanically:
+
+- request URLs gain `/api/courses/<id>`, and page addresses gain `/courses/<id>`, including where
+  an address is the expected value (an `href`, a fetched URL);
+- the app is built from a course list, and components that now need a course are given one;
+- the web fixture's release answer gains the `course` field (C5).
+
+**Nothing else in an assertion, expected value or test name changes.** The two `config.test.ts`
+cases about `releaseDir` and `EDUCODE_RELEASE_DIR` test a contract C1 retires, so they are replaced
+by C1 tests rather than migrated. The test-guardian PRE review checks the migration diff for
+exactly this.
+
+**Re-aims.** Migration 6 moves `app_schema_version` from `5` to `6`, so two `app.test.ts`
+assertions change their expected value, as `prediction-history.md` did for `4` to `5`:
+
+1. `/api/health` reports `schemaVersion: '6'`.
+2. Running every migration twice leaves one `schema_meta` row, at `6`.
+
+The page-routing tests in `route.test.ts` that read `/lessons/:id` as a lesson address test a
+contract C11–C12 retire. They are replaced by tests of the new addresses, and the old address is
+tested as the forward it becomes.
 
 ## Scope fence — not in this slice
 
 - Export, the grading kit, the MCP review server, and BookingLab.
 - Actually shipping a lesson in both courses. C4 accepts shared lessons, but none exists yet.
 - A course switcher, cross-course progress, and course-specific Practice/Reviews/Progress pages.
-- `release:build` producing a course's *first* release. It needs a previous release, so this
+- `release:build` producing a course's _first_ release. It needs a previous release, so this
   package is assembled by hand once and proven by the importer (C15). Later QA releases are seeded
   from it.
 

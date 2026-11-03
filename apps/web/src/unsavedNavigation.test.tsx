@@ -49,9 +49,9 @@ function answerEverything(saveAnswer?: () => Response, activities = [activity()]
           headers: { 'content-type': 'application/json' },
         });
 
-      if (url.startsWith('/api/release')) return json(importedRelease());
-      if (url.startsWith('/api/resume-point')) return json({ state: 'none' });
-      if (url.startsWith('/api/activities/')) {
+      if (url.startsWith('/api/courses/FSSE/release')) return json(importedRelease());
+      if (url.startsWith('/api/courses/FSSE/resume-point')) return json({ state: 'none' });
+      if (url.startsWith('/api/courses/FSSE/activities/')) {
         return (
           saveAnswer?.() ??
           json({ state: 'saved', revision: 1, updatedAt: '2026-09-22T14:00:00.000Z' })
@@ -80,7 +80,7 @@ function answerEverything(saveAnswer?: () => Response, activities = [activity()]
 }
 
 beforeEach(() => {
-  window.history.replaceState({}, '', '/lessons/LS-M020-01');
+  window.history.replaceState({}, '', '/courses/FSSE/lessons/LS-M020-01');
 });
 
 afterEach(() => {
@@ -113,7 +113,7 @@ describe('leaving a lesson with unsaved work', () => {
     fireEvent.click(nextLink());
 
     expect(dialog()).toBeTruthy();
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
   });
 
   it('names the field and its activity, not a count', async () => {
@@ -135,7 +135,7 @@ describe('leaving a lesson with unsaved work', () => {
     fireEvent.click(within(dialog()).getByRole('button', { name: /stay/i }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(box.value).toBe('a prediction worth keeping');
     expect(
       document
@@ -151,7 +151,7 @@ describe('leaving a lesson with unsaved work', () => {
 
     fireEvent.click(within(dialog()).getByRole('button', { name: /leave anyway/i }));
 
-    await waitFor(() => expect(window.location.pathname).toBe('/lessons/LS-M020-02'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02'));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -160,11 +160,11 @@ describe('leaving a lesson with unsaved work', () => {
     await typeWithoutSaving();
     fireEvent.click(nextLink());
     fireEvent.click(within(dialog()).getByRole('button', { name: /leave anyway/i }));
-    await waitFor(() => expect(window.location.pathname).toBe('/lessons/LS-M020-02'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02'));
 
     fireEvent.click(screen.getByRole('link', { name: /all lessons/i }));
 
-    await waitFor(() => expect(window.location.pathname).toBe('/'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE'));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 });
@@ -238,7 +238,7 @@ describe('leaving with nothing unsaved', () => {
 
     fireEvent.click(nextLink());
 
-    await waitFor(() => expect(window.location.pathname).toBe('/lessons/LS-M020-02'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02'));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -256,7 +256,7 @@ describe('leaving with nothing unsaved', () => {
 
     fireEvent.click(nextLink());
 
-    await waitFor(() => expect(window.location.pathname).toBe('/lessons/LS-M020-02'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02'));
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
@@ -265,13 +265,13 @@ describe('leaving with nothing unsaved', () => {
     await typeWithoutSaving();
     fireEvent.click(nextLink());
     fireEvent.click(within(dialog()).getByRole('button', { name: /leave anyway/i }));
-    await waitFor(() => expect(window.location.pathname).toBe('/lessons/LS-M020-02'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-02'));
 
     // Lesson 2 has no activities, so nothing on this page is unsaved. A registry that never
     // unregistered would still be holding lesson 1's field and would block this.
     fireEvent.click(screen.getByRole('link', { name: /all lessons/i }));
 
-    await waitFor(() => expect(window.location.pathname).toBe('/'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE'));
   });
 });
 
@@ -280,23 +280,23 @@ describe('the back button', () => {
     answerEverything();
     await typeWithoutSaving();
 
-    window.history.pushState({}, '', '/');
+    window.history.pushState({}, '', '/courses/FSSE');
     fireEvent.popState(window);
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeNull());
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
   });
 
   it('goes where the back button was heading when the reader leaves anyway', async () => {
     answerEverything();
     await typeWithoutSaving();
-    window.history.pushState({}, '', '/');
+    window.history.pushState({}, '', '/courses/FSSE');
     fireEvent.popState(window);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeNull());
 
     fireEvent.click(within(dialog()).getByRole('button', { name: /leave anyway/i }));
 
-    await waitFor(() => expect(window.location.pathname).toBe('/'));
+    await waitFor(() => expect(window.location.pathname).toBe('/courses/FSSE'));
   });
 });
 
@@ -358,7 +358,7 @@ describe('the dialog itself', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(box.value).toBe('still here');
   });
 
@@ -436,16 +436,16 @@ describe('the review findings in the guard', () => {
     // who jumped to a section, typed into it and pressed Back was returned to the top of the
     // lesson by their own Stay.
     answerEverything();
-    window.history.replaceState({}, '', '/lessons/LS-M020-01#practice-a');
+    window.history.replaceState({}, '', '/courses/FSSE/lessons/LS-M020-01#practice-a');
     render(<App />);
     const box = await screen.findByLabelText(/your prediction/i);
     fireEvent.change(box, { target: { value: 'typed inside a section' } });
 
-    window.history.pushState({}, '', '/');
+    window.history.pushState({}, '', '/courses/FSSE');
     fireEvent.popState(window);
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeNull());
-    expect(window.location.pathname).toBe('/lessons/LS-M020-01');
+    expect(window.location.pathname).toBe('/courses/FSSE/lessons/LS-M020-01');
     expect(window.location.hash).toBe('#practice-a');
   });
 });

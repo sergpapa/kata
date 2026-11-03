@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
+import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
 import type { ReleaseState } from './modules/content/types.js';
@@ -69,7 +70,7 @@ function appWith(activities: FixtureActivity[]) {
   db = openDatabase(':memory:');
   const dir = releaseWith(activities);
   const release: ReleaseState = importRelease(db, dir);
-  return buildApp({ db, release, releaseDir: dir });
+  return buildApp({ db, courses: [testCourse('FIX', dir, release)] });
 }
 
 const oneActivity = [activityRecord()];
@@ -82,13 +83,13 @@ function put(
 ) {
   return app.inject({
     method: 'PUT',
-    url: `/api/activities/${encodeURIComponent(activityId)}/responses/${encodeURIComponent(fieldName)}`,
+    url: `/api/courses/FIX/activities/${encodeURIComponent(activityId)}/responses/${encodeURIComponent(fieldName)}`,
     payload: payload as Record<string, unknown>,
   });
 }
 
 async function lessonBody(app: ReturnType<typeof buildApp>, lessonId = 'FIX-LS-01') {
-  const response = await app.inject({ method: 'GET', url: `/api/lessons/${lessonId}` });
+  const response = await app.inject({ method: 'GET', url: `/api/courses/FIX/lessons/${lessonId}` });
   return response.json() as {
     responses?: {
       activityId: string;
@@ -375,7 +376,7 @@ describe('a save the server will not make', () => {
     const fixture = makeFixture();
     fixture.manifest.lessons[0]!.sha256 = 'a'.repeat(64);
     const release: ReleaseState = importRelease(db, writeFixture(dir, fixture));
-    const app = buildApp({ db, release, releaseDir: dir });
+    const app = buildApp({ db, courses: [testCourse('FIX', dir, release)] });
 
     const response = await put(app, 'ACT-FIX-01', 'prediction', {
       text: 'work',
