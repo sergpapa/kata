@@ -36,6 +36,14 @@ the authoring tests serially. A built release carries `release.status` as author
 status is not flagged. `build.test.ts` is 385 lines. Everything listed under the previous state
 (superseded notes, "before authoring moved in-house") that this slice did not touch still stands.
 
+**A second course is being planned: QA Automation Engineering** (manual testers to mid-level
+automation). Decisions are in ADRs 0014–0017: a separate course on a shared module library,
+Playwright + TypeScript in depth, grading by a fault-injection kit run on the learner's machine, and
+AI review through the learner's own Claude Code over MCP. Draft plans are in
+`docs/courses/qa-automation/` (architecture and module syllabus, v0.1, awaiting owner review). No
+lessons are written for it. Its critical path is the BookingLab practice-application spec. The app
+needs multi-course support before it can serve this course.
+
 Next action: the owner reads Lessons 5–8 in the app, labs included, and returns notes in any form;
 answers typed into the app are readable from `data/educode.sqlite`. Meanwhile the app's next slice
 is Milestone 3's Export.
