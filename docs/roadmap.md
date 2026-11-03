@@ -2,6 +2,14 @@
 
 ## Current state
 
+**2026-11-03: content authoring moves in-house.** The external authoring tool stopped working.
+Authoring continues in this repo, and its rules, the owner's verbatim feedback to the old author,
+and the agreed model choice are in `docs/authoring/README.md`, with the salvaged transcript beside
+it. Next: an ADR for the move, then Lesson 16 (M021-08) as a release package that the owner
+reviews. **This section was not updated after the save-failure-recovery commits (`1c3dc47`,
+`dfceddc`, `6c977e2`, 2026-09-23).** Its checkbox under Milestone 2 is still open, so the next
+session must confirm that slice's definition of done before taking it as complete.
+
 Last updated 2026-09-23. **Milestone 1 is complete, Milestone 2 has one slice left, and Milestone 3
 has its first.** The app imports `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft` — fifteen lessons across
 modules M020 and M021, five lab kits, 45 activity entries — from

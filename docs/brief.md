@@ -19,11 +19,11 @@ own machine. It is a learning rehearsal, not a public course launch and not an a
 
 ## Who it is for
 
-| User                         | In this checkpoint                                                                                       | Later                                               |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Owner as learner             | Reads the five lessons, records predictions/observations/reflections, downloads labs, exports their work | Same, across the wider curriculum                   |
-| Content author (external)    | Receives the exported work and the owner review; supplies the next release                               | Authoring and release-review screens (UX-14, UX-15) |
-| Reviewer, assessor, operator | Not present. No review is simulated.                                                                     | The P1 evidence loop (specs W-05 onward)            |
+| User                                             | In this checkpoint                                                                                       | Later                                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Owner as learner                                 | Reads the five lessons, records predictions/observations/reflections, downloads labs, exports their work | Same, across the wider curriculum                   |
+| Content author (in-repo since 2026-11, ADR 0013) | Receives the exported work and the owner review; supplies the next release                               | Authoring and release-review screens (UX-14, UX-15) |
+| Reviewer, assessor, operator                     | Not present. No review is simulated.                                                                     | The P1 evidence loop (specs W-05 onward)            |
 
 ## v1 scope — what the checkpoint must do
 
