@@ -8,7 +8,7 @@ import { twoDigits } from '../format.js';
  * in the way (docs/specs/save-failure-recovery.md, criteria F4 and F5).
  */
 
-/** Which lesson an answer belongs to, as the page already knows it from `GET /api/lessons/:id`. */
+/** Which lesson an answer belongs to, as the page already knows it from `GET /api/courses/:courseId/lessons/:id`. */
 export interface LessonContext {
   readonly order: number;
   readonly candidateLessonId: string;

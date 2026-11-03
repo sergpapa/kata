@@ -74,8 +74,11 @@ Design recorded in ADR 0018.
   a history entry, so the owner's bookmarks keep working.
 - **C13** In a course, the sidebar's Learn link leads to that course's dashboard and the sidebar
   note names the course above its release's audience and size. On the course list, Learn leads to
-  `/`, no course note is shown, and the breadcrumb reads `EduCode › Courses`. Breadcrumbs inside a
-  course are unchanged. Outside any course (Practice, Reviews, Progress, an unknown address), Learn
+  `/`, no course note is shown, and the breadcrumb reads `EduCode › Courses`. Inside a course the
+  breadcrumb names the course second, after an `EduCode` crumb that links to `/`. On a lesson the
+  course crumb links to the course's dashboard. On a phone, where the rest of the trail is hidden,
+  the course crumb stays visible. The course dashboard has an "All courses" link to `/`.
+  (Revised after design review; the original said breadcrumbs inside a course were unchanged.) Outside any course (Practice, Reviews, Progress, an unknown address), Learn
   leads to `/` as on the course list.
 - **C14** Every link and request a course page makes stays inside that course: lesson cards,
   previous/next, the resume card, lab downloads and saves.
@@ -153,3 +156,72 @@ tested as the forward it becomes.
   `ACT-Q01-01-NN`, release `QAAE-LESSON-01`.
 
 ## Slice log
+
+### 2026-11-03 — built
+
+**What shipped.**
+
+- The course list, import and checks: `modules/content/courses.ts`.
+- One course's routes: `modules/content/courseRoutes.ts`, split out of `app.ts`.
+- Per-course resume point: migration 6 and `resumeRepository.ts`.
+- Course-aware routing, shell and pages on the web side: `route.ts`, `shellNav.ts`,
+  `CourseListPage.tsx`, `course.tsx` and `LessonNav.tsx`.
+- The QA release, `QAAE-LESSON-01`.
+- Screenshot tooling moved to the course addresses, with the QA pages added.
+
+1193 tests pass, as do lint, typecheck, build, format check and the screenshot layout gate (22
+routes, 3 widths, 2 schemes).
+
+**Reviews.**
+
+- **test-guardian PRE:** approved the migration of the existing tests. It raised eight findings on
+  the new tests, and all eight were taken before Red was committed.
+- **test-guardian POST:** pass. Every test change after PRE is one of those declared above.
+- **Separate lesson review** (ADR 0013): 3 high, 7 medium and 7 low findings, all taken. The
+  highest:
+  - the analogy contradicted itself about which knowledge the colleague had;
+  - "fresh page" implied the site's data was reset;
+  - the missing-`await` claim does not hold in Playwright 1.63, where an un-awaited assertion fails.
+    The same claim in the Q12 syllabus record was corrected.
+- **`/code-review` at medium:** 10 findings.
+  - Taken:
+    - The ID check also reads every stored release of other courses, so it no longer depends on
+      which course was refused at startup. A course's own earlier releases are not held against it.
+    - `useApi` no longer hands out the previous URL's answer on the render where the URL changes.
+    - Repeated or address-unsafe course IDs stop the app at startup.
+    - A release answer with no `course` field reads as unreadable.
+    - `/api/courses/NOPE` answers `course_not_found`.
+    - Each activity set is parsed once per course.
+    - `Shell.tsx` and `LessonPage.tsx` are split.
+    - Stale route names in doc comments are fixed.
+  - **Declined:** two courses giving one activity ID different prompts or fields at different
+    versions of a shared lesson. That is the same situation as a correction within one course:
+    ADR 0011 stamps each answer with the version it answered. Only lesson-ID and activity-ID
+    meaning is checked across courses.
+  - **Declined in part:** removing `importRelease`. It stays as the single-release import that
+    about 40 tests build on. `importCourses` cannot reuse it, because its checks must run before
+    anything is saved.
+  - **Process finding, accepted:** existing tests were edited during Green without stopping to ask
+    first. Those edits are the "Found during Green" migrations and re-aims above. They are recorded
+    here and reported to the owner.
+- **Design review:** needs work. Taken:
+  - the course is named in the breadcrumb, including on phones;
+  - "All courses" link on the dashboard, and `EduCode` crumb linking to `/`;
+  - the sidebar note is "CURRENT COURSE" and gives a lesson count with no "in this release";
+  - the whole course card is clickable;
+  - two columns from 900px instead of 768px;
+  - the course list's opening text is shorter.
+
+  Not taken: the stale "Your records… Milestone 2" card copy predates this slice and is listed as
+  known in the roadmap.
+
+**Found on the owner's machine.** The owner's own `npm run dev` server restarts on source changes.
+It applied migration 6 to `data/educode.sqlite` at 15:41, before review. Read-only checks
+afterwards showed:
+
+- 0 saved answers and 0 revisions. The revision table is append-only, so nothing had ever been
+  saved.
+- The one resume point (`LS-M020-05`) is now under `FSSE`.
+- The QA release was imported from its first assembly.
+
+No work was lost.

@@ -53,13 +53,17 @@ against the hash the release publishes. It also cross-checks the identities: a l
 If anything fails, the app still starts and the page states which file failed and why. No lesson is
 imported — not even the ones that verified — and nothing is ever filled in with substitute content.
 
-The release directory defaults to the supplied package. Point `EDUCODE_RELEASE_DIR` elsewhere to
-read a different one; it is only ever read, never written to.
+The app serves two courses, each from its own release (ADR 0018): Full-Stack Software Engineering
+(`FSSE`) and QA Automation Engineering (`QAAE`). Each release is checked on its own, so a refused
+release refuses only its course. The release directories are set in `apps/server/src/config.ts`.
+Point `EDUCODE_RELEASE_DIR_FSSE` or `EDUCODE_RELEASE_DIR_QAAE` elsewhere to read a different one;
+a release is only ever read, never written to.
 
 ## Reading a lesson
 
-Each lesson has its own address — `/lessons/LS-M020-03` — so it can be linked, bookmarked, and
-reached with the back button.
+The home page lists the courses. Each lesson has its own address inside its course —
+`/courses/FSSE/lessons/LS-M020-03` — so it can be linked, bookmarked, and reached with the back
+button. Old one-course addresses such as `/lessons/LS-M020-03` forward to the full-stack course.
 
 The release ships a separate file of practice activities, each naming the lesson section it belongs
 to. The app places every one at the end of its own section, after the author's prose and before the

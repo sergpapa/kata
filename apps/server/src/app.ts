@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import fastifyStatic from '@fastify/static';
 import fs from 'node:fs';
 import type { Db } from './modules/lifecycle/database.js';
@@ -77,7 +77,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
    * Anything under a course the app does not serve. A known course's own routes are static and win
    * over this pattern, so reaching here with a known id means a path that course does not have.
    */
-  app.all<{ Params: { courseId: string } }>('/api/courses/:courseId/*', async (request, reply) => {
+  const notACourseRoute = async (
+    request: FastifyRequest<{ Params: { courseId: string } }>,
+    reply: FastifyReply,
+  ) => {
     const { courseId } = request.params;
     if (deps.courses.some((course) => course.courseId === courseId)) {
       return reply.code(404).send({ error: 'not_found', message: `No route for ${request.url}` });
@@ -86,7 +89,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       error: 'course_not_found',
       message: `This app serves no course ${courseId}.`,
     });
-  });
+  };
+  // Both the course's own address and anything under it: `/*` needs a segment after the id.
+  app.all('/api/courses/:courseId', notACourseRoute);
+  app.all('/api/courses/:courseId/*', notACourseRoute);
 
   if (deps.webDistDir && fs.existsSync(deps.webDistDir)) {
     void app.register(fastifyStatic, { root: deps.webDistDir });

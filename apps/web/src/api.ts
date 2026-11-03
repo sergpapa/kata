@@ -15,10 +15,16 @@ export type ApiResult =
  * and hooks cannot be called conditionally, so "no question" has to be a value.
  */
 export function useApi(url: string | null): ApiResult {
-  const [result, setResult] = useState<ApiResult>({ state: 'reading' });
+  // Each answer is kept with the URL it answers. The effect that asks the new URL runs after the
+  // render in which the URL changed, so without this that render would hand out the previous URL's
+  // answer — another course's release, drawn under this course's address (code review 2026-11-03).
+  const [held, setHeld] = useState<{ url: string | null; result: ApiResult }>({
+    url,
+    result: { state: 'reading' },
+  });
 
   useEffect(() => {
-    setResult({ state: 'reading' });
+    setHeld({ url, result: { state: 'reading' } });
     if (url === null) return;
     const controller = new AbortController();
 
@@ -37,11 +43,11 @@ export function useApi(url: string | null): ApiResult {
           reason: error instanceof Error ? error.message : 'The app did not answer.',
         };
       }
-      if (!controller.signal.aborted) setResult(next);
+      if (!controller.signal.aborted) setHeld({ url, result: next });
     })();
 
     return () => controller.abort();
   }, [url]);
 
-  return result;
+  return held.url === url ? held.result : { state: 'reading' };
 }

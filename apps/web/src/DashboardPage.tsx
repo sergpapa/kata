@@ -119,6 +119,9 @@ export function DashboardPage({
 
   return (
     <>
+      <p className="lesson-back">
+        <RouteLink href="/">All courses</RouteLink>
+      </p>
       <header className="page-title">
         <div>
           <p className="eyebrow">YOUR LEARNING PLAN</p>

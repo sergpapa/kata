@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApi, type ApiResult } from './api.js';
-import { twoDigits } from './format.js';
 import { LessonMarkdown, type OutlineEntry } from './markdown/LessonMarkdown.js';
-import { CourseScope, courseApi, useCourseId } from './course.js';
-import { courseHref, lessonHref } from './route.js';
-import { RouteLink } from './RouteLink.js';
+import { CourseScope, courseApi } from './course.js';
+import { BackToLessons, NeighbourNav, type LessonNeighbour } from './LessonNav.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
 import type { LessonContext } from './activities/recoveryFile.js';
@@ -97,13 +95,6 @@ function UnplacedActivities({
   );
 }
 
-/** Where a previous/next link points and what to call it — named by the server, which owns order. */
-export interface LessonNeighbour {
-  readonly order: number;
-  readonly candidateLessonId: string;
-  readonly displayTitle: string;
-}
-
 type LessonView =
   | { readonly state: 'reading' }
   | {
@@ -166,14 +157,6 @@ function toLessonView(result: ApiResult, candidateLessonId: string): LessonView 
   return { state: 'unavailable', reason: 'The app answered in a shape this page cannot read.' };
 }
 
-function BackToLessons() {
-  return (
-    <p className="lesson-back">
-      <RouteLink href={courseHref(useCourseId())}>All lessons</RouteLink>
-    </p>
-  );
-}
-
 /**
  * The author's own `status` caveat is lifted out and always visible. On Lesson 1 it reads "not yet
  * learner-tested", and the brief's no-overstated-claims rule makes that the one fact here that
@@ -220,41 +203,6 @@ function FactList({ facts }: { readonly facts: readonly LessonFact[] }) {
         </details>
       )}
     </>
-  );
-}
-
-/**
- * The way on and the way back, at the foot of the lesson where a reader finishes. An absent
- * neighbour is an absent control: the first lesson simply has no "Previous", rather than a
- * disabled button that promises nothing (visual-design decision 5).
- */
-function NeighbourNav({
-  previous,
-  next,
-}: {
-  readonly previous: LessonNeighbour | null;
-  readonly next: LessonNeighbour | null;
-}) {
-  const courseId = useCourseId();
-  if (!previous && !next) return null;
-
-  const link = (neighbour: LessonNeighbour, label: 'Previous' | 'Next') => (
-    <RouteLink
-      href={lessonHref(courseId, neighbour.candidateLessonId)}
-      className={`neighbour neighbour-${label.toLowerCase()}`}
-    >
-      <span className="neighbour-kicker">
-        {label} · Lesson {twoDigits(neighbour.order)}
-      </span>
-      <span className="neighbour-title">{neighbour.displayTitle}</span>
-    </RouteLink>
-  );
-
-  return (
-    <nav className="lesson-neighbours" aria-label="Between lessons">
-      {previous && link(previous, 'Previous')}
-      {next && link(next, 'Next')}
-    </nav>
   );
 }
 

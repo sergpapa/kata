@@ -2,51 +2,37 @@
 
 ## Current state
 
-Last updated 2026-11-03. **Content authoring has moved into this repo, and the tool that builds
-releases is done.** The external author (a ChatGPT project) stopped working; ADR 0013 records that
-lessons are now written here and still ship as cumulative, hash-addressed release packages.
-`docs/authoring/README.md` is the handbook — the governing specs in order, the owner's verbatim
-feedback to the old author, the review record and the model choice (Opus 5.5 writes; Fable 5.1
-only if the owner judges an Opus lesson below the standard of Lessons 1–4) — with the salvaged
-transcript kept byte for byte beside it.
+Last updated 2026-11-03. **The app serves two courses, and the QA course has its first lesson.**
+ADR 0018: a fixed course list in `config.ts` (`FSSE` Full-Stack Software Engineering, then `QAAE`
+QA Automation Engineering), each course imported from its own release and refused on its own. The
+API is under `/api/courses/:courseId/`, pages under `/courses/:courseId/`, `/` is the course list,
+and old `/lessons/:id` links forward to the full-stack course. One resume point per course
+(migration 6). Work on a lesson two courses share keeps one set of answers. Criteria and slice
+record: `docs/specs/multi-course.md`.
 
-**Release packaging (authoring slice 1)** is built: `npm run release:seed` turns a release into an
-editable source tree, `npm run release:build` builds the next cumulative release from it, deriving
-every manifest entry, injecting canonical lesson copies into kits, reusing unchanged kit zips byte
-for byte, refusing versions that did not move with their bytes, and refusing to exist until the
-app's own `verifyRelease` accepts it. Verified end to end: a Lesson 5 correction built as 1.0.2,
-imported and served by the app. Criteria and slice record in `docs/specs/release-packaging.md`.
-`content/source/` does not exist yet — it is seeded when the first correction arrives.
+**QA Lesson 1 is an owner-review candidate**: `content/releases/qaae-lesson-01-v1/`
+(`QAAE-LESSON-01@1.0.0-draft`, "What changes when a machine runs your test?", 3 activities, no
+lab). It was reviewed in a separate session and revised against all 17 findings. The owner has not
+read it. Its course plans are in `docs/courses/qa-automation/` (ADRs 0014–0017), still v0.1 drafts
+awaiting the owner's review.
 
-**The owner has reviewed only Lessons 1–4.** Lessons 5–15 have never been read by the owner, so no
-new lesson is written until they have been: the next content is most likely a correction reissue
-of 5–15, then Lesson 16 (M021-08). The app is unchanged and still serves
-`FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`. Milestone 2 is complete — save failure recovery was finished
-on 2026-09-23 (its roadmap box was not ticked then).
+**The owner's real store is already migrated.** The owner's own `npm run dev` server restarts on file
+changes, and it applied migration 6 to `data/educode.sqlite` at 15:41 on 2026-11-03. Checked
+read-only afterwards: 0 saved answers and 0 revisions, both before and after (nothing had been
+saved), and the one resume point (Lesson 5) moved to `FSSE` intact.
 
-`npm test` (1124 tests in three vitest projects; the new `authoring` project runs one file at a
-time — see the slice log), `npm run lint`, `npm run typecheck`, `npm run build` and
-`npm run format:check` pass **under nvm's Node 24.12**. Under Anaconda's Node 22.13, first on PATH
-in some shells, 156 tests fail because `better-sqlite3` is built for Node 24 — not a regression.
+`npm test` (1193 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
+format:check` and `npm run screenshots` (22 routes, 3 widths, 2 schemes) pass under nvm's Node 24.12.
 
-**Known and not fixed.** Two unexplained full-suite runs now (slice 11's and this slice's first
-Node 24 run), each failing one test per file across files the change could not reach; neither
-signature was captured. The full suite now takes 44–51s instead of about 33s, the price of running
-the authoring tests serially. A built release carries `release.status` as authored, so a stale
-status is not flagged. `build.test.ts` is 385 lines. Everything listed under the previous state
-(superseded notes, "before authoring moved in-house") that this slice did not touch still stands.
+**Known and not fixed.** The dashboard's "Your records" card still says work is not recorded "until
+Milestone 2", which has shipped. `release:build` cannot build a course's first release, so the QA
+package was assembled once by script. `LessonPage.tsx` is 359 lines. Everything listed under the
+previous state that this slice did not touch still stands (see "Superseded state notes").
 
-**A second course is being planned: QA Automation Engineering** (manual testers to mid-level
-automation). Decisions are in ADRs 0014–0017: a separate course on a shared module library,
-Playwright + TypeScript in depth, grading by a fault-injection kit run on the learner's machine, and
-AI review through the learner's own Claude Code over MCP. Draft plans are in
-`docs/courses/qa-automation/` (architecture and module syllabus, v0.1, awaiting owner review). No
-lessons are written for it. Its critical path is the BookingLab practice-application spec. The app
-needs multi-course support before it can serve this course.
-
-Next action: the owner reads Lessons 5–8 in the app, labs included, and returns notes in any form;
-answers typed into the app are readable from `data/educode.sqlite`. Meanwhile the app's next slice
-is Milestone 3's Export.
+Next action: the owner reads QA Lesson 1 and Lessons 5–8 of the full-stack course in the app, and
+reviews the QA course plans in `docs/courses/qa-automation/`. The next QA content is the BookingLab
+practice-application spec, which the course's Playwright stage depends on. The app's next slice
+is still Milestone 3's Export.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -179,6 +165,14 @@ is Milestone 3's Export.
       (FAIL on four findings, all taken; then PASS), POST skipped on diff evidence, `/code-review`
       at medium (ten findings, seven taken, three declined with reasons). Criteria and slice record
       in `docs/specs/release-packaging.md`.
+- [x] **Multi-course support and QA Lesson 1.** Done 2026-11-03 (ADR 0018). The app serves `FSSE`
+      and `QAAE` from their own releases; QA Lesson 1 ships as `QAAE-LESSON-01`. test-guardian PRE
+      (migration approved, eight findings on the new tests, all taken) and POST (pass), separate
+      lesson review (17 findings, all taken), `/code-review` at medium (ten findings: eight taken,
+      one declined, one a process finding reported to the owner), design review (needs work; the
+      in-course findings taken). Record in `docs/specs/multi-course.md`.
+- [ ] **Owner reading of QA Lesson 1** and review of the QA course plans (`docs/courses/qa-automation/`).
+- [ ] **BookingLab practice-application spec**, the QA course's critical path.
 - [ ] **Owner reading of Lessons 5–15**, then a correction reissue built with the tool.
 - [ ] **Lesson 16 (M021-08)**, written and reviewed in separate sessions; adding a lesson and kit to
       a release is that slice's packaging work.
@@ -513,6 +507,54 @@ need an approved data policy and a named reviewer before they mean anything.
 ## Superseded state notes
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-11-03, before multi-course support.**
+
+  Last updated 2026-11-03. **Content authoring has moved into this repo, and the tool that builds
+  releases is done.** The external author (a ChatGPT project) stopped working; ADR 0013 records that
+  lessons are now written here and still ship as cumulative, hash-addressed release packages.
+  `docs/authoring/README.md` is the handbook — the governing specs in order, the owner's verbatim
+  feedback to the old author, the review record and the model choice (Opus 5.5 writes; Fable 5.1
+  only if the owner judges an Opus lesson below the standard of Lessons 1–4) — with the salvaged
+  transcript kept byte for byte beside it.
+
+  **Release packaging (authoring slice 1)** is built: `npm run release:seed` turns a release into an
+  editable source tree, `npm run release:build` builds the next cumulative release from it, deriving
+  every manifest entry, injecting canonical lesson copies into kits, reusing unchanged kit zips byte
+  for byte, refusing versions that did not move with their bytes, and refusing to exist until the
+  app's own `verifyRelease` accepts it. Verified end to end: a Lesson 5 correction built as 1.0.2,
+  imported and served by the app. Criteria and slice record in `docs/specs/release-packaging.md`.
+  `content/source/` does not exist yet — it is seeded when the first correction arrives.
+
+  **The owner has reviewed only Lessons 1–4.** Lessons 5–15 have never been read by the owner, so no
+  new lesson is written until they have been: the next content is most likely a correction reissue
+  of 5–15, then Lesson 16 (M021-08). The app is unchanged and still serves
+  `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`. Milestone 2 is complete — save failure recovery was finished
+  on 2026-09-23 (its roadmap box was not ticked then).
+
+  `npm test` (1124 tests in three vitest projects; the new `authoring` project runs one file at a
+  time — see the slice log), `npm run lint`, `npm run typecheck`, `npm run build` and
+  `npm run format:check` pass **under nvm's Node 24.12**. Under Anaconda's Node 22.13, first on PATH
+  in some shells, 156 tests fail because `better-sqlite3` is built for Node 24 — not a regression.
+
+  **Known and not fixed.** Two unexplained full-suite runs now (slice 11's and this slice's first
+  Node 24 run), each failing one test per file across files the change could not reach; neither
+  signature was captured. The full suite now takes 44–51s instead of about 33s, the price of running
+  the authoring tests serially. A built release carries `release.status` as authored, so a stale
+  status is not flagged. `build.test.ts` is 385 lines. Everything listed under the previous state
+  (superseded notes, "before authoring moved in-house") that this slice did not touch still stands.
+
+  **A second course is being planned: QA Automation Engineering** (manual testers to mid-level
+  automation). Decisions are in ADRs 0014–0017: a separate course on a shared module library,
+  Playwright + TypeScript in depth, grading by a fault-injection kit run on the learner's machine, and
+  AI review through the learner's own Claude Code over MCP. Draft plans are in
+  `docs/courses/qa-automation/` (architecture and module syllabus, v0.1, awaiting owner review). No
+  lessons are written for it. Its critical path is the BookingLab practice-application spec. The app
+  needs multi-course support before it can serve this course.
+
+  Next action: the owner reads Lessons 5–8 in the app, labs included, and returns notes in any form;
+  answers typed into the app are readable from `data/educode.sqlite`. Meanwhile the app's next slice
+  is Milestone 3's Export.
 
 - **2026-11-03, before authoring moved in-house.**
 

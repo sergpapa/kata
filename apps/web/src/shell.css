@@ -219,6 +219,17 @@
   flex-shrink: 0;
 }
 
+.breadcrumbs .crumb-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.breadcrumbs .crumb-link:hover {
+  color: var(--foreground);
+}
+
 .breadcrumbs .crumb-here {
   color: var(--foreground);
   font-weight: 550;
@@ -317,5 +328,15 @@
 
   .breadcrumbs li svg {
     display: none;
+  }
+
+  /* Except the course, inside one: with the drawer closed this is the only place a phone reader can
+     see which course they are in (design review, docs/specs/multi-course.md C13). */
+  .breadcrumbs li.crumb-course {
+    display: flex;
+  }
+
+  .breadcrumbs li.crumb-course + li svg {
+    display: block;
   }
 }

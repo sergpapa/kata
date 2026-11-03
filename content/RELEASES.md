@@ -5,12 +5,17 @@ the package's inner folder. Never edit anything under `releases/` — each packa
 (`package-manifest.json` and `learning-release.json` carry a SHA-256 per file) and the importer
 verifies those hashes. Proposed content changes go to `docs/content-feedback.md` for the owner.
 
-**Current release: `releases/http-first-fifteen-v1_0_1/`** — the app's default
-`releaseDir` in `apps/server/src/config.ts` points at its `content/` directory.
+**Current releases**, one per course (ADR 0018), each named by its course's `releaseDir` in
+`apps/server/src/config.ts`:
+
+- Full-Stack Software Engineering (`FSSE`): `releases/http-first-fifteen-v1_0_1/`.
+- QA Automation Engineering (`QAAE`): `releases/qaae-lesson-01-v1/`, authored in this repo and
+  assembled once by script, because `release:build` needs a previous release to build from.
 
 | Directory                                   | Package / release ID                                                    | Received   | Status                                                                                                                                                                            |
 | ------------------------------------------- | ----------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `releases/http-first-fifteen-v1_0_1/`       | `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`                                   | 2026-09-21 | **Current.** Lessons 1–15 with CF-001/CF-002 accepted (lessons 2 and 7 at 1.0.1-draft); the investigation kit still ships deliberately faulty starter code — that is the exercise |
+| `releases/qaae-lesson-01-v1/`               | `QAAE-LESSON-01` / `QAAE-LESSON-01@1.0.0-draft`                         | 2026-11-03 | **Current for QAAE.** QA Lesson 1, owner-review candidate; no lab                                                                                                                 |
 | `releases/http-lessons-14-15-release-v1/`   | `FSSE-HTTP-INVESTIGATION-14-15` / `FSSE-HTTP-FIRST-FIFTEEN@1.0.0-draft` | 2026-09-21 | Superseded; verified baseline, and the pre-correction bytes `content-corrections.json` names as previous                                                                          |
 | `releases/http-lessons-09-13-release-v1/`   | `FSSE-HTTP-CACHING-09-13` / `FSSE-HTTP-FIRST-THIRTEEN`                  | 2026-09-21 | Superseded; verified baseline for lessons 1–13 continuity                                                                                                                         |
 | `releases/http-depth-and-lessons-06-08-v1/` | `FSSE-HTTP-FIRST-EIGHT` chain                                           | 2026-09-21 | Superseded content; current curriculum specifications (v1_1) and the Lesson-08 owner review                                                                                       |
@@ -21,8 +26,8 @@ duplication across directories is deliberate and cheap — git stores identical 
 pruning a superseded package would break its manifest hashes and the regression test that proves
 old releases still verify (`apps/server/src/modules/content/verify.test.ts`).
 
-Adding a new drop: copy its inner package folder in unchanged, flip the default `releaseDir` in
-`apps/server/src/config.ts` (and the path in `config.test.ts`), and update this file. The
+Adding a new drop: copy its inner package folder in unchanged, point its course's `releaseDir` in
+`apps/server/src/config.ts` at it (and the path in `config.test.ts`), and update this file. The
 `content/releases/** -text` rule in `.gitattributes` already protects it from line-ending
 conversion. See ADR 0009 for why the layout is shaped this way.
 

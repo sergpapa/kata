@@ -208,6 +208,7 @@ describe('course-scoped endpoints (C5, C6)', () => {
   });
 
   it.each([
+    ['GET', '/api/courses/NOPE'],
     ['GET', '/api/courses/NOPE/release'],
     ['GET', '/api/courses/NOPE/lessons/FIX-LS-01'],
     ['GET', '/api/courses/NOPE/resume-point'],

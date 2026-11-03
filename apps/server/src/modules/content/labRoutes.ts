@@ -64,7 +64,7 @@ export function registerLabRoutes(app: FastifyInstance, deps: LabRouteDeps): voi
       bytes = readVerifiedBytes(releaseRealDir, kit.sourcePath, kit.sha256);
     } catch (error) {
       // A kit that changed under a running app is refused, not handed over. 409 rather than 500:
-      // the app is fine and the file is not, which is the same distinction /api/release draws.
+      // the app is fine and the file is not, which is the same distinction the release endpoint draws.
       if (isImportFailure(error)) {
         return reply.code(409).send({ error: error.code, message: error.message });
       }

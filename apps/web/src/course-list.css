@@ -10,10 +10,34 @@
   list-style: none;
 }
 
-@media (min-width: 768px) {
+/* Two columns only once each card keeps a readable measure: at 768px a long audience line ran to six
+   narrow lines (design review). */
+@media (min-width: 900px) {
   .course-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* The whole card opens the course, not only its title: the title's link is stretched over the card,
+   so there is still exactly one link per course for a screen reader to announce. */
+.course-card {
+  position: relative;
+}
+
+.course-card h2 a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.course-card:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* A refused course's reason stays selectable above the stretched link. */
+.course-card .notice {
+  position: relative;
 }
 
 .course-card h2 {

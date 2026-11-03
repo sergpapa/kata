@@ -56,7 +56,7 @@ export type ReleaseView =
   | { readonly state: 'unavailable'; readonly reason: string };
 
 /**
- * One activity the author wrote for a lesson, as `GET /api/lessons/:id` answers it. `sourceHeading`
+ * One activity the author wrote for a lesson, as `GET /api/courses/:courseId/lessons/:id` answers it. `sourceHeading`
  * is the placement instruction: the panel goes at the end of the section with that heading.
  */
 export interface LessonActivity {
@@ -71,7 +71,7 @@ export interface LessonActivity {
 }
 
 /**
- * One field the server has stored, as `GET /api/lessons/:id` answers it. A field never saved is
+ * One field the server has stored, as `GET /api/courses/:courseId/lessons/:id` answers it. A field never saved is
  * absent from the array rather than present and empty — "nothing is stored" and "an empty answer is
  * stored" are different facts, and only the second has a revision.
  */
@@ -104,7 +104,7 @@ export interface EarlierVersion {
 }
 
 /**
- * The lab kit a lesson declares, as `GET /api/lessons/:id` answers it.
+ * The lab kit a lesson declares, as `GET /api/courses/:courseId/lessons/:id` answers it.
  *
  * `lessons` carries each sharing lesson's number beside its key because the number cannot be got
  * from the key: `LS-M021-01` is lesson 9. Nothing on this side ever parses a lesson id.

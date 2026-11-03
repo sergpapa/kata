@@ -375,6 +375,63 @@ describe('a course’s own pages (C11, C13, C14)', () => {
     expect(learnLink().getAttribute('href')).toBe('/courses/QAAE');
   });
 
+  it('names the course in the breadcrumb, which leads back to the course list (design review)', async () => {
+    answerExactly({
+      '/api/courses/QAAE/release': { body: qaRelease },
+      '/api/courses/QAAE/resume-point': { body: { state: 'none' } },
+    });
+    at('/courses/QAAE');
+
+    render(<App />);
+
+    const trail = await screen.findByRole('navigation', { name: 'Breadcrumb' });
+    await waitFor(() => expect(trail.textContent).toContain('QA Automation Engineering'));
+    expect(within(trail).getByRole('link', { name: 'EduCode' }).getAttribute('href')).toBe('/');
+    expect(within(trail).getAllByRole('listitem').at(-1)?.textContent?.trim()).toBe(
+      'Learning workspace',
+    );
+  });
+
+  it('names the course in a lesson breadcrumb, linking to its dashboard', async () => {
+    answerExactly({
+      '/api/courses/QAAE/release': { body: qaRelease },
+      '/api/courses/QAAE/lessons/LS-Q01-01': {
+        body: {
+          ...lessonDetail(1),
+          release: { releaseId: 'QAAE-LESSON-01', version: '1.0.0-draft' },
+          lesson: { ...lessonDetail(1).lesson, ...qaLesson },
+          activities: [],
+          responses: [],
+          labKit: null,
+          previous: null,
+          next: null,
+        },
+      },
+      '/api/courses/QAAE/resume-point': { body: { state: 'set' } },
+    });
+    at('/courses/QAAE/lessons/LS-Q01-01');
+
+    render(<App />);
+
+    const trail = await screen.findByRole('navigation', { name: 'Breadcrumb' });
+    const course = await within(trail).findByRole('link', { name: 'QA Automation Engineering' });
+    expect(course.getAttribute('href')).toBe('/courses/QAAE');
+  });
+
+  it('calls the sidebar note the current course, not a release (design review)', async () => {
+    answerExactly({
+      '/api/courses/QAAE/release': { body: qaRelease },
+      '/api/courses/QAAE/resume-point': { body: { state: 'none' } },
+    });
+    at('/courses/QAAE');
+
+    render(<App />);
+
+    const sidebar = screen.getByRole('navigation', { name: 'Sections' });
+    await within(sidebar).findByText('CURRENT COURSE');
+    expect(sidebar.textContent).not.toContain('THIS RELEASE');
+  });
+
   it('points Learn at the course list from a page outside any course', async () => {
     answerExactly({});
     at('/practice');

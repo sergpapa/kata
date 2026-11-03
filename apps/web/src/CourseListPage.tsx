@@ -37,10 +37,7 @@ export function CourseListPage() {
         <div>
           <p className="eyebrow">YOUR COURSES</p>
           <h1>Choose a course.</h1>
-          <p className="lede">
-            Each course has its own lessons, in its own order. A lesson two courses share keeps one
-            set of your answers, whichever course you read it in.
-          </p>
+          <p className="lede">Each course has its own lessons, in its own order.</p>
         </div>
       </header>
 

@@ -187,3 +187,74 @@ describe('one id, one meaning, across courses (C4)', () => {
     expect(courses[1]?.release.state).toBe('imported');
   });
 });
+
+describe('one id, one meaning, across restarts (code review, 2026-11-03)', () => {
+  it('refuses a course reusing an id a stored release of another course gives another meaning, whatever the config order', () => {
+    db = openDatabase(':memory:');
+    const qax = release({
+      releasePrefix: 'QAX',
+      activities: [{ activity_id: 'ACT-SAME', lesson_id: 'QAX-LS-01' }],
+    });
+    // An earlier start where only QAX imported, so its ids, and any answers under them, are stored.
+    importCourses(db, [{ courseId: 'QAX', title: 'Second course', releaseDir: qax }]);
+
+    const courses = importCourses(db, [
+      {
+        courseId: 'FIX',
+        title: 'Fixture course',
+        releaseDir: release({
+          releasePrefix: 'FIX',
+          activities: [{ activity_id: 'ACT-SAME', lesson_id: 'FIX-LS-01' }],
+        }),
+      },
+      { courseId: 'QAX', title: 'Second course', releaseDir: qax },
+    ]);
+
+    expect(failureOf(courses[0]).code).toBe('activity_id_collision');
+    expect(failureOf(courses[0]).message).toContain('QAX-LS-01');
+    expect(courses[1]?.release.state).toBe('imported');
+  });
+
+  it('does not hold a course against its own earlier releases', () => {
+    db = openDatabase(':memory:');
+    const config = (dir: string) => [{ courseId: 'FIX', title: 'Fixture course', releaseDir: dir }];
+    importCourses(
+      db,
+      config(
+        release({
+          releasePrefix: 'FIX',
+          activities: [{ activity_id: 'ACT-MOVED', lesson_id: 'FIX-LS-01' }],
+        }),
+      ),
+    );
+
+    const later = importCourses(
+      db,
+      config(
+        release({
+          releasePrefix: 'FIX',
+          activities: [{ activity_id: 'ACT-MOVED', lesson_id: 'FIX-LS-02' }],
+        }),
+      ),
+    );
+
+    expect(later[0]?.release.state).toBe('imported');
+  });
+});
+
+describe('the course list itself (code review, 2026-11-03)', () => {
+  it.each([
+    ['a repeated id', ['FIX', 'FIX']],
+    ['an id that is not safe in an address', ['FIX', 'QA X']],
+  ])('refuses to start with %s, rather than registering routes nobody can reach', (_case, ids) => {
+    db = openDatabase(':memory:');
+    const dir = release({ releasePrefix: 'FIX' });
+
+    expect(() =>
+      importCourses(
+        db as Db,
+        ids.map((courseId) => ({ courseId, title: courseId, releaseDir: dir })),
+      ),
+    ).toThrow(/course/i);
+  });
+});
