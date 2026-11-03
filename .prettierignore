@@ -6,5 +6,6 @@ test-results/
 playwright-report/
 package-lock.json
 content/releases/
+content/source/
 engineering-practice-ui-design-v1/
 .kilo/

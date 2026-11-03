@@ -12,6 +12,8 @@ export default tseslint.config(
       'test-results/**',
       'playwright-report/**',
       'content/releases/**',
+      // The editable source of the next release: authored kit code, some of it faulty on purpose.
+      'content/source/**',
       // Supplied reference material, like the releases above: not this application's source to lint.
       'engineering-practice-ui-design-v1/**',
       // Other tools' worktrees. A second checkout inside the repo is not a second project.

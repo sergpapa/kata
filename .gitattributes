@@ -8,6 +8,10 @@
 # under content/releases/, so one rule protects them all. Leave these directories untouched.
 content/releases/** -text
 
+# The editable source the next release is built from: the same bytes end up hashed in a release,
+# so line-ending conversion here would change every hash too (docs/specs/release-packaging.md).
+content/source/** -text
+
 *.zip binary
 *.png binary
 *.jpg binary
