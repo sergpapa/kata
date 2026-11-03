@@ -148,3 +148,17 @@ export interface StoredLabKit {
    */
   readonly lessons: readonly { readonly order: number; readonly candidateLessonId: string }[];
 }
+
+/** One course as configured: which release directory serves it, and what the reader calls it. */
+export interface CourseConfig {
+  /** Stable, and the prefix every release of the course carries in its `release_id` (ADR 0018). */
+  readonly courseId: string;
+  readonly title: string;
+  /** Directory containing `learning-release.json`. Read-only input, never written to. */
+  readonly releaseDir: string;
+}
+
+/** A configured course and the outcome of its import, carried for the lifetime of the process. */
+export interface CourseState extends CourseConfig {
+  readonly release: ReleaseState;
+}
