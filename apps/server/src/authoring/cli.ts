@@ -43,7 +43,7 @@ function summary(changes: ReleaseChanges, outDir: string): string[] {
   lines.push(
     '',
     'To make it the current release (not done for you):',
-    `  1. Point the default releaseDir in apps/server/src/config.ts at ${path.join(outDir, 'content')}`,
+    `  1. Point the course's releaseDir in apps/server/src/config.ts at ${path.join(outDir, 'content')}`,
     '  2. Update the matching path in apps/server/src/config.test.ts',
     '  3. Add the release to content/RELEASES.md and mark it current',
     `  4. Set previous_release in release.json to ${outDir}, so the next build compares against this one`,

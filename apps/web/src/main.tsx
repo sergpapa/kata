@@ -8,6 +8,7 @@ import '@fontsource-variable/jetbrains-mono/index.css';
 import './theme.css';
 import './shell.css';
 import './dashboard.css';
+import './course-list.css';
 import './continue-card.css';
 import './lesson.css';
 import './navigation.css';

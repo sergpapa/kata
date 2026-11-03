@@ -20,8 +20,9 @@
  * repeat must append nothing, so the expected count is 2 and not 3. Seeding rows directly would
  * make this a test of the seeding.
  */
-export async function seedHistory(baseUrl, lessonKey) {
-  const answer = await fetch(`${baseUrl}/api/lessons/${encodeURIComponent(lessonKey)}`);
+export async function seedHistory(baseUrl, courseId, lessonKey) {
+  const course = `${baseUrl}/api/courses/${encodeURIComponent(courseId)}`;
+  const answer = await fetch(`${course}/lessons/${encodeURIComponent(lessonKey)}`);
   const body = await answer.json();
   const activity = (body.activities ?? [])[0];
   if (!activity) throw new Error(`${lessonKey} carries no activity to seed history against`);
@@ -37,7 +38,7 @@ export async function seedHistory(baseUrl, lessonKey) {
   let revision = 0;
   for (const text of texts) {
     const response = await fetch(
-      `${baseUrl}/api/activities/${encodeURIComponent(activity.activityId)}/responses/${encodeURIComponent(fieldName)}`,
+      `${course}/activities/${encodeURIComponent(activity.activityId)}/responses/${encodeURIComponent(fieldName)}`,
       {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },

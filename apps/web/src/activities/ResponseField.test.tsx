@@ -99,7 +99,10 @@ describe('the writing surfaces on a panel', () => {
               responseFields: [],
               sourceHeading: 'Practice A: explain a supplied exchange',
             }),
-            activity({ activityId: 'ACT-SOME', sourceHeading: 'Practice B: repair an explanation' }),
+            activity({
+              activityId: 'ACT-SOME',
+              sourceHeading: 'Practice B: repair an explanation',
+            }),
           ]}
         />
       </CourseScope>,

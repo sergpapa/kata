@@ -60,7 +60,11 @@ describe('what the panel says', () => {
           markdown={lessonBody}
           lessonContext={lessonContext}
           activities={[
-            activity({ activityId: 'ACT-A', kind: 'sketch_and_defend', responseFields: ['sketch'] }),
+            activity({
+              activityId: 'ACT-A',
+              kind: 'sketch_and_defend',
+              responseFields: ['sketch'],
+            }),
           ]}
         />
       </CourseScope>,

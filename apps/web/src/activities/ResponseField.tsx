@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react';
 import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
+import { courseApi, useCourseId } from '../course.js';
 import { setUnsaved } from '../unsavedGuard.js';
 import { storedWhen } from '../format.js';
 import { ConflictPanel } from './ConflictPanel.js';
@@ -81,6 +82,9 @@ export function ResponseField({
   /** Which lesson this box belongs to, so a recovery file can say where the answer came from. */
   readonly lessonContext: LessonContext;
 }) {
+  // The course the lesson was read through: its release is the one a save is checked against and
+  // stamped with, even when the lesson is shared (ADR 0018).
+  const courseId = useCourseId();
   const label = fieldLabel(fieldName);
   // Unique without `useId`, and deliberately: an activity id appears once on a lesson page and a
   // field name once on an activity. `useId` spells its values with colons, which are legal in an
@@ -149,7 +153,7 @@ export function ResponseField({
     try {
       // Encoded, because an activity id and a field name are both content: nothing in the release
       // format promises either is free of a `/` or a space. The same reason `lessonHref` encodes.
-      const url = `/api/activities/${encodeURIComponent(activityId)}/responses/${encodeURIComponent(fieldName)}`;
+      const url = `${courseApi(courseId)}/activities/${encodeURIComponent(activityId)}/responses/${encodeURIComponent(fieldName)}`;
       const response = await fetch(url, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },

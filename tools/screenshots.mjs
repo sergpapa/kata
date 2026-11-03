@@ -46,25 +46,29 @@ const schemes = ['light', 'dark'];
  * CF-001 — and every other lesson (14 and 15 carry no fence) must load no Mermaid at all.
  */
 const routes = [
-  { name: 'home', path: '/' },
+  // The course list, then each course's dashboard (docs/specs/multi-course.md C10–C11).
+  { name: 'courses', path: '/' },
+  { name: 'home', path: '/courses/FSSE' },
+  { name: 'qa-home', path: '/courses/QAAE' },
+  { name: 'qa-lesson-01', path: '/courses/QAAE/lessons/LS-Q01-01', diagram: 'drawn' },
   { name: 'practice', path: '/practice' },
   { name: 'reviews', path: '/reviews' },
   { name: 'progress', path: '/progress' },
-  { name: 'lesson-01', path: '/lessons/LS-M020-01', diagram: 'drawn' },
-  { name: 'lesson-02', path: '/lessons/LS-M020-02', diagram: 'drawn' },
-  { name: 'lesson-03', path: '/lessons/LS-M020-03', diagram: 'none' },
-  { name: 'lesson-04', path: '/lessons/LS-M020-04', diagram: 'none' },
-  { name: 'lesson-05', path: '/lessons/LS-M020-05', diagram: 'drawn' },
-  { name: 'lesson-06', path: '/lessons/LS-M020-06', diagram: 'drawn' },
-  { name: 'lesson-07', path: '/lessons/LS-M020-07', diagram: 'none' },
-  { name: 'lesson-08', path: '/lessons/LS-M020-08', diagram: 'none' },
-  { name: 'lesson-09', path: '/lessons/LS-M021-01', diagram: 'none' },
-  { name: 'lesson-10', path: '/lessons/LS-M021-02', diagram: 'none' },
-  { name: 'lesson-11', path: '/lessons/LS-M021-03', diagram: 'drawn' },
-  { name: 'lesson-12', path: '/lessons/LS-M021-04', diagram: 'none' },
-  { name: 'lesson-13', path: '/lessons/LS-M021-05', diagram: 'none' },
-  { name: 'lesson-14', path: '/lessons/LS-M021-06', diagram: 'none' },
-  { name: 'lesson-15', path: '/lessons/LS-M021-07', diagram: 'none' },
+  { name: 'lesson-01', path: '/courses/FSSE/lessons/LS-M020-01', diagram: 'drawn' },
+  { name: 'lesson-02', path: '/courses/FSSE/lessons/LS-M020-02', diagram: 'drawn' },
+  { name: 'lesson-03', path: '/courses/FSSE/lessons/LS-M020-03', diagram: 'none' },
+  { name: 'lesson-04', path: '/courses/FSSE/lessons/LS-M020-04', diagram: 'none' },
+  { name: 'lesson-05', path: '/courses/FSSE/lessons/LS-M020-05', diagram: 'drawn' },
+  { name: 'lesson-06', path: '/courses/FSSE/lessons/LS-M020-06', diagram: 'drawn' },
+  { name: 'lesson-07', path: '/courses/FSSE/lessons/LS-M020-07', diagram: 'none' },
+  { name: 'lesson-08', path: '/courses/FSSE/lessons/LS-M020-08', diagram: 'none' },
+  { name: 'lesson-09', path: '/courses/FSSE/lessons/LS-M021-01', diagram: 'none' },
+  { name: 'lesson-10', path: '/courses/FSSE/lessons/LS-M021-02', diagram: 'none' },
+  { name: 'lesson-11', path: '/courses/FSSE/lessons/LS-M021-03', diagram: 'drawn' },
+  { name: 'lesson-12', path: '/courses/FSSE/lessons/LS-M021-04', diagram: 'none' },
+  { name: 'lesson-13', path: '/courses/FSSE/lessons/LS-M021-05', diagram: 'none' },
+  { name: 'lesson-14', path: '/courses/FSSE/lessons/LS-M021-06', diagram: 'none' },
+  { name: 'lesson-15', path: '/courses/FSSE/lessons/LS-M021-07', diagram: 'none' },
 ];
 
 const serverEntry = path.join(repoRoot, 'apps', 'server', 'dist', 'index.js');
@@ -150,19 +154,21 @@ try {
   // data directory was wiped above, so this is the only work in the store and the captures of
   // lesson 1 show it by design (docs/specs/prediction-history.md, "Existing tests this slice
   // re-aims").
-  seededHistory = await seedHistory(baseUrl, 'LS-M020-01');
+  seededHistory = await seedHistory(baseUrl, 'FSSE', 'LS-M020-01');
 
   for (const route of routes) {
     // How many activities this lesson actually has, asked of the app rather than written down
     // here. A literal 3 would make the gate a test of this one package: a release shipping none
     // would fail on all fifteen lessons, and a release shipping four would pass with one lost.
-    const lessonKey = route.path.startsWith('/lessons/')
-      ? decodeURIComponent(route.path.slice('/lessons/'.length))
-      : null;
+    const lessonAddress = /^\/courses\/([^/]+)\/lessons\/(.+)$/.exec(route.path);
+    const lessonKey = lessonAddress ? decodeURIComponent(lessonAddress[2]) : null;
+    const lessonCourse = lessonAddress ? decodeURIComponent(lessonAddress[1]) : null;
     let expectedActivities = { activities: 0, fields: 0 };
     let expectedKit = null;
     if (lessonKey) {
-      const answer = await fetch(`${baseUrl}/api/lessons/${encodeURIComponent(lessonKey)}`);
+      const answer = await fetch(
+        `${baseUrl}/api/courses/${encodeURIComponent(lessonCourse)}/lessons/${encodeURIComponent(lessonKey)}`,
+      );
       const body = await answer.json();
       const activities = Array.isArray(body.activities) ? body.activities : [];
       expectedActivities = {
@@ -194,7 +200,7 @@ try {
 
         // Criterion N3/N4's layout half: every lesson page carries its contents list in the
         // sidebar, and every entry points at an id that exists exactly once on the page.
-        if (route.path.startsWith('/lessons/')) {
+        if (lessonKey) {
           const contents = await page.evaluate(() => {
             const anchors = [...document.querySelectorAll('.contents-list a')];
             if (anchors.length === 0) return 'no contents entries in the sidebar';
@@ -336,8 +342,8 @@ try {
    * the dashboard's primary action and a lesson's prose.
    */
   for (const route of [
-    { name: 'home', path: '/', mustSee: 'a[href="/lessons/LS-M020-01"]' },
-    { name: 'lesson-01', path: '/lessons/LS-M020-01', mustSee: '.lesson-body p' },
+    { name: 'home', path: '/courses/FSSE', mustSee: 'a[href="/courses/FSSE/lessons/LS-M020-01"]' },
+    { name: 'lesson-01', path: '/courses/FSSE/lessons/LS-M020-01', mustSee: '.lesson-body p' },
   ]) {
     const context = await browser.newContext({ viewport: { width: 720, height: 450 } });
     const page = await context.newPage();
@@ -531,8 +537,10 @@ try {
   {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
+    // The old one-course address on purpose: opening it must forward to the course's lesson and
+    // record the resume point there (multi-course C12).
     await page.goto(`${baseUrl}/lessons/LS-M020-07`, { waitUntil: 'networkidle' });
-    await page.goto(`${baseUrl}/`, { waitUntil: 'networkidle' });
+    await page.goto(`${baseUrl}/courses/FSSE`, { waitUntil: 'networkidle' });
 
     const card = await page.evaluate(() => {
       const section = document.querySelector('[data-testid="current-lesson"]');
@@ -541,7 +549,7 @@ try {
       const text = action.textContent?.trim() ?? '';
       if (!/continue lesson/i.test(text)) return `the action reads "${text}", not Continue lesson`;
       const href = action.getAttribute('href');
-      if (href !== '/lessons/LS-M020-07') return `the action points at ${href}`;
+      if (href !== '/courses/FSSE/lessons/LS-M020-07') return `the action points at ${href}`;
       if (!/LESSON 07/.test(section.textContent ?? '')) return 'the card does not say LESSON 07';
       return 'ok';
     });

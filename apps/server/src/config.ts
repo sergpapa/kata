@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import type { CourseConfig } from './modules/content/types.js';
 
 /**
  * Paths are resolved from this file's location rather than the working directory, so the app
@@ -15,8 +16,12 @@ export interface Config {
   /** Directory holding the learner's work. Never committed; see .gitignore. */
   readonly dataDir: string;
   readonly databaseFile: string;
-  /** Directory containing `learning-release.json`. Read-only input, never written to. */
-  readonly releaseDir: string;
+  /**
+   * Every course the app serves, in the order the course list shows them and the order their IDs
+   * are claimed in (ADR 0018). Which release serves a course is a deliberate choice made here, not
+   * whatever directory is newest.
+   */
+  readonly courses: readonly CourseConfig[];
   /** Built client assets, served in production mode. */
   readonly webDistDir: string;
 }
@@ -30,9 +35,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     port: Number(env.EDUCODE_PORT ?? 8317),
     dataDir,
     databaseFile: path.join(dataDir, 'educode.sqlite'),
-    releaseDir:
-      env.EDUCODE_RELEASE_DIR ??
-      path.join(repoRoot, 'content', 'releases', 'http-first-fifteen-v1_0_1', 'content'),
+    courses: [
+      {
+        courseId: 'FSSE',
+        title: 'Full-Stack Software Engineering',
+        releaseDir:
+          env.EDUCODE_RELEASE_DIR_FSSE ??
+          path.join(repoRoot, 'content', 'releases', 'http-first-fifteen-v1_0_1', 'content'),
+      },
+      {
+        courseId: 'QAAE',
+        title: 'QA Automation Engineering',
+        releaseDir:
+          env.EDUCODE_RELEASE_DIR_QAAE ??
+          path.join(repoRoot, 'content', 'releases', 'qaae-lesson-01-v1', 'content'),
+      },
+    ],
     webDistDir: path.join(repoRoot, 'apps', 'web', 'dist'),
   };
 }

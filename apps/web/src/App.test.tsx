@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { App } from './App.js';
 
@@ -55,6 +55,12 @@ const importedRelease = {
     },
   ],
 };
+
+// The dashboard used to be at `/`, which every test started on without asking; it is now
+// `/courses/FSSE` (multi-course C11). The first test in the file runs before any afterEach reset.
+beforeEach(() => {
+  window.history.pushState({}, '', '/courses/FSSE');
+});
 
 afterEach(() => {
   cleanup();
@@ -162,7 +168,9 @@ describe('the page when the local app does not answer', () => {
     // The release was asked for — by URL, not by call position: since slice 4 the dashboard also
     // asks for the resume point, and effect order between the two is not this test's claim.
     // Declared in docs/specs/reader-navigation-and-resume.md.
-    expect(vi.mocked(fetch).mock.calls.map((call) => call[0])).toContain('/api/courses/FSSE/release');
+    expect(vi.mocked(fetch).mock.calls.map((call) => call[0])).toContain(
+      '/api/courses/FSSE/release',
+    );
   });
 });
 

@@ -5,7 +5,7 @@ import { useSyncExternalStore } from 'react';
  * somewhere to return to, because the back button has to work, and because a title the owner can
  * copy or open in a new tab is a link — not a click handler.
  *
- * Hand-rolled rather than a router dependency: this app has two addresses.
+ * Hand-rolled rather than a router dependency: this app has a handful of addresses.
  */
 
 /** The three destinations the sidebar names whose work is not built yet. */
@@ -14,39 +14,58 @@ export type StandbySection = (typeof standbySections)[number];
 
 export type Route =
   | { readonly kind: 'home' }
-  | { readonly kind: 'lesson'; readonly candidateLessonId: string }
+  | { readonly kind: 'course'; readonly courseId: string }
+  | { readonly kind: 'lesson'; readonly courseId: string; readonly candidateLessonId: string }
+  /** The one-course app's lesson address, kept so old bookmarks forward (multi-course C12). */
+  | { readonly kind: 'legacyLesson'; readonly candidateLessonId: string }
   | { readonly kind: 'standby'; readonly section: StandbySection }
   | { readonly kind: 'unknown'; readonly path: string };
+
+/** The course every pre-ADR-0018 address belonged to, because it was the only one. */
+export const LEGACY_COURSE_ID = 'FSSE';
 
 export function parseRoute(pathname: string): Route {
   if (pathname === '/') return { kind: 'home' };
 
   const segments = pathname.split('/').filter((segment) => segment !== '');
+  // `decodeURIComponent` throws on a malformed escape such as `/lessons/%`. This runs during
+  // render, so an uncaught throw here blanks the whole app instead of showing the address it
+  // could not read.
+  let decoded: string[];
+  try {
+    decoded = segments.map((segment) => decodeURIComponent(segment));
+  } catch {
+    return { kind: 'unknown', path: pathname };
+  }
+  const [first, second, third, fourth] = decoded;
 
-  if (segments.length === 1) {
-    const section = standbySections.find((name) => name === segments[0]);
+  if (decoded.length === 1) {
+    const section = standbySections.find((name) => name === first);
     if (section) return { kind: 'standby', section };
   }
 
-  if (segments.length === 2 && segments[0] === 'lessons') {
-    // `decodeURIComponent` throws on a malformed escape such as `/lessons/%`. This runs during
-    // render, so an uncaught throw here blanks the whole app instead of showing the address it
-    // could not read.
-    let candidateLessonId: string;
-    try {
-      candidateLessonId = decodeURIComponent(segments[1] as string);
-    } catch {
-      return { kind: 'unknown', path: pathname };
+  if (first === 'courses' && second) {
+    if (decoded.length === 2) return { kind: 'course', courseId: second };
+    if (decoded.length === 4 && third === 'lessons' && fourth) {
+      return { kind: 'lesson', courseId: second, candidateLessonId: fourth };
     }
-    if (candidateLessonId !== '') return { kind: 'lesson', candidateLessonId };
+  }
+
+  if (decoded.length === 2 && first === 'lessons' && second) {
+    return { kind: 'legacyLesson', candidateLessonId: second };
   }
 
   return { kind: 'unknown', path: pathname };
 }
 
+/** Encoded, because a course id is configuration and nothing promises it is path-safe. */
+export function courseHref(courseId: string): string {
+  return `/courses/${encodeURIComponent(courseId)}`;
+}
+
 /** Encoded, because a lesson key is content: nothing guarantees it has no `/` or space in it. */
-export function lessonHref(candidateLessonId: string): string {
-  return `/lessons/${encodeURIComponent(candidateLessonId)}`;
+export function lessonHref(courseId: string, candidateLessonId: string): string {
+  return `${courseHref(courseId)}/lessons/${encodeURIComponent(candidateLessonId)}`;
 }
 
 /**
@@ -125,6 +144,15 @@ export function navigate(href: string, force = false): boolean {
   window.scrollTo(0, 0);
   announce();
   return true;
+}
+
+/**
+ * Swaps the current address for `href` without a new history entry, and without the guard: used
+ * only to forward an address that names no page of its own, so there is nothing to leave behind.
+ */
+export function replaceAddress(href: string): void {
+  window.history.replaceState({}, '', href);
+  announce();
 }
 
 function subscribe(onChange: () => void): () => void {

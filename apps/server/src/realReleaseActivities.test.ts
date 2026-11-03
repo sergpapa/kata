@@ -55,8 +55,14 @@ afterEach(() => {
 
 async function servedActivities(candidateLessonId: string) {
   db = openDatabase(':memory:');
-  const app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
-  const response = await app.inject({ method: 'GET', url: `/api/courses/FSSE/lessons/${candidateLessonId}` });
+  const app = buildApp({
+    db,
+    courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))],
+  });
+  const response = await app.inject({
+    method: 'GET',
+    url: `/api/courses/FSSE/lessons/${candidateLessonId}`,
+  });
   const body = response.json() as { activities: { activityId: string; sourceHeading: string }[] };
   await app.close();
   return body.activities;

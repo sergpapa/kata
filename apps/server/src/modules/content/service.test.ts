@@ -12,6 +12,13 @@ import {
   writeFixture,
 } from './testkit/releaseFixture.js';
 
+/** The full-stack course's configured release: what `loadConfig({}).releaseDir` was before ADR 0018. */
+function currentFsseReleaseDir(): string {
+  const fsse = loadConfig({}).courses.find((course) => course.courseId === 'FSSE');
+  if (!fsse) throw new Error('The default configuration has no FSSE course.');
+  return fsse.releaseDir;
+}
+
 const tempDirs: string[] = [];
 let db: Db | undefined;
 
@@ -56,7 +63,7 @@ describe('importing a release into the record store', () => {
   it('imports the release the author supplied, fifteen lessons in authored order', () => {
     db = openDatabase(':memory:');
 
-    const state = importRelease(db, loadConfig({}).releaseDir);
+    const state = importRelease(db, currentFsseReleaseDir());
 
     expect(state.state).toBe('imported');
     if (state.state !== 'imported') return;
@@ -103,7 +110,7 @@ describe('importing a release into the record store', () => {
       rowIds.push(state.releaseRowId);
     }
 
-    const corrected = importRelease(db, loadConfig({}).releaseDir);
+    const corrected = importRelease(db, currentFsseReleaseDir());
     expect(corrected.state).toBe('imported');
     if (corrected.state !== 'imported') return;
 
@@ -121,7 +128,7 @@ describe('importing a release into the record store', () => {
     expect(rows.n).toBe(48);
 
     // Verify-on-every-start stays cheap: the identical release lands on its existing row.
-    expect(importRelease(db, loadConfig({}).releaseDir)).toEqual(corrected);
+    expect(importRelease(db, currentFsseReleaseDir())).toEqual(corrected);
   });
 });
 

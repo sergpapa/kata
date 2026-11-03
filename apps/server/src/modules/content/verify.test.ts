@@ -19,6 +19,13 @@ import {
   type FixtureLabEntry,
 } from './testkit/releaseFixture.js';
 
+/** The full-stack course's configured release: what `loadConfig({}).releaseDir` was before ADR 0018. */
+function currentFsseReleaseDir(): string {
+  const fsse = loadConfig({}).courses.find((course) => course.courseId === 'FSSE');
+  if (!fsse) throw new Error('The default configuration has no FSSE course.');
+  return fsse.releaseDir;
+}
+
 const tempDirs: string[] = [];
 
 function releaseDirFrom(fixture: Fixture): string {
@@ -493,7 +500,7 @@ describe('lab kits referenced by lessons', () => {
 
 describe('the release the author actually supplied', () => {
   it('verifies clean: fifteen lessons, authored order, authored versions, Lesson 1 with no lab', () => {
-    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+    const release = releaseOf(verifyRelease(currentFsseReleaseDir()));
 
     expect(release.releaseId).toBe('FSSE-HTTP-FIRST-FIFTEEN');
     expect(release.version).toBe('1.0.1-draft');
@@ -548,7 +555,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('reads each display title from the lesson file, not from the manifest or the filename', () => {
-    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+    const release = releaseOf(verifyRelease(currentFsseReleaseDir()));
 
     expect(release.lessons[0]?.displayTitle).toBe(
       'Lesson 1: What happens when your browser asks for something?',
@@ -560,7 +567,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('carries the five lab kits and the 45-entry activity file it references', () => {
-    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+    const release = releaseOf(verifyRelease(currentFsseReleaseDir()));
 
     expect(release.labKits.map((kit) => kit.labId)).toEqual([
       'FSSE-HTTP-LAB-02',
@@ -587,7 +594,7 @@ describe('the release the author actually supplied', () => {
   });
 
   it('carries the release identity the author published, not just its ID', () => {
-    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+    const release = releaseOf(verifyRelease(currentFsseReleaseDir()));
 
     expect(release.date).toBe('2026-09-21');
     expect(release.status).toContain('owner-review candidate');
@@ -599,7 +606,7 @@ describe('the release the author actually supplied', () => {
   it('catches a corrupted hash on the last lab kit, not only the first', () => {
     const dir = makeTempDir();
     tempDirs.push(dir);
-    copyReleaseDir(loadConfig({}).releaseDir, dir);
+    copyReleaseDir(currentFsseReleaseDir(), dir);
     patchManifest(dir, (manifest) => {
       (manifest.lab_downloads[4] as { sha256: string }).sha256 = 'd'.repeat(64);
     });
@@ -613,7 +620,7 @@ describe('the release the author actually supplied', () => {
   it('catches a corrupted hash on the last lesson, not only the first', () => {
     const dir = makeTempDir();
     tempDirs.push(dir);
-    copyReleaseDir(loadConfig({}).releaseDir, dir);
+    copyReleaseDir(currentFsseReleaseDir(), dir);
     patchManifest(dir, (manifest) => {
       (manifest.lessons[14] as { sha256: string }).sha256 = 'e'.repeat(64);
     });
@@ -625,9 +632,9 @@ describe('the release the author actually supplied', () => {
   });
 
   it('records the manifest hash it verified the release against', () => {
-    const release = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+    const release = releaseOf(verifyRelease(currentFsseReleaseDir()));
     const manifestBytes = fs.readFileSync(
-      path.join(loadConfig({}).releaseDir, 'learning-release.json'),
+      path.join(currentFsseReleaseDir(), 'learning-release.json'),
     );
 
     expect(release.manifestSha256).toBe(sha256(manifestBytes));
@@ -712,7 +719,7 @@ describe('the superseded releases, still beside the corrected fifteen', () => {
     'the $name release agrees with the current one, allowing only the authorized corrections',
     (base) => {
       const baseline = releaseOf(verifyRelease(base.dir));
-      const current = releaseOf(verifyRelease(loadConfig({}).releaseDir));
+      const current = releaseOf(verifyRelease(currentFsseReleaseDir()));
 
       // Guard against a vacuous pass: the current release must be the corrected reissue, not the
       // baseline read back.

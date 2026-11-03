@@ -300,7 +300,7 @@ describe('a course’s own pages (C11, C13, C14)', () => {
             facts: [],
             bodyMarkdown: lessonBody,
           },
-          activities: [activity({ activityId: 'ACT-Q01-02-01', lessonId: 'LS-Q01-02' })],
+          activities: [activity({ activityId: 'ACT-A', lessonId: 'LS-Q01-02' })],
           responses: [],
           labKit: {
             labId: 'QAAE-LAB-01',
@@ -319,7 +319,7 @@ describe('a course’s own pages (C11, C13, C14)', () => {
         },
       },
       '/api/courses/QAAE/resume-point': { body: { state: 'set' } },
-      '/api/courses/QAAE/activities/ACT-Q01-02-01/responses/prediction': {
+      '/api/courses/QAAE/activities/ACT-A/responses/prediction': {
         body: { state: 'saved', revision: 1, updatedAt: '2026-11-03T09:01:00.000Z' },
       },
     });
@@ -343,9 +343,7 @@ describe('a course’s own pages (C11, C13, C14)', () => {
     fireEvent.click(saveButton(container, 'prediction'));
     await waitFor(() => expect(stateOf(container, 'prediction')).toBe('saved'));
 
-    expect(requests).toContain(
-      'PUT /api/courses/QAAE/activities/ACT-Q01-02-01/responses/prediction',
-    );
+    expect(requests).toContain('PUT /api/courses/QAAE/activities/ACT-A/responses/prediction');
     expect(asked.every((url) => url.startsWith('/api/courses/QAAE/'))).toBe(true);
   });
 
@@ -388,12 +386,13 @@ describe('a course’s own pages (C11, C13, C14)', () => {
   });
 
   it('saves an answer under the course whose lesson it is on', async () => {
+    // `ACT-A`: the harness's field readers look a panel up by that id.
     const { calls } = stubFetch(saved(1));
     const { container } = render(
       <CourseScope courseId="QAAE">
         <LessonMarkdown
           markdown={lessonBody}
-          activities={[activity({ activityId: 'ACT-Q01-01-01' })]}
+          activities={[activity({ activityId: 'ACT-A' })]}
           responses={[]}
           lessonContext={lessonContext}
         />
@@ -404,7 +403,7 @@ describe('a course’s own pages (C11, C13, C14)', () => {
     fireEvent.click(saveButton(container, 'prediction'));
     await waitFor(() => expect(stateOf(container, 'prediction')).toBe('saved'));
 
-    expect(calls[0]?.url).toBe('/api/courses/QAAE/activities/ACT-Q01-01-01/responses/prediction');
+    expect(calls[0]?.url).toBe('/api/courses/QAAE/activities/ACT-A/responses/prediction');
   });
 });
 

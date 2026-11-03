@@ -1,0 +1,33 @@
+{
+  "package_id": "QAAE-LESSON-01",
+  "version": "1.0.0-draft",
+  "date": "2026-11-03",
+  "read_first": "START_HERE.md",
+  "release_manifest": "content/learning-release.json",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "e0faf7e611213735d698e389bee45ec70da5510ae46dd366634a10a89ea11146"
+    },
+    {
+      "path": "content/learning-release.json",
+      "sha256": "bd8fab41a969fcbe978c6330bf481f7d62e80482cd16f7cded0e669ce37acd21"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "sha256": "59b07e264ac609d050fd4a5cd12349bbb43ce6de89b15d440f273a07b85e1875"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "sha256": "35487838b2c522217fb473852c457a3a4621c5190a668e4717bad2e6c69dbb96"
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "345f6ba0a88e4195a939dd47b1cbc209990d4d3ba9458553c12f1a0e8d7549a2"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "sha256": "1b6bce28b04e1c709c63c2ab837e0b277af80add3ee43d8ba990c35dafa21883"
+    }
+  ]
+}

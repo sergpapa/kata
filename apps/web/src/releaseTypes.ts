@@ -1,4 +1,4 @@
-/** Mirrors what `GET /api/release` answers. Kept beside the page that reads it, not shared: the
+/** Mirrors what `GET /api/courses/:courseId/release` answers. Kept beside the page that reads it, not shared: the
  * server owns its own contract, and a shared type would invite the client to widen it. */
 
 export interface LessonSummary {
@@ -24,6 +24,20 @@ export interface ReleaseSummary {
   readonly importedAt: string;
 }
 
+export interface CourseIdentity {
+  readonly courseId: string;
+  readonly title: string;
+}
+
+/** One card's worth of a course, as `GET /api/courses` answers it. */
+export type CourseCard =
+  | (CourseIdentity & {
+      readonly state: 'imported';
+      readonly audience: string | null;
+      readonly lessonCount: number;
+    })
+  | (CourseIdentity & { readonly state: 'failed'; readonly failure: ImportFailure });
+
 export interface ImportFailure {
   readonly code: string;
   readonly message: string;
@@ -34,6 +48,7 @@ export type ReleaseView =
   | { readonly state: 'reading' }
   | {
       readonly state: 'imported';
+      readonly course: CourseIdentity;
       readonly release: ReleaseSummary;
       readonly lessons: readonly LessonSummary[];
     }

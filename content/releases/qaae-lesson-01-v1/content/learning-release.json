@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "QAAE-LESSON-01",
+  "version": "1.0.0-draft",
+  "date": "2026-11-03",
+  "status": "owner-review candidate; Lesson 1 only; not learner-tested",
+  "audience": "Experienced manual testers starting test automation",
+  "source_of_truth": "The supplied UTF-8 Markdown lesson files",
+  "lesson_key_field": "candidate_lesson_id",
+  "lessons": [
+    {
+      "order": 1,
+      "lesson_id": "LS-Q01-01",
+      "document_id": "QAAE-STUDENT-01",
+      "version": "1.0.0-draft",
+      "module": "Q01",
+      "title": "Lesson 1: What changes when a machine runs your test?",
+      "path": "lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "sha256": "59b07e264ac609d050fd4a5cd12349bbb43ce6de89b15d440f273a07b85e1875",
+      "lab_id": null
+    }
+  ],
+  "lab_downloads": [],
+  "activities": {
+    "path": "trial-activities.json",
+    "sha256": "35487838b2c522217fb473852c457a3a4621c5190a668e4717bad2e6c69dbb96"
+  }
+}

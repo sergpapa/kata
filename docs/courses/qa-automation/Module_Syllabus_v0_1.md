@@ -139,8 +139,9 @@ changed response.
 #### Q12 Asynchronous execution
 
 **Source:** Bridged (M012). **Prerequisites:** Q11. **Effort:** 18–30 h.
-**Bridge:** the missing `await` — the single most common cause of a test that passes while checking
-nothing; ordering surprises as the root of flaky tests.
+**Bridge:** the missing `await`, which does not always fail: an un-awaited action can pass on lucky
+timing and fail later at random (an un-awaited assertion fails in current Playwright); ordering
+surprises as the root of flaky tests.
 
 #### Q13 Dependencies, builds and repeatable tooling
 

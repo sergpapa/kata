@@ -85,7 +85,10 @@ describe('downloading a kit', () => {
     const app = appOver(dir);
     const onDisk = fs.readFileSync(path.join(dir, 'labs', 'kit-02.zip'));
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toBe('application/zip');
@@ -99,7 +102,10 @@ describe('downloading a kit', () => {
     const app = appOver(dir);
     const declared = sha256Of(fs.readFileSync(path.join(dir, 'labs', 'kit-02.zip')));
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     // Asserted on the body received, never on a header: a header is the server's claim about the
     // bytes, and the claim is the thing under test.
@@ -114,7 +120,10 @@ describe('downloading a kit', () => {
     fs.writeFileSync(kit, Buffer.from('PK a different kit entirely', 'utf8'));
     const now = sha256Of(fs.readFileSync(kit));
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     expect(response.statusCode).toBe(409);
     const body = response.json();
@@ -128,7 +137,10 @@ describe('downloading a kit', () => {
   it('answers 404 naming the lab id it was asked for, and suggests no other', async () => {
     const app = appOver(releaseDir());
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-99/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-99/download',
+    });
 
     expect(response.statusCode).toBe(404);
     const body = response.json();
@@ -151,7 +163,8 @@ describe('downloading a kit', () => {
     // no download route at all and answers 404 to everything — which is the shape of test the
     // previous slice's PRE audit caught twice.
     expect(
-      (await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' })).statusCode,
+      (await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' }))
+        .statusCode,
     ).toBe(200);
 
     const readFile = fs.readFileSync;
@@ -180,7 +193,10 @@ describe('downloading a kit', () => {
     fs.rmSync(path.join(dir, 'lessons', 'lesson-02.md'));
     const app = appOver(dir);
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     // 200, the same answer `/api/release` and `/api/lessons/:id` give a refused release: the app is
     // fine and the content is not, and a 5xx would have the page report a broken app. Pinned here
@@ -194,7 +210,10 @@ describe('downloading a kit', () => {
   it('tells the browser not to keep a copy, or the re-hash is about an earlier moment', async () => {
     const app = appOver(releaseDir());
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     // Without this, a reader who downloads a kit, has it corrupted on disk, and downloads again can
     // be served the cached bytes without the route running — so the 409 the changed kit earns never
@@ -217,7 +236,10 @@ describe('downloading a kit', () => {
     db = openDatabase(':memory:');
     const app = buildApp({ db, courses: [testCourse('FIX', link, importRelease(db, link))] });
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     expect(response.statusCode).toBe(200);
     expect(response.rawPayload.equals(fs.readFileSync(path.join(real, 'labs', 'kit-02.zip')))).toBe(
@@ -231,7 +253,10 @@ describe('downloading a kit', () => {
     const kit = path.join(dir, 'labs', 'kit-02.zip');
     const before = { bytes: fs.readFileSync(kit), mtime: fs.statSync(kit).mtimeMs };
 
-    const response = await app.inject({ method: 'GET', url: '/api/courses/FIX/labs/FIX-LAB-02/download' });
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/courses/FIX/labs/FIX-LAB-02/download',
+    });
 
     // Asserted first, or "unchanged" is what you get from a download that never happened.
     expect(response.statusCode).toBe(200);

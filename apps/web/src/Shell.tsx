@@ -21,7 +21,7 @@ import { RouteLink } from './RouteLink.js';
 import { UnsavedDialog } from './UnsavedDialog.js';
 import type { OutlineEntry } from './markdown/LessonMarkdown.js';
 import type { ReleaseView } from './releaseTypes.js';
-import type { Route } from './route.js';
+import { courseHref, type Route } from './route.js';
 
 /**
  * The frame every address is read inside: the course sidebar, the top bar, and the region a page
@@ -33,7 +33,8 @@ import type { Route } from './route.js';
  */
 
 const destinations = [
-  { href: '/', label: 'Learn', Icon: BookIcon },
+  // Learn's address depends on where the reader is, so it is filled in per render (learnHrefFor).
+  { href: null, label: 'Learn', Icon: BookIcon },
   { href: '/practice', label: 'Practice', Icon: TerminalIcon },
   { href: '/reviews', label: 'Reviews', Icon: MessageIcon },
   { href: '/progress', label: 'Progress', Icon: LayersIcon },
@@ -68,15 +69,32 @@ export function useReportLessonOutline(): (entries: readonly OutlineEntry[] | nu
   return useContext(LessonOutline);
 }
 
-/** Which destination the current address belongs to. A lesson belongs to Learn. */
+/** The course an address is inside, if any: a course's dashboard and its lessons are. */
+function courseOf(route: Route): string | null {
+  return route.kind === 'course' || route.kind === 'lesson' ? route.courseId : null;
+}
+
+/**
+ * Where Learn leads. Inside a course it is that course's dashboard, because "back to learning" from
+ * a QA lesson means the QA lessons; everywhere else it is the course list (multi-course C13).
+ */
+function learnHrefFor(route: Route): string {
+  const courseId = courseOf(route);
+  return courseId ? courseHref(courseId) : '/';
+}
+
+/** Which destination the current address belongs to. A course and its lessons belong to Learn. */
 function currentHref(route: Route): string | null {
-  if (route.kind === 'home' || route.kind === 'lesson') return '/';
+  if (route.kind === 'home' || route.kind === 'course' || route.kind === 'lesson') {
+    return learnHrefFor(route);
+  }
   if (route.kind === 'standby') return `/${route.section}`;
   return null;
 }
 
 function trailFor(route: Route, pageName: string | null): readonly string[] {
-  if (route.kind === 'home') return ['EduCode', 'Learning workspace'];
+  if (route.kind === 'home') return ['EduCode', 'Courses'];
+  if (route.kind === 'course') return ['EduCode', 'Learning workspace'];
   if (route.kind === 'standby') {
     const label = destinations.find((entry) => entry.href === `/${route.section}`)?.label;
     return ['EduCode', label ?? route.section];
@@ -89,10 +107,19 @@ function trailFor(route: Route, pageName: string | null): readonly string[] {
   return ['EduCode', 'Not found'];
 }
 
-/** What the sidebar can honestly say about the release, which is its identity and its size. */
-function releaseNote(release: ReleaseView): { audience: string | null; count: number } | null {
-  if (release.state !== 'imported') return null;
-  return { audience: release.release.audience, count: release.lessons.length };
+/**
+ * What the sidebar can honestly say about the course's release: whose it is, who it is for, and its
+ * size. Nothing outside a course, where no release was asked for.
+ */
+function releaseNote(
+  release: ReleaseView | null,
+): { course: string; audience: string | null; count: number } | null {
+  if (release?.state !== 'imported') return null;
+  return {
+    course: release.course.title,
+    audience: release.release.audience,
+    count: release.lessons.length,
+  };
 }
 
 export function Shell({
@@ -101,7 +128,8 @@ export function Shell({
   children,
 }: {
   readonly route: Route;
-  readonly release: ReleaseView;
+  /** The course's release, or null on a page outside any course. */
+  readonly release: ReleaseView | null;
   readonly children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -133,10 +161,12 @@ export function Shell({
   // /reviews, so moving between them swapped the whole page and left focus where it was.
   const routeKey =
     route.kind === 'lesson'
-      ? `lesson:${route.candidateLessonId}`
-      : route.kind === 'standby'
-        ? `standby:${route.section}`
-        : route.kind;
+      ? `lesson:${route.courseId}:${route.candidateLessonId}`
+      : route.kind === 'course'
+        ? `course:${route.courseId}`
+        : route.kind === 'standby'
+          ? `standby:${route.section}`
+          : route.kind;
 
   // Stable, so the effect in useReportPageName does not re-run on every render of the page.
   const report = useCallback((name: string | null) => setPageName(name), []);
@@ -235,24 +265,28 @@ export function Shell({
 
         <p className="eyebrow sidebar-group-label">YOUR WORKSPACE</p>
         <ul className="nav-list">
-          {destinations.map(({ href, label, Icon }) => (
-            <li key={href}>
-              <RouteLink
-                href={href}
-                className="nav-button"
-                aria-current={here === href ? 'page' : undefined}
-                onNavigate={() => setOpen(false)}
-              >
-                <Icon />
-                <span>{label}</span>
-              </RouteLink>
-            </li>
-          ))}
+          {destinations.map(({ href: fixedHref, label, Icon }) => {
+            const href = fixedHref ?? learnHrefFor(route);
+            return (
+              <li key={href}>
+                <RouteLink
+                  href={href}
+                  className="nav-button"
+                  aria-current={here === href ? 'page' : undefined}
+                  onNavigate={() => setOpen(false)}
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </RouteLink>
+              </li>
+            );
+          })}
         </ul>
 
         {note && (
           <div className="sidebar-course">
             <p className="eyebrow">THIS RELEASE</p>
+            <p className="sidebar-course-title">{note.course}</p>
             {note.audience && <p>{note.audience}</p>}
             {/* The count, and only the count. A bar here would read as progress, and nothing in
                 this application records what has been read. */}

@@ -418,7 +418,7 @@ describe('the resume point', () => {
 
     const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
     expect(got.json()).toMatchObject({ state: 'set', candidateLessonId: 'FIX-LS-02' });
-    const rows = db.prepare('SELECT count(*) AS n FROM resume_point').get() as { n: number };
+    const rows = db.prepare('SELECT count(*) AS n FROM course_resume_point').get() as { n: number };
     expect(rows.n).toBe(1);
     await app.close();
   });
@@ -465,7 +465,7 @@ describe('the resume point', () => {
 
     const put = await putResume(app, { candidateLessonId: 'FIX-LS-01' });
     expect(put.json()).toMatchObject({ state: 'failed', failure: { code: 'file_missing' } });
-    const rows = db.prepare('SELECT count(*) AS n FROM resume_point').get() as { n: number };
+    const rows = db.prepare('SELECT count(*) AS n FROM course_resume_point').get() as { n: number };
     expect(rows.n).toBe(0);
     await app.close();
   });
@@ -477,13 +477,15 @@ describe('the resume point', () => {
     // A pointer recorded under an earlier release whose lesson this release does not carry. Written
     // directly: the endpoint itself refuses to store an unknown lesson, which is its own test above.
     db.prepare(
-      "INSERT INTO resume_point (id, candidate_lesson_id, recorded_at) VALUES (1, 'OLD-LS-77', '2026-09-01T08:00:00.000Z')",
+      "INSERT INTO course_resume_point (course_id, candidate_lesson_id, recorded_at) VALUES ('FIX', 'OLD-LS-77', '2026-09-01T08:00:00.000Z')",
     ).run();
 
     const got = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
 
     expect(got.json()).toEqual({ state: 'none' });
-    const row = db.prepare('SELECT candidate_lesson_id FROM resume_point WHERE id = 1').get() as {
+    const row = db
+      .prepare("SELECT candidate_lesson_id FROM course_resume_point WHERE course_id = 'FIX'")
+      .get() as {
       candidate_lesson_id: string;
     };
     expect(row.candidate_lesson_id).toBe('OLD-LS-77');
@@ -522,7 +524,10 @@ describe('the activities in a lesson answer', () => {
   async function lessonAnswer(dir: string, lessonId: string) {
     db = openDatabase(':memory:');
     const app = buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
-    const response = await app.inject({ method: 'GET', url: `/api/courses/FIX/lessons/${lessonId}` });
+    const response = await app.inject({
+      method: 'GET',
+      url: `/api/courses/FIX/lessons/${lessonId}`,
+    });
     const body = response.json() as Record<string, unknown>;
     await app.close();
     return body;

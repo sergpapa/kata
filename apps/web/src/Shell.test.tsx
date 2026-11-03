@@ -135,7 +135,9 @@ describe('the shell around every page', () => {
 
   /** Criterion D2 reaches the shell too: the sidebar describes the release it actually loaded. */
   it('describes the loaded release in the sidebar, counted from the release itself', async () => {
-    answerRoutes({ '/api/courses/FSSE/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two')]) });
+    answerRoutes({
+      '/api/courses/FSSE/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two')]),
+    });
 
     render(<App />);
 

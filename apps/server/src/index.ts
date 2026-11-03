@@ -1,24 +1,29 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { openDatabase } from './modules/lifecycle/database.js';
-import { importRelease } from './modules/content/service.js';
+import { importCourses } from './modules/content/courses.js';
 
 const config = loadConfig();
 const db = openDatabase(config.databaseFile);
 
 /**
- * The release is read and re-verified on every start, not cached from last time: verification is a
- * claim about the bytes on disk now. A refusal does not stop the app — the server serves the named
- * reason so the owner can read it on the page instead of hunting through a terminal.
+ * Every course's release is read and re-verified on every start, not cached from last time:
+ * verification is a claim about the bytes on disk now. A refusal does not stop the app — the server
+ * serves the named reason so the owner can read it on the page instead of hunting through a
+ * terminal — and it refuses that one course, never the others (ADR 0018).
  */
-const release = importRelease(db, config.releaseDir);
-const app = buildApp({ db, release, releaseDir: config.releaseDir, webDistDir: config.webDistDir });
+const courses = importCourses(db, config.courses);
+const app = buildApp({ db, courses, webDistDir: config.webDistDir });
 
-if (release.state === 'failed') {
-  console.error(`The learning release was refused: ${release.failure.message}`);
-  console.error(`Release directory: ${config.releaseDir}`);
-} else {
-  console.log(`Learning release imported from ${config.releaseDir}`);
+for (const course of courses) {
+  if (course.release.state === 'failed') {
+    console.error(
+      `${course.courseId}: the learning release was refused: ${course.release.failure.message}`,
+    );
+    console.error(`${course.courseId}: release directory: ${course.releaseDir}`);
+  } else {
+    console.log(`${course.courseId}: learning release imported from ${course.releaseDir}`);
+  }
 }
 
 try {

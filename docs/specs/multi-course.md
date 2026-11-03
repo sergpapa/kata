@@ -117,6 +117,20 @@ assertions change their expected value, as `prediction-history.md` did for `4` t
 
 1. `/api/health` reports `schemaVersion: '6'`.
 2. Running every migration twice leaves one `schema_meta` row, at `6`.
+3. to 5. Found during Green: three `responseRevisions.test.ts` assertions open or upgrade a store
+   through every migration and expect `5`. They now expect `6`. Two test names said "to 5" and now
+   say "to 6", because the name states the version the assertion checks. What they prove about
+   migration 5 (the revision table and its backfill) is unchanged.
+
+**Found during Green, same mechanical kind.** Two more retired contracts were reached directly by
+existing tests, and the migration brief had not listed them:
+
+- `service.test.ts` and `verify.test.ts` read the real release through `loadConfig({}).releaseDir`
+  (12 places). They now read the FSSE course's configured directory through a local helper.
+- Three resume-point tests in `app.test.ts` query the `resume_point` table by SQL. They now query
+  `course_resume_point` for course `FIX`.
+
+The assertions are unchanged in both.
 
 The page-routing tests in `route.test.ts` that read `/lessons/:id` as a lesson address test a
 contract C11–C12 retire. They are replaced by tests of the new addresses, and the old address is

@@ -10,12 +10,17 @@ export type ApiResult =
   | { readonly state: 'answered'; readonly status: number; readonly body: unknown }
   | { readonly state: 'unavailable'; readonly reason: string };
 
-export function useApi(url: string): ApiResult {
+/**
+ * `null` asks nothing and stays `reading`: a page outside any course has no release to ask about,
+ * and hooks cannot be called conditionally, so "no question" has to be a value.
+ */
+export function useApi(url: string | null): ApiResult {
   const [result, setResult] = useState<ApiResult>({ state: 'reading' });
 
   useEffect(() => {
-    const controller = new AbortController();
     setResult({ state: 'reading' });
+    if (url === null) return;
+    const controller = new AbortController();
 
     // The result of an aborted request is discarded rather than rendered. React runs this effect
     // twice under StrictMode, and without the guard the first (aborted) request can resolve after

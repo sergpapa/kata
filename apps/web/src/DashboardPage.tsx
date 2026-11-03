@@ -1,4 +1,5 @@
 import { useApi, type ApiResult } from './api.js';
+import { courseApi } from './course.js';
 import { twoDigits } from './format.js';
 import { ArrowRightIcon, ChevronRightIcon } from './icons.js';
 import { RouteLink } from './RouteLink.js';
@@ -66,9 +67,15 @@ function ReleaseDetails({
   );
 }
 
-export function DashboardPage({ view }: { readonly view: ReleaseView }) {
+export function DashboardPage({
+  courseId,
+  view,
+}: {
+  readonly courseId: string;
+  readonly view: ReleaseView;
+}) {
   // Asked before any early return, because a hook cannot be conditional.
-  const resume = useApi('/api/resume-point');
+  const resume = useApi(`${courseApi(courseId)}/resume-point`);
 
   // Held until BOTH answers are in (/code-review finding): a card drawn before the resume answer
   // says Start for lesson 1, and following that transient link records lesson 1 over the reader's
@@ -148,7 +155,10 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
             </p>
             <p className="lesson-number">LESSON {twoDigits(current.order)}</p>
             <h2>{current.displayTitle}</h2>
-            <RouteLink className="lime-button" href={lessonHref(current.candidateLessonId)}>
+            <RouteLink
+              className="lime-button"
+              href={lessonHref(courseId, current.candidateLessonId)}
+            >
               {resumeLesson ? 'Continue lesson' : 'Start lesson'}
               <ArrowRightIcon />
             </RouteLink>
@@ -178,7 +188,7 @@ export function DashboardPage({ view }: { readonly view: ReleaseView }) {
             <span className="lesson-index">{twoDigits(lesson.order)}</span>
             <span className="lesson-label">
               <h3 className="lesson-title">
-                <RouteLink href={lessonHref(lesson.candidateLessonId)}>
+                <RouteLink href={lessonHref(courseId, lesson.candidateLessonId)}>
                   {lesson.displayTitle}
                 </RouteLink>
               </h3>

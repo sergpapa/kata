@@ -185,4 +185,23 @@ export const migrations: readonly Migration[] = [
       UPDATE schema_meta SET value = '5' WHERE key = 'app_schema_version';
     `,
   },
+  {
+    id: 6,
+    name: 'course_resume_point',
+    sql: `
+      -- One resume point per course (ADR 0018), still a pointer and not a history (ADR 0010).
+      -- The single row the one-course app kept belonged to the full-stack course, the only course
+      -- there was, so it moves there. It is the reader's last-opened lesson, not their work, which
+      -- is why the old table can go: nothing in learner_response or its revisions is touched.
+      CREATE TABLE course_resume_point (
+        course_id           TEXT PRIMARY KEY,
+        candidate_lesson_id TEXT NOT NULL,
+        recorded_at         TEXT NOT NULL
+      );
+      INSERT INTO course_resume_point (course_id, candidate_lesson_id, recorded_at)
+      SELECT 'FSSE', candidate_lesson_id, recorded_at FROM resume_point;
+      DROP TABLE resume_point;
+      UPDATE schema_meta SET value = '6' WHERE key = 'app_schema_version';
+    `,
+  },
 ];

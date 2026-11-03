@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "activity_set_id": "QAAE-LESSON-01-ACTIVITIES",
+  "version": "1.0.0-draft",
+  "purpose": "Owner learning rehearsal of the QA course's first lesson",
+  "presentation": "Use source_heading to place recording fields beside the canonical lesson section. Do not render prompt_markdown a second time when the section is already visible.",
+  "prediction_policy": "Keep the original acknowledged prediction separate from later explanation; do not hide the authored walkthrough or impose an answer embargo.",
+  "attempt_provenance": "The app records the learner's own written answers; this lesson has no lab and nothing is executed.",
+  "activities": [
+    {
+      "activity_id": "ACT-Q01-01-01",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice A: find the unwritten knowledge",
+      "source_heading": "Practice A: find the unwritten knowledge",
+      "prompt_markdown": "Here is another manual test case:\n\n**TC-031: Reset a forgotten password**\n\n| Step | Action | Expected result |\n| --- | --- | --- |\n| 1 | Open the login page and choose **Forgot password** | The reset form is shown |\n| 2 | Enter the account's email address and press **Send link** | \"Check your email\" is shown |\n| 3 | Open the email and follow the link | The new-password form is shown |\n| 4 | Enter a new password twice and press **Save** | \"Password changed\" is shown |\n\nImagine handing this to the literal colleague, or to a machine. Using the four kinds from Section 2 (data and starting state, when a step is finished, what \"correct\" means beyond the expected result, and what to do with a surprise), list at least four things you would know or do that TC-031 does not say. Name the kind each one belongs to.",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-01-02",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice B: say exactly what a test checks",
+      "source_heading": "Practice B: say exactly what a test checks",
+      "prompt_markdown": "Here is an automated test for applying a discount code:\n\n```ts\ntest('a member can apply a discount code', async ({ page }) => {\n  await page.goto('https://bookinglab.example/basket');\n  await page.getByLabel('Discount code').fill('WINTER10');\n  await page.getByRole('button', { name: 'Apply' }).click();\n  await expect(page.getByText('Code applied')).toBeVisible();\n});\n```\n\nThe basket holds one two-hour Harbour Room booking at €24.00. `WINTER10` is meant to take 10% off.\n\n1. In one sentence, what exactly does this test check?\n2. Name two different defects this test would let pass.\n3. In plain words, not code, describe one more check that would catch one of your defects.",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-01-03",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction",
+      "title": "Practice C: predict a failure, then interpret it",
+      "source_heading": "Practice C: predict a failure, then interpret it",
+      "prompt_markdown": "Return to the room-booking test from Section 4. A developer changes the booking button's wording from **Book this room** to **Confirm booking**. Nothing else changes, and booking still works correctly for users.\n\n1. Predict what happens when the test runs. Which step goes wrong, and roughly how long does the test take to fail?\n2. Is the failing test evidence of a defect in the product? What would you need to know to decide?",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    }
+  ]
+}

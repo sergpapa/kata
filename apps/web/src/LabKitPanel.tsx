@@ -1,3 +1,4 @@
+import { courseApi, useCourseId } from './course.js';
 import type { LabKit } from './releaseTypes.js';
 
 /**
@@ -29,6 +30,8 @@ function listed(numbers: readonly number[]): string {
 }
 
 export function LabKitPanel({ labKit }: { readonly labKit: LabKit | null }) {
+  // Before the early return: a hook cannot be conditional.
+  const courseId = useCourseId();
   if (!labKit) {
     // A sentence, not silence. An empty space is indistinguishable from a panel that failed to
     // load, and the lesson with no kit is lesson 1 — the first page anyone ever sees. Set in full
@@ -62,7 +65,7 @@ export function LabKitPanel({ labKit }: { readonly labKit: LabKit | null }) {
             which kit, and a screen reader's link list is exactly that context. */}
         <a
           className="lab-kit-download"
-          href={`/api/labs/${encodeURIComponent(labKit.labId)}/download`}
+          href={`${courseApi(courseId)}/labs/${encodeURIComponent(labKit.labId)}/download`}
           aria-label={`Download kit ${labKit.fileName}`}
         >
           Download kit

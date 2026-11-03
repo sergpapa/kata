@@ -121,9 +121,14 @@ export interface ResponseRouteDeps {
   readonly now: () => string;
 }
 
+/**
+ * Registered inside a course's prefix (`/api/courses/:courseId`): the activity is looked up in that
+ * course's release and the provenance stamped is that release's, while the record itself is keyed
+ * by activity alone, so a shared lesson keeps one answer across courses (ADR 0018).
+ */
 export function registerResponseRoutes(app: FastifyInstance, deps: ResponseRouteDeps): void {
   app.put<{ Params: { activityId: string; fieldName: string }; Body: unknown }>(
-    '/api/activities/:activityId/responses/:fieldName',
+    '/activities/:activityId/responses/:fieldName',
     async (request, reply): Promise<unknown> => {
       if (deps.release.state === 'failed') {
         // Answered, not thrown, and in the importer's own words — the same shape every other

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { App } from './App.js';
 import {
@@ -17,6 +17,12 @@ import {
  * that says a lesson was studied — or shows a bar implying it — is stating something it cannot
  * know. Criterion D3 is the one that catches that, and it is written as an absence on purpose.
  */
+
+// The dashboard used to be at `/`, which every test started on without asking; it is now
+// `/courses/FSSE` (multi-course C11). The first test in the file runs before any afterEach reset.
+beforeEach(() => {
+  window.history.replaceState({}, '', '/courses/FSSE');
+});
 
 afterEach(() => {
   cleanup();
@@ -70,7 +76,11 @@ describe('the card that says where to begin', () => {
 describe('the counts on the dashboard', () => {
   it('derives every total from the release, so a three-lesson release says three', async () => {
     answerRoutes({
-      '/api/courses/FSSE/release': importedRelease([lesson(1, 'One'), lesson(2, 'Two'), lesson(3, 'Three')]),
+      '/api/courses/FSSE/release': importedRelease([
+        lesson(1, 'One'),
+        lesson(2, 'Two'),
+        lesson(3, 'Three'),
+      ]),
     });
 
     render(<App />);

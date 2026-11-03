@@ -198,7 +198,11 @@ describe('the review findings on the lesson page', () => {
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     try {
-      window.history.pushState({}, '', `/courses/FSSE/lessons/${fiveLessons[1]?.candidateLessonId}`);
+      window.history.pushState(
+        {},
+        '',
+        `/courses/FSSE/lessons/${fiveLessons[1]?.candidateLessonId}`,
+      );
       window.dispatchEvent(new PopStateEvent('popstate'));
       await waitFor(() =>
         expect(document.querySelector('.lesson-reader h1')?.textContent).toContain('Lesson 2'),

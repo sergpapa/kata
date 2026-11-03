@@ -47,7 +47,10 @@ afterEach(() => {
 describe('the neighbour chain across the real fifteen-lesson release', () => {
   it('names every neighbour in manifest order, carrying that lesson’s own served title', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
+    const app = buildApp({
+      db,
+      courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))],
+    });
 
     const manifest = JSON.parse(
       fs.readFileSync(path.join(releaseDir, 'learning-release.json'), 'utf8'),

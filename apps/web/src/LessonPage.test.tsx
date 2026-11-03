@@ -154,7 +154,9 @@ describe('a lesson the release carries', () => {
     render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     await screen.findByRole('heading', { level: 1 });
-    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/courses/FSSE');
+    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe(
+      '/courses/FSSE',
+    );
   });
 });
 
@@ -168,7 +170,9 @@ describe('a lesson the release does not carry', () => {
 
     expect(await screen.findByText(/LS-M020-09/)).toBeDefined();
     expect(container.querySelector('h1')).toBeNull();
-    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe('/courses/FSSE');
+    expect(screen.getByRole('link', { name: /all lessons/i }).getAttribute('href')).toBe(
+      '/courses/FSSE',
+    );
   });
 });
 

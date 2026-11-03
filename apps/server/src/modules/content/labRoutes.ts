@@ -20,6 +20,7 @@ export interface LabRouteDeps {
   readonly releaseDir: string;
 }
 
+/** Registered inside a course's prefix (`/api/courses/:courseId`), so every path here is relative. */
 export function registerLabRoutes(app: FastifyInstance, deps: LabRouteDeps): void {
   /**
    * One lab kit's bytes. The kit runs on the reader's own computer; this app has never run one and
@@ -30,7 +31,7 @@ export function registerLabRoutes(app: FastifyInstance, deps: LabRouteDeps): voi
    * start-up check proves the file was right when the process began, and the promise the handoffs
    * ask for is about the moment the reader takes it.
    */
-  app.get<{ Params: { labId: string } }>('/api/labs/:labId/download', async (request, reply) => {
+  app.get<{ Params: { labId: string } }>('/labs/:labId/download', async (request, reply) => {
     if (deps.release.state === 'failed') {
       return { state: 'failed', failure: deps.release.failure };
     }

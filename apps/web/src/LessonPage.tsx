@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApi, type ApiResult } from './api.js';
 import { twoDigits } from './format.js';
 import { LessonMarkdown, type OutlineEntry } from './markdown/LessonMarkdown.js';
-import { lessonHref } from './route.js';
+import { CourseScope, courseApi, useCourseId } from './course.js';
+import { courseHref, lessonHref } from './route.js';
 import { RouteLink } from './RouteLink.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
@@ -168,7 +169,7 @@ function toLessonView(result: ApiResult, candidateLessonId: string): LessonView 
 function BackToLessons() {
   return (
     <p className="lesson-back">
-      <RouteLink href="/">All lessons</RouteLink>
+      <RouteLink href={courseHref(useCourseId())}>All lessons</RouteLink>
     </p>
   );
 }
@@ -234,11 +235,12 @@ function NeighbourNav({
   readonly previous: LessonNeighbour | null;
   readonly next: LessonNeighbour | null;
 }) {
+  const courseId = useCourseId();
   if (!previous && !next) return null;
 
   const link = (neighbour: LessonNeighbour, label: 'Previous' | 'Next') => (
     <RouteLink
-      href={lessonHref(neighbour.candidateLessonId)}
+      href={lessonHref(courseId, neighbour.candidateLessonId)}
       className={`neighbour neighbour-${label.toLowerCase()}`}
     >
       <span className="neighbour-kicker">
@@ -256,8 +258,33 @@ function NeighbourNav({
   );
 }
 
-export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: string }) {
-  const answer = useApi(`/api/lessons/${encodeURIComponent(candidateLessonId)}`);
+/**
+ * One lesson, read through one course (ADR 0018). Everything below it that links, downloads or
+ * saves takes its course from the scope set here, so no control on the page can address another
+ * course's lesson.
+ */
+export function LessonPage({
+  courseId,
+  candidateLessonId,
+}: {
+  readonly courseId: string;
+  readonly candidateLessonId: string;
+}) {
+  return (
+    <CourseScope courseId={courseId}>
+      <LessonPageBody courseId={courseId} candidateLessonId={candidateLessonId} />
+    </CourseScope>
+  );
+}
+
+function LessonPageBody({
+  courseId,
+  candidateLessonId,
+}: {
+  readonly courseId: string;
+  readonly candidateLessonId: string;
+}) {
+  const answer = useApi(`${courseApi(courseId)}/lessons/${encodeURIComponent(candidateLessonId)}`);
   /**
    * One view per answer, not one per render — and this memo is load-bearing, not an optimisation.
    *
@@ -301,12 +328,12 @@ export function LessonPage({ candidateLessonId }: { readonly candidateLessonId: 
   const openedLesson = view.state === 'lesson' ? view.lesson.candidateLessonId : null;
   useEffect(() => {
     if (!openedLesson) return;
-    void fetch('/api/resume-point', {
+    void fetch(`${courseApi(courseId)}/resume-point`, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ candidateLessonId: openedLesson }),
     }).catch(() => {});
-  }, [openedLesson]);
+  }, [courseId, openedLesson]);
 
   if (view.state === 'reading') return <p role="status">Reading the lesson…</p>;
 
