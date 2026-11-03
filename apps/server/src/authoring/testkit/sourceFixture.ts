@@ -61,11 +61,48 @@ export function editReleaseJson(source: string, edit: (release: SourceRelease) =
 }
 
 export interface SourceRelease {
-  release: { version: string; [field: string]: unknown };
+  package_id: string;
+  read_first: string;
+  previous_release: string;
+  release: { version: string; date: string; [field: string]: unknown };
   accepted_feedback: string[];
   lessons: string[];
   labs: { lab_id: string; archive: string; lesson_ids: string[] }[];
-  [field: string]: unknown;
+}
+
+export const LESSON_2 = 'HTTP_Lesson_02_Student_Edition_v1.md';
+export const LESSON_5 = 'HTTP_Lesson_05_Student_Edition_v1.md';
+export const KIT_02 = 'HTTP_Lesson_02_Local_Server_Kit_v1';
+export const KIT_03_05 = 'HTTP_Lessons_03_05_Local_Kit_v1';
+export const KIT_06_08 = 'HTTP_Lessons_06_08_Local_Kit_v1';
+export const CORRECTION_DATE = '2026-11-03';
+
+/**
+ * The correction the spec's round trip (C13) describes: one line of Lesson 5, with every version
+ * that must move — the lesson, its three activities, the 03-05 kit that carries it, the release.
+ */
+export function correctLesson5(source: string): void {
+  replaceInFile(
+    lessonFile(source, LESSON_5),
+    'Today you will watch that happen.',
+    'Today you will watch it happen.',
+  );
+  setLessonVersion(source, LESSON_5, '1.0.1-draft');
+  setActivityLessonVersion(source, 'LS-M020-05', '1.0.1-draft');
+  setKitVersion(source, KIT_03_05, '1.0.1-draft');
+  editReleaseJson(source, (release) => {
+    release.release.version = '1.0.2-draft';
+    release.release.date = CORRECTION_DATE;
+  });
+}
+
+/** A fresh, not-yet-existing output package path inside its own empty temporary parent. */
+export function outputPath(): string {
+  return path.join(tempDir(), 'http-first-fifteen-v1_0_2');
+}
+
+export function readJson<T>(file: string): T {
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as T;
 }
 
 /** The single inner folder a seeded kit was unpacked into. */

@@ -1,6 +1,8 @@
 export interface ZipEntry {
   readonly path: string;
   readonly bytes: Buffer;
+  /** Set by `readZip` from the member's DOS timestamp, read as UTC. Ignored by `writeZip`. */
+  readonly modified?: Date;
 }
 
 export function readZip(_archive: Buffer): ZipEntry[] {

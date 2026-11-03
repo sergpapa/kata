@@ -91,19 +91,43 @@ describe('seeding a source tree from the current release (C1)', () => {
     expect(path.resolve(source, release.previous_release as string)).toBe(REAL_PACKAGE);
   });
 
-  it('carries authored package documents and leaves out the generated ones', () => {
+  it('records the package identity, an empty feedback list and every release-level field', () => {
     const source = seededSource();
-    const packageFiles = listFiles(path.join(source, 'package'));
-    expect(packageFiles).toContain('START_HERE.md');
-    expect(packageFiles).toContain('specifications/Lesson_Authoring_Standard_v1.md');
-    expect(packageFiles).not.toContain('package-manifest.json');
-    expect(packageFiles).not.toContain('package-verification.json');
-    expect(packageFiles.some((file) => file.startsWith('content/'))).toBe(false);
-    expect(
-      fs
-        .readFileSync(path.join(source, 'package', 'START_HERE.md'))
-        .equals(fs.readFileSync(path.join(REAL_PACKAGE, 'START_HERE.md'))),
-    ).toBe(true);
+    const release = JSON.parse(
+      fs.readFileSync(path.join(source, 'release.json'), 'utf8'),
+    ) as SourceRelease;
+    const packageManifest = JSON.parse(
+      fs.readFileSync(path.join(REAL_PACKAGE, 'package-manifest.json'), 'utf8'),
+    ) as { package_id: string; read_first: string };
+    const learning = JSON.parse(
+      fs.readFileSync(path.join(REAL_CONTENT, 'learning-release.json'), 'utf8'),
+    ) as Record<string, unknown>;
+    const releaseLevel = Object.entries(learning).filter(
+      ([field]) => !['lessons', 'lab_downloads', 'activities'].includes(field),
+    );
+
+    expect(release.package_id).toBe(packageManifest.package_id);
+    expect(release.read_first).toBe(packageManifest.read_first);
+    expect(release.accepted_feedback).toEqual([]);
+    expect(Object.entries(release.release)).toEqual(releaseLevel);
+  });
+
+  it('copies every authored package document byte for byte and no generated one', () => {
+    const source = seededSource();
+    const generated = [
+      'package-manifest.json',
+      'package-verification.json',
+      'release-changes.json',
+    ];
+    const authored = listFiles(REAL_PACKAGE).filter(
+      (file) => !file.startsWith('content/') && !generated.includes(file),
+    );
+    expect(authored.length).toBeGreaterThan(10);
+    expect(listFiles(path.join(source, 'package'))).toEqual(authored);
+    for (const file of authored) {
+      const seeded = fs.readFileSync(path.join(source, 'package', file));
+      expect(seeded.equals(fs.readFileSync(path.join(REAL_PACKAGE, file))), file).toBe(true);
+    }
   });
 });
 

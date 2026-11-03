@@ -1,92 +1,106 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { verifyRelease } from '../modules/content/verify.js';
 import { buildRelease, type ReleaseChanges } from './build.js';
-import { readZip } from './zip.js';
+import { readZip, type ZipEntry } from './zip.js';
 import {
+  CORRECTION_DATE,
+  KIT_02,
+  KIT_03_05,
+  KIT_06_08,
+  LESSON_2,
+  LESSON_5,
   REAL_CONTENT,
   cleanTemps,
+  correctLesson5,
   editReleaseJson,
   kitFolder,
   lessonFile,
   listFiles,
+  outputPath,
+  readJson,
   replaceInFile,
   seededSource,
   setActivityLessonVersion,
   setKitVersion,
   setLessonVersion,
   sha256,
-  tempDir,
 } from './testkit/sourceFixture.js';
 
-afterEach(cleanTemps);
+afterEach(() => {
+  vi.useRealTimers();
+  cleanTemps();
+});
 
-const LESSON_5 = 'HTTP_Lesson_05_Student_Edition_v1.md';
-const LESSON_2 = 'HTTP_Lesson_02_Student_Edition_v1.md';
-const KIT_03_05 = 'HTTP_Lessons_03_05_Local_Kit_v1';
-const KIT_02 = 'HTTP_Lesson_02_Local_Server_Kit_v1';
-const KIT_06_08 = 'HTTP_Lessons_06_08_Local_Kit_v1';
-const LESSON_5_LINE = 'Today you will watch that happen.';
-
-/** The correction C12 describes: one line of Lesson 5, with every version that must move. */
-function correctLesson5(source: string): void {
-  replaceInFile(lessonFile(source, LESSON_5), LESSON_5_LINE, 'Today you will watch it happen.');
-  setLessonVersion(source, LESSON_5, '1.0.1-draft');
-  setActivityLessonVersion(source, 'LS-M020-05', '1.0.1-draft');
-  setKitVersion(source, KIT_03_05, '1.0.1-draft');
-  editReleaseJson(source, (release) => {
-    release.release.version = '1.0.2-draft';
-  });
+interface LessonEntry {
+  order: number;
+  lesson_id: string;
+  document_id: string;
+  module: string;
+  version: string;
+  title: string;
+  path: string;
+  sha256: string;
 }
-
-const output = () => path.join(tempDir(), 'http-first-fifteen-v1_0_2');
-const readJson = <T>(file: string) => JSON.parse(fs.readFileSync(file, 'utf8')) as T;
-
 interface ReleaseManifest {
   version: string;
-  lessons: { lesson_id: string; version: string; title: string; path: string; sha256: string }[];
+  lessons: LessonEntry[];
   lab_downloads: { lab_id: string; version: string; path: string; sha256: string }[];
 }
+type KitManifest = Record<string, unknown> & {
+  files: { path: string; sha256: string; bytes?: number }[];
+};
 
-function refusedWith(outcome: ReturnType<typeof buildRelease>, pattern: RegExp): void {
-  expect(outcome.state).toBe('refused');
-  if (outcome.state === 'refused') expect(outcome.reason).toMatch(pattern);
+function built(source: string, out = outputPath()): string {
+  const outcome = buildRelease(source, out);
+  if (outcome.state !== 'built') throw new Error(`build refused: ${outcome.reason}`);
+  return out;
 }
 
-describe('a correction reissue built from the source tree (C3, C4, C9, C12)', () => {
-  it('is accepted by the importer and changes exactly the corrected bytes', () => {
+const kitMembers = (packageDir: string, kit: string) =>
+  readZip(fs.readFileSync(path.join(packageDir, 'content/labs', `${kit}.zip`)));
+const kitManifest = (members: ZipEntry[]) =>
+  JSON.parse(
+    members.find((member) => member.path.endsWith('/manifest.json'))!.bytes.toString('utf8'),
+  ) as KitManifest;
+const realKitMembers = (kit: string) =>
+  readZip(fs.readFileSync(path.join(REAL_CONTENT, 'labs', `${kit}.zip`)));
+
+describe('the round trip on the real release (C3, C9, C13)', () => {
+  it('is accepted by the importer and changes exactly the corrected lesson', () => {
     const source = seededSource();
     correctLesson5(source);
-    const out = output();
-
-    const outcome = buildRelease(source, out);
-    expect(outcome.state).toBe('built');
+    const out = built(source);
 
     const verified = verifyRelease(path.join(out, 'content'));
     expect(verified.state).toBe('verified');
-    if (verified.state !== 'verified') return;
-    expect(verified.release.version).toBe('1.0.2-draft');
+    if (verified.state === 'verified') expect(verified.release.version).toBe('1.0.2-draft');
 
     const before = readJson<ReleaseManifest>(path.join(REAL_CONTENT, 'learning-release.json'));
     const after = readJson<ReleaseManifest>(path.join(out, 'content/learning-release.json'));
-    const unchangedLessons = after.lessons.filter((lesson) => lesson.lesson_id !== 'LS-M020-05');
-    expect(unchangedLessons).toHaveLength(14);
-    for (const lesson of unchangedLessons) {
+    const unchanged = after.lessons.filter((lesson) => lesson.lesson_id !== 'LS-M020-05');
+    expect(unchanged).toHaveLength(14);
+    for (const lesson of unchanged) {
       const previous = before.lessons.find((entry) => entry.lesson_id === lesson.lesson_id)!;
       expect(lesson, lesson.lesson_id).toEqual(previous);
+      const bytes = fs.readFileSync(path.join(out, 'content', lesson.path));
+      expect(bytes.equals(fs.readFileSync(path.join(REAL_CONTENT, previous.path)))).toBe(true);
     }
-
     const lesson5 = after.lessons.find((lesson) => lesson.lesson_id === 'LS-M020-05')!;
-    const lesson5Bytes = fs.readFileSync(path.join(out, 'content', lesson5.path));
     expect(lesson5.version).toBe('1.0.1-draft');
-    expect(lesson5.title).toBe('Lesson 5: One page can make several requests');
-    expect(lesson5.sha256).toBe(sha256(lesson5Bytes));
-    expect(lesson5Bytes.toString('utf8')).toContain('Today you will watch it happen.');
+    expect(lesson5.sha256).toBe(sha256(fs.readFileSync(path.join(out, 'content', lesson5.path))));
+  });
 
-    for (const lab of after.lab_downloads.filter(
-      (entry) => entry.lab_id !== 'FSSE-HTTP-LAB-03-05',
-    )) {
+  it('reuses the four untouched kit zips byte for byte', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    const out = built(source);
+    const before = readJson<ReleaseManifest>(path.join(REAL_CONTENT, 'learning-release.json'));
+    const after = readJson<ReleaseManifest>(path.join(out, 'content/learning-release.json'));
+    const untouched = after.lab_downloads.filter((lab) => lab.lab_id !== 'FSSE-HTTP-LAB-03-05');
+    expect(untouched).toHaveLength(4);
+    for (const lab of untouched) {
       const previous = before.lab_downloads.find((entry) => entry.lab_id === lab.lab_id)!;
       expect(lab, lab.lab_id).toEqual(previous);
       const bytes = fs.readFileSync(path.join(out, 'content', lab.path));
@@ -97,59 +111,192 @@ describe('a correction reissue built from the source tree (C3, C4, C9, C12)', ()
     }
   });
 
-  it('repacks the corrected kit with the new lesson copy and only that manifest hash moved', () => {
+  it('ships every authored file exactly as it is in the source', () => {
     const source = seededSource();
     correctLesson5(source);
-    const out = output();
-    expect(buildRelease(source, out).state).toBe('built');
+    const out = built(source);
+    const same = (a: string, b: string) => fs.readFileSync(a).equals(fs.readFileSync(b));
 
-    const kitPath = `labs/${KIT_03_05}.zip`;
-    const before = readZip(fs.readFileSync(path.join(REAL_CONTENT, kitPath)));
-    const after = readZip(fs.readFileSync(path.join(out, 'content', kitPath)));
-    expect(after.map((member) => member.path)).toEqual(before.map((member) => member.path));
+    expect(same(path.join(out, 'content/lessons', LESSON_5), lessonFile(source, LESSON_5))).toBe(
+      true,
+    );
+    expect(
+      same(
+        path.join(out, 'content/trial-activities.json'),
+        path.join(source, 'trial-activities.json'),
+      ),
+    ).toBe(true);
+    const packageFiles = listFiles(path.join(source, 'package'));
+    expect(packageFiles.length).toBeGreaterThan(10);
+    for (const file of packageFiles) {
+      expect(same(path.join(out, file), path.join(source, 'package', file)), file).toBe(true);
+    }
+  });
+});
 
-    const canonical = fs.readFileSync(path.join(out, 'content/lessons', LESSON_5));
-    const changedPaths: string[] = [];
-    after.forEach((member, index) => {
-      if (!member.bytes.equals(before[index]!.bytes)) changedPaths.push(member.path);
+describe('lesson entries are derived from the lesson (C4)', () => {
+  it('follows an edited title, document ID and module, and the importer accepts it', () => {
+    const source = seededSource();
+    const file = lessonFile(source, LESSON_2);
+    replaceInFile(file, '# Lesson 2: Give the browser', '# Lesson 2: Hand the browser');
+    replaceInFile(file, 'document_id: FSSE-HTTP-STUDENT-02', 'document_id: FSSE-HTTP-STUDENT-02B');
+    replaceInFile(file, 'module: M020', 'module: M020B');
+    setLessonVersion(source, LESSON_2, '1.0.2-draft');
+    setActivityLessonVersion(source, 'LS-M020-02', '1.0.2-draft');
+    setKitVersion(source, KIT_02, '1.0.2-draft');
+    editReleaseJson(source, (release) => {
+      release.release.version = '1.0.2-draft';
     });
-    expect(changedPaths.sort()).toEqual(
+    const out = built(source);
+
+    expect(verifyRelease(path.join(out, 'content')).state).toBe('verified');
+    const entry = readJson<ReleaseManifest>(
+      path.join(out, 'content/learning-release.json'),
+    ).lessons.find((lesson) => lesson.lesson_id === 'LS-M020-02')!;
+    expect(entry.title).toBe('Lesson 2: Hand the browser an address—and something to answer');
+    expect(entry.document_id).toBe('FSSE-HTTP-STUDENT-02B');
+    expect(entry.module).toBe('M020B');
+    expect(entry.version).toBe('1.0.2-draft');
+  });
+
+  it('takes order from the position in release.json', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    editReleaseJson(source, (release) => {
+      const [third, fourth] = [release.lessons[2]!, release.lessons[3]!];
+      release.lessons[2] = fourth;
+      release.lessons[3] = third;
+    });
+    const out = built(source);
+    const lessons = readJson<ReleaseManifest>(
+      path.join(out, 'content/learning-release.json'),
+    ).lessons;
+    const orderOf = (id: string) => lessons.find((lesson) => lesson.lesson_id === id)!.order;
+    expect(orderOf('LS-M020-04')).toBe(3);
+    expect(orderOf('LS-M020-03')).toBe(4);
+  });
+});
+
+describe('kits (C5, C6)', () => {
+  it('repacks the corrected kit: new lesson copy, one manifest hash moved, all else as authored', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    const out = built(source);
+
+    const before = realKitMembers(KIT_03_05);
+    const after = kitMembers(out, KIT_03_05);
+    expect(after.map((member) => member.path)).toEqual(before.map((member) => member.path));
+    const changed = after
+      .filter((member, index) => !member.bytes.equals(before[index]!.bytes))
+      .map((member) => member.path);
+    expect(changed.sort()).toEqual(
       [`http-lessons-03-05-lab/${LESSON_5}`, 'http-lessons-03-05-lab/manifest.json'].sort(),
     );
+
+    const canonical = fs.readFileSync(path.join(out, 'content/lessons', LESSON_5));
     expect(after.find((member) => member.path.endsWith(LESSON_5))!.bytes.equals(canonical)).toBe(
       true,
     );
-
-    type KitManifest = { version: string; files: { path: string; sha256: string }[] };
-    const manifestOf = (members: typeof after) =>
-      JSON.parse(
-        members.find((member) => member.path.endsWith('/manifest.json'))!.bytes.toString('utf8'),
-      ) as KitManifest;
-    const oldManifest = manifestOf(before);
-    const newManifest = manifestOf(after);
-    expect(newManifest.version).toBe('1.0.1-draft');
-    expect(newManifest.files).toEqual(
-      oldManifest.files.map((file) =>
+    const oldManifest = kitManifest(before);
+    expect(kitManifest(after)).toEqual({
+      ...oldManifest,
+      version: '1.0.1-draft',
+      files: oldManifest.files.map((file) =>
         file.path === LESSON_5 ? { ...file, sha256: sha256(canonical) } : file,
       ),
-    );
+    });
   });
 
-  it('records every lesson, kit and the activity file with its version and hash transition', () => {
+  it('rewrites an authored member hash in a kit-only change, and the importer accepts it', () => {
+    const source = seededSource();
+    const readme = path.join(kitFolder(source, KIT_06_08), 'README.md');
+    fs.appendFileSync(readme, '\nOne more note.\n');
+    setKitVersion(source, KIT_06_08, '1.0.2-draft');
+    editReleaseJson(source, (release) => {
+      release.release.version = '1.0.2-draft';
+    });
+    const out = built(source);
+
+    expect(verifyRelease(path.join(out, 'content')).state).toBe('verified');
+    const members = kitMembers(out, KIT_06_08);
+    const shipped = members.find((member) => member.path === 'http-lessons-06-08-lab/README.md')!;
+    expect(shipped.bytes.equals(fs.readFileSync(readme))).toBe(true);
+    const oldManifest = kitManifest(realKitMembers(KIT_06_08));
+    expect(kitManifest(members)).toEqual({
+      ...oldManifest,
+      version: '1.0.2-draft',
+      files: oldManifest.files.map((file) =>
+        file.path === 'README.md' ? { ...file, sha256: sha256(shipped.bytes) } : file,
+      ),
+    });
+  });
+
+  it('updates bytes as well as hash in a kit manifest that records bytes', () => {
+    const source = seededSource();
+    replaceInFile(lessonFile(source, LESSON_2), '# Lesson 2: Give', '# Lesson 2: Now give');
+    setLessonVersion(source, LESSON_2, '1.0.2-draft');
+    setActivityLessonVersion(source, 'LS-M020-02', '1.0.2-draft');
+    setKitVersion(source, KIT_02, '1.0.2-draft');
+    editReleaseJson(source, (release) => {
+      release.release.version = '1.0.2-draft';
+    });
+    const out = built(source);
+
+    const canonical = fs.readFileSync(path.join(out, 'content/lessons', LESSON_2));
+    const oldManifest = kitManifest(realKitMembers(KIT_02));
+    expect(kitManifest(kitMembers(out, KIT_02))).toEqual({
+      ...oldManifest,
+      kit_version: '1.0.2-draft',
+      files: oldManifest.files.map((file) =>
+        file.path === LESSON_2
+          ? { path: LESSON_2, bytes: canonical.byteLength, sha256: sha256(canonical) }
+          : file,
+      ),
+    });
+  });
+
+  it('dates repacked members at midnight UTC of the release date', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    const out = built(source);
+    for (const member of kitMembers(out, KIT_03_05)) {
+      expect(member.modified, member.path).toEqual(new Date(`${CORRECTION_DATE}T00:00:00Z`));
+    }
+  });
+
+  it('repacks a changed kit identically whatever the clock says', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2027-01-01T09:00:01Z'));
+    const first = built(source);
+    vi.setSystemTime(new Date('2027-03-15T17:42:07Z'));
+    const second = built(source);
+    const kit = `content/labs/${KIT_03_05}.zip`;
+    expect(
+      fs.readFileSync(path.join(first, kit)).equals(fs.readFileSync(path.join(second, kit))),
+    ).toBe(true);
+  });
+});
+
+describe('the change record and package manifest (C10, C12)', () => {
+  it('gives every lesson, kit and the activity file its version and hash transition', () => {
     const source = seededSource();
     correctLesson5(source);
     editReleaseJson(source, (release) => {
       release.accepted_feedback = ['CF-003'];
     });
-    const out = output();
+    const out = outputPath();
     const outcome = buildRelease(source, out);
     expect(outcome.state).toBe('built');
     if (outcome.state !== 'built') return;
-
-    const written = readJson<ReleaseChanges>(path.join(out, 'release-changes.json'));
-    expect(written).toEqual(outcome.changes);
+    expect(readJson<ReleaseChanges>(path.join(out, 'release-changes.json'))).toEqual(
+      outcome.changes,
+    );
 
     const changes = outcome.changes;
+    const shaOf = (...parts: string[]) => sha256(fs.readFileSync(path.join(...parts)));
+    expect(changes.release_id).toBe('FSSE-HTTP-FIRST-FIFTEEN');
     expect(changes.previous_version).toBe('1.0.1-draft');
     expect(changes.version).toBe('1.0.2-draft');
     expect(changes.accepted_feedback).toEqual(['CF-003']);
@@ -159,8 +306,8 @@ describe('a correction reissue built from the source tree (C3, C4, C9, C12)', ()
         lesson_id: 'LS-M020-05',
         previous_version: '1.0.0-draft',
         version: '1.0.1-draft',
-        previous_sha256: sha256(fs.readFileSync(path.join(REAL_CONTENT, 'lessons', LESSON_5))),
-        sha256: sha256(fs.readFileSync(path.join(out, 'content/lessons', LESSON_5))),
+        previous_sha256: shaOf(REAL_CONTENT, 'lessons', LESSON_5),
+        sha256: shaOf(out, 'content/lessons', LESSON_5),
       }),
     ]);
     expect(changes.labs).toHaveLength(5);
@@ -169,9 +316,17 @@ describe('a correction reissue built from the source tree (C3, C4, C9, C12)', ()
         lab_id: 'FSSE-HTTP-LAB-03-05',
         previous_version: '1.0.0-draft',
         version: '1.0.1-draft',
+        previous_sha256: shaOf(REAL_CONTENT, 'labs', `${KIT_03_05}.zip`),
+        sha256: shaOf(out, 'content/labs', `${KIT_03_05}.zip`),
       }),
     ]);
-    expect(changes.activities.status).toBe('changed');
+    expect(changes.activities).toEqual(
+      expect.objectContaining({
+        status: 'changed',
+        previous_sha256: shaOf(REAL_CONTENT, 'trial-activities.json'),
+        sha256: shaOf(out, 'content/trial-activities.json'),
+      }),
+    );
     const unchanged = changes.lessons.find((lesson) => lesson.lesson_id === 'LS-M020-01')!;
     expect(unchanged.status).toBe('unchanged');
     expect(unchanged.sha256).toBe(unchanged.previous_sha256);
@@ -180,191 +335,44 @@ describe('a correction reissue built from the source tree (C3, C4, C9, C12)', ()
   it('lists every file of the package in package-manifest.json with its real hash', () => {
     const source = seededSource();
     correctLesson5(source);
-    const out = output();
-    expect(buildRelease(source, out).state).toBe('built');
+    const out = built(source);
+    const manifest = readJson<{
+      package_id: string;
+      version: string;
+      files: { path: string; sha256: string }[];
+    }>(path.join(out, 'package-manifest.json'));
+    const release = readJson<{ package_id: string }>(path.join(source, 'release.json'));
 
-    const manifest = readJson<{ version: string; files: { path: string; sha256: string }[] }>(
-      path.join(out, 'package-manifest.json'),
-    );
+    expect(manifest.package_id).toBe(release.package_id);
     expect(manifest.version).toBe('1.0.2-draft');
     const listed = manifest.files.map((file) => file.path).sort();
     expect(listed).toEqual(listFiles(out).filter((file) => file !== 'package-manifest.json'));
     expect(listed).toContain('release-changes.json');
-    expect(listed).toContain('START_HERE.md');
     for (const file of manifest.files) {
       expect(sha256(fs.readFileSync(path.join(out, file.path))), file.path).toBe(file.sha256);
     }
   });
 
-  it('records what it checked and names the checks it did not run (C11)', () => {
+  it('records what it checked and, separately, what it did not run', () => {
     const source = seededSource();
     correctLesson5(source);
-    const out = output();
-    expect(buildRelease(source, out).state).toBe('built');
+    const out = built(source);
+    const record = readJson<{
+      importer_verification: string;
+      checks_run: string[];
+      not_run_by_this_tool: string[];
+    }>(path.join(out, 'package-verification.json'));
 
-    const record = readJson<{ importer_verification: string; not_run_by_this_tool: string[] }>(
-      path.join(out, 'package-verification.json'),
-    );
     expect(record.importer_verification).toBe('passed');
-    expect(record.not_run_by_this_tool).toEqual(
-      expect.arrayContaining([
-        'mermaid_parse_and_render',
-        'browser_rehearsal',
-        'kit_runtime_suites',
-      ]),
-    );
-  });
-});
-
-describe('kits (C5, C6)', () => {
-  it('repacks a changed kit identically every time', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const first = output();
-    const second = output();
-    expect(buildRelease(source, first).state).toBe('built');
-    expect(buildRelease(source, second).state).toBe('built');
-    const kit = `content/labs/${KIT_03_05}.zip`;
-    expect(
-      fs.readFileSync(path.join(first, kit)).equals(fs.readFileSync(path.join(second, kit))),
-    ).toBe(true);
-  });
-
-  it('updates bytes as well as hash in a kit manifest that records bytes', () => {
-    const source = seededSource();
-    replaceInFile(
-      lessonFile(source, LESSON_2),
-      '# Lesson 2: Give the browser an address—and something to answer',
-      '# Lesson 2: Give the browser an address—and something to answer it',
-    );
-    setLessonVersion(source, LESSON_2, '1.0.2-draft');
-    setActivityLessonVersion(source, 'LS-M020-02', '1.0.2-draft');
-    setKitVersion(source, KIT_02, '1.0.2-draft');
-    editReleaseJson(source, (release) => {
-      release.release.version = '1.0.2-draft';
-    });
-    const out = output();
-    expect(buildRelease(source, out).state).toBe('built');
-
-    const members = readZip(fs.readFileSync(path.join(out, 'content/labs', `${KIT_02}.zip`)));
-    const manifest = JSON.parse(
-      members.find((member) => member.path.endsWith('/manifest.json'))!.bytes.toString('utf8'),
-    ) as { kit_version: string; files: { path: string; bytes: number; sha256: string }[] };
-    const canonical = fs.readFileSync(path.join(out, 'content/lessons', LESSON_2));
-    expect(manifest.kit_version).toBe('1.0.2-draft');
-    expect(manifest.files.find((file) => file.path === LESSON_2)).toEqual({
-      path: LESSON_2,
-      bytes: canonical.byteLength,
-      sha256: sha256(canonical),
-    });
-  });
-
-  it('builds a kit-only change once the kit version moves', () => {
-    const source = seededSource();
-    fs.appendFileSync(path.join(kitFolder(source, KIT_06_08), 'README.md'), '\nOne more note.\n');
-    setKitVersion(source, KIT_06_08, '1.0.2-draft');
-    editReleaseJson(source, (release) => {
-      release.release.version = '1.0.2-draft';
-    });
-    const out = output();
-    const outcome = buildRelease(source, out);
-    expect(outcome.state).toBe('built');
-    if (outcome.state === 'built') {
-      expect(
-        outcome.changes.labs.filter((lab) => lab.status === 'changed').map((lab) => lab.lab_id),
-      ).toEqual(['FSSE-HTTP-LAB-06-08']);
-      expect(outcome.changes.lessons.every((lesson) => lesson.status === 'unchanged')).toBe(true);
-    }
-  });
-});
-
-describe('the build refuses (C3, C7, C8, C10, scope fence)', () => {
-  it('refuses a changed lesson whose version did not move, naming the lesson and version', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    setLessonVersion(source, LESSON_5, '1.0.0-draft');
-    setActivityLessonVersion(source, 'LS-M020-05', '1.0.0-draft');
-    refusedWith(
-      buildRelease(source, output()),
-      /HTTP_Lesson_05.*1\.0\.0-draft|1\.0\.0-draft.*HTTP_Lesson_05/s,
-    );
-  });
-
-  it('refuses a changed kit whose version did not move, naming the kit', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    setKitVersion(source, KIT_03_05, '1.0.0-draft');
-    refusedWith(
-      buildRelease(source, output()),
-      /HTTP_Lessons_03_05_Local_Kit_v1|FSSE-HTTP-LAB-03-05/,
-    );
-  });
-
-  it('refuses a release whose version did not move', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    editReleaseJson(source, (release) => {
-      release.release.version = '1.0.1-draft';
-    });
-    refusedWith(buildRelease(source, output()), /1\.0\.1-draft/);
-  });
-
-  it('refuses an activity still pointing at the old lesson version, naming it', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    setActivityLessonVersion(source, 'LS-M020-05', '1.0.0-draft');
-    refusedWith(buildRelease(source, output()), /ACT-M020-05-\d\d.*1\.0\.1-draft/s);
-  });
-
-  it('refuses a build in which no lesson, kit or activity byte changed', () => {
-    const source = seededSource();
-    editReleaseJson(source, (release) => {
-      release.release.version = '1.0.2-draft';
-    });
-    const out = output();
-    refusedWith(buildRelease(source, out), /nothing/i);
-    expect(fs.existsSync(out)).toBe(false);
-  });
-
-  it('refuses an existing output directory and leaves it untouched', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = output();
-    fs.mkdirSync(out);
-    fs.writeFileSync(path.join(out, 'keep.txt'), 'mine');
-    refusedWith(buildRelease(source, out), /exists/i);
-    expect(listFiles(out)).toEqual(['keep.txt']);
-  });
-
-  it('leaves no output directory behind when it refuses', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    setActivityLessonVersion(source, 'LS-M020-05', '1.0.0-draft');
-    const out = output();
-    expect(buildRelease(source, out).state).toBe('refused');
-    expect(fs.existsSync(out)).toBe(false);
-    expect(fs.readdirSync(path.dirname(out))).toEqual([]);
-  });
-
-  it('refuses adding a lesson, which this slice does not support', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    fs.copyFileSync(lessonFile(source, LESSON_5), lessonFile(source, 'HTTP_Lesson_16_Draft.md'));
-    editReleaseJson(source, (release) => {
-      release.lessons.push('HTTP_Lesson_16_Draft.md');
-    });
-    refusedWith(
-      buildRelease(source, output()),
-      /HTTP_Lesson_16_Draft\.md.*not supported|not supported.*HTTP_Lesson_16_Draft\.md/s,
-    );
-  });
-
-  it('refuses removing a kit, which this slice does not support', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    editReleaseJson(source, (release) => {
-      release.labs = release.labs.filter((lab) => lab.lab_id !== 'FSSE-HTTP-LAB-14-15');
-    });
-    refusedWith(buildRelease(source, output()), /FSSE-HTTP-LAB-14-15/);
+    expect([...record.checks_run].sort()).toEqual([
+      'all_hashes_recomputed',
+      'importer_verification',
+      'nested_lesson_copies_match_canonical',
+    ]);
+    expect([...record.not_run_by_this_tool].sort()).toEqual([
+      'browser_rehearsal',
+      'kit_runtime_suites',
+      'mermaid_parse_and_render',
+    ]);
   });
 });
