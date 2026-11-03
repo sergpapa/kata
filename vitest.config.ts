@@ -2,8 +2,9 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 /**
- * Two projects because the two halves need different runtimes: the server talks to SQLite and the
- * filesystem under Node, the client renders into a DOM. One `npm test` runs both.
+ * Three projects: the two halves need different runtimes (the server talks to SQLite and the
+ * filesystem under Node, the client renders into a DOM), and the release authoring tests are
+ * heavy enough on disk to need running one file at a time. One `npm test` runs all three.
  */
 export default defineConfig({
   test: {
@@ -14,6 +15,21 @@ export default defineConfig({
           name: 'server',
           environment: 'node',
           include: ['apps/server/src/**/*.test.ts'],
+          exclude: ['apps/server/src/authoring/**'],
+        },
+      },
+      {
+        test: {
+          name: 'authoring',
+          environment: 'node',
+          include: ['apps/server/src/authoring/**/*.test.ts'],
+          /**
+           * One file at a time. Every authoring test copies a seeded release (about 200 files)
+           * and most build one, so six files in parallel saturated the disk and CPU enough to
+           * time out jsdom tests in the web project: a 5000ms timeout, never a wrong value.
+           * Lowering the peak, not raising the timeout, is the fix (spec slice log, 2026-11-03).
+           */
+          fileParallelism: false,
         },
       },
       {

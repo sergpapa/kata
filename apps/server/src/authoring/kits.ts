@@ -43,7 +43,7 @@ export interface PreviousKit {
 }
 
 /** The version a kit manifest declares, in whichever field its shape uses. */
-export function kitVersion(manifest: Record<string, unknown>, label: string): string {
+function kitVersion(manifest: Record<string, unknown>, label: string): string {
   const version = manifest.version ?? manifest.kit_version;
   if (typeof version !== 'string') {
     throw new Refusal(`${label}'s manifest.json declares no version or kit_version.`);

@@ -146,6 +146,7 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `apps/server`                                       | Fastify application, domain modules under `src/modules/<area>/`, SQLite access             |
 | `apps/server/src/modules/content/`                  | Release import: manifest, hashes, path safety, and the content repository                  |
+| `apps/server/src/authoring/`                        | Release packaging: `npm run release:seed` and `npm run release:build` (ADR 0013)           |
 | `apps/web`                                          | React client (Vite)                                                                        |
 | `apps/web/src/markdown/`                            | The lesson renderer and the guards that keep lesson content inert                          |
 | `apps/web/src/activities/`                          | The practice panels: the boxes, the save states, the conflict path and the revisions       |
@@ -154,6 +155,7 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 | `docs/roadmap.md`                                   | Current state and the remaining slices — read this first in a new session                  |
 | `docs/specs/`                                       | The agreed acceptance criteria for each slice, and its slice log                           |
 | `docs/adr/`                                         | Why the stack and the data rules are what they are                                         |
+| `docs/authoring/`                                   | The authoring handbook: how lessons are written and reissued here, and the owner's voice   |
 | `data/`                                             | Your work. Not committed. Delete the directory to start clean.                             |
 | `content/releases/`                                 | Every received content package, byte-for-byte; `content/RELEASES.md` names the current one |
 | `content/releases/http-first-fifteen-v1_0_1/`       | The current package (lessons 1–15, CF-001/CF-002 corrected); the app's default import      |
@@ -165,6 +167,8 @@ Everything runs locally and costs nothing. There is no CI pipeline in this repos
 The content packages are inputs, kept byte-for-byte; never edit them. Proposed changes to their
 content go to [docs/content-feedback.md](docs/content-feedback.md) for the owner instead. A new
 drop gets its own directory under `content/releases/`; see [content/RELEASES.md](content/RELEASES.md).
+Lessons are now authored in this repo (ADR 0013), and a reissue is built, never hand-edited: see
+[docs/authoring/README.md](docs/authoring/README.md), "Reissuing a release".
 
 ## Pinned versions
 

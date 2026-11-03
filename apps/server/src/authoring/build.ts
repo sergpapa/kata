@@ -131,9 +131,10 @@ function planRelease(sourceDir: string): Plan {
   checkActivityVersions(activities, lessons);
 
   const modified = new Date(`${release.release.date}T00:00:00Z`);
-  if (Number.isNaN(modified.getTime())) {
+  const year = modified.getUTCFullYear();
+  if (Number.isNaN(year) || year < 1980 || year > 2107) {
     throw new Refusal(
-      `release.json's release.date ${release.release.date} is not a YYYY-MM-DD date.`,
+      `release.json's release.date ${release.release.date} is not a YYYY-MM-DD date a zip can record (1980 to 2107).`,
     );
   }
   const kits = release.labs.map((lab) => {

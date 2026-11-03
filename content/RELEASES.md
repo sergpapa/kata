@@ -25,3 +25,10 @@ Adding a new drop: copy its inner package folder in unchanged, flip the default 
 `apps/server/src/config.ts` (and the path in `config.test.ts`), and update this file. The
 `content/releases/** -text` rule in `.gitattributes` already protects it from line-ending
 conversion. See ADR 0009 for why the layout is shaped this way.
+
+**Building a reissue here (ADR 0013).** Releases are now built in this repo, never edited in
+place. Seed an editable source once with `npm run release:seed -- content/releases/<current>
+content/source`, edit lessons, kits and activities there, then run `npm run release:build --
+content/source content/releases/<new>`. The build refuses anything inconsistent and prints
+exactly which lessons and kits changed, followed by the make-current steps above. The full
+contract is in `docs/specs/release-packaging.md`.

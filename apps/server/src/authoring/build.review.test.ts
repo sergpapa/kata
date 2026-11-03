@@ -109,3 +109,14 @@ describe('the next build compares against this one (review finding 2)', () => {
     expect(step).toContain(out);
   });
 });
+
+describe('a release date a zip cannot record (found while profiling, 2026-11-03)', () => {
+  it('is refused by name rather than thrown from the zip writer', () => {
+    const source = seededSource();
+    correctLesson5(source);
+    editReleaseJson(source, (release) => {
+      release.release.date = '1970-01-01';
+    });
+    expect(refusal(source)).toMatch(/release\.date.*1970-01-01/);
+  });
+});

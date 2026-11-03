@@ -1,8 +1,9 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest';
 import { verifyRelease } from '../modules/content/verify.js';
-import { buildRelease, type ReleaseChanges } from './build.js';
+import { buildRelease, type BuildOutcome, type ReleaseChanges } from './build.js';
 import { readZip, type ZipEntry } from './zip.js';
 import {
   CORRECTION_DATE,
@@ -52,6 +53,32 @@ type KitManifest = Record<string, unknown> & {
   files: { path: string; sha256: string; bytes?: number }[];
 };
 
+let shared: { source: string; out: string; outcome: BuildOutcome } | undefined;
+let sharedParent: string | undefined;
+
+/**
+ * The C13 correction (plus an accepted register entry) built once for the whole file. The tests
+ * that use it only read the output, and building it per test cost enough CPU to time out
+ * unrelated web tests in the full suite (spec slice log, 2026-11-03).
+ */
+function correctedRelease(): { source: string; out: string; outcome: BuildOutcome } {
+  if (shared === undefined) {
+    sharedParent = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-authoring-shared-'));
+    const source = seededSource(sharedParent);
+    correctLesson5(source);
+    editReleaseJson(source, (release) => {
+      release.accepted_feedback = ['CF-003'];
+    });
+    const out = outputPath(sharedParent);
+    shared = { source, out, outcome: buildRelease(source, out) };
+  }
+  return shared;
+}
+
+afterAll(() => {
+  if (sharedParent !== undefined) fs.rmSync(sharedParent, { recursive: true, force: true });
+});
+
 function built(source: string, out = outputPath()): string {
   const outcome = buildRelease(source, out);
   if (outcome.state !== 'built') throw new Error(`build refused: ${outcome.reason}`);
@@ -69,9 +96,7 @@ const realKitMembers = (kit: string) =>
 
 describe('the round trip on the real release (C3, C9, C13)', () => {
   it('is accepted by the importer and changes exactly the corrected lesson', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { out } = correctedRelease();
 
     const verified = verifyRelease(path.join(out, 'content'));
     expect(verified.state).toBe('verified');
@@ -93,9 +118,7 @@ describe('the round trip on the real release (C3, C9, C13)', () => {
   });
 
   it('reuses the four untouched kit zips byte for byte', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { out } = correctedRelease();
     const before = readJson<ReleaseManifest>(path.join(REAL_CONTENT, 'learning-release.json'));
     const after = readJson<ReleaseManifest>(path.join(out, 'content/learning-release.json'));
     const untouched = after.lab_downloads.filter((lab) => lab.lab_id !== 'FSSE-HTTP-LAB-03-05');
@@ -112,9 +135,7 @@ describe('the round trip on the real release (C3, C9, C13)', () => {
   });
 
   it('ships every authored file exactly as it is in the source', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { source, out } = correctedRelease();
     const same = (a: string, b: string) => fs.readFileSync(a).equals(fs.readFileSync(b));
 
     expect(same(path.join(out, 'content/lessons', LESSON_5), lessonFile(source, LESSON_5))).toBe(
@@ -179,9 +200,7 @@ describe('lesson entries are derived from the lesson (C4)', () => {
 
 describe('kits (C5, C6)', () => {
   it('repacks the corrected kit: new lesson copy, one manifest hash moved, all else as authored', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { out } = correctedRelease();
 
     const before = realKitMembers(KIT_03_05);
     const after = kitMembers(out, KIT_03_05);
@@ -256,9 +275,7 @@ describe('kits (C5, C6)', () => {
   });
 
   it('dates repacked members at midnight UTC of the release date', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { out } = correctedRelease();
     for (const member of kitMembers(out, KIT_03_05)) {
       expect(member.modified, member.path).toEqual(new Date(`${CORRECTION_DATE}T00:00:00Z`));
     }
@@ -281,13 +298,7 @@ describe('kits (C5, C6)', () => {
 
 describe('the change record and package manifest (C10, C12)', () => {
   it('gives every lesson, kit and the activity file its version and hash transition', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    editReleaseJson(source, (release) => {
-      release.accepted_feedback = ['CF-003'];
-    });
-    const out = outputPath();
-    const outcome = buildRelease(source, out);
+    const { out, outcome } = correctedRelease();
     expect(outcome.state).toBe('built');
     if (outcome.state !== 'built') return;
     expect(readJson<ReleaseChanges>(path.join(out, 'release-changes.json'))).toEqual(
@@ -333,9 +344,7 @@ describe('the change record and package manifest (C10, C12)', () => {
   });
 
   it('lists every file of the package in package-manifest.json with its real hash', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { source, out } = correctedRelease();
     const manifest = readJson<{
       package_id: string;
       version: string;
@@ -354,9 +363,7 @@ describe('the change record and package manifest (C10, C12)', () => {
   });
 
   it('records what it checked and, separately, what it did not run', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const out = built(source);
+    const { out } = correctedRelease();
     const record = readJson<{
       importer_verification: string;
       checks_run: string[];

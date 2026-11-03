@@ -197,3 +197,13 @@ describe('readZip refuses what it does not support, by name', () => {
     );
   });
 });
+
+describe('writeZip refuses a date a zip cannot record (found while profiling, 2026-11-03)', () => {
+  it.each([
+    ['before 1980', new Date(Date.UTC(1979, 11, 31))],
+    ['after 2107', new Date(Date.UTC(2108, 0, 1))],
+    ['not a date at all', new Date('not a date')],
+  ])('refuses a member date %s, naming the range', (_label, date) => {
+    expect(() => writeZip(sample, date)).toThrow(/1980.*2107/);
+  });
+});

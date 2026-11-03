@@ -26,11 +26,35 @@ export function cleanTemps(): void {
   for (const dir of temps.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
 }
 
-/** Seeds the real 1.0.1 release into a fresh temporary source tree and returns its path. */
-export function seededSource(): string {
-  const source = path.join(tempDir(), 'source');
-  const outcome = seedSource(REAL_PACKAGE, source);
-  if (outcome.state !== 'seeded') throw new Error(`seed refused: ${outcome.reason}`);
+let template: string | undefined;
+
+/**
+ * The real 1.0.1 release seeded once per test worker. Seeding verifies and unpacks the whole
+ * release; doing that for every test cost the suite enough CPU to time out unrelated web tests
+ * (spec slice log, 2026-11-03), so each test gets a byte-identical copy instead.
+ */
+function seededTemplate(): string {
+  if (template === undefined) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-authoring-template-'));
+    process.once('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
+    const source = path.join(dir, 'source');
+    const outcome = seedSource(REAL_PACKAGE, source);
+    if (outcome.state !== 'seeded') throw new Error(`seed refused: ${outcome.reason}`);
+    template = source;
+  }
+  return template;
+}
+
+/**
+ * A fresh source tree seeded from the real 1.0.1 release: a copy of the worker's template, with
+ * `previous_release` re-pointed from the copy's own location exactly as `seedSource` would write it.
+ */
+export function seededSource(parent = tempDir()): string {
+  const source = path.join(parent, 'source');
+  fs.cpSync(seededTemplate(), source, { recursive: true });
+  editReleaseJson(source, (release) => {
+    release.previous_release = path.relative(source, REAL_PACKAGE).split(path.sep).join('/');
+  });
   return source;
 }
 
@@ -96,9 +120,12 @@ export function correctLesson5(source: string): void {
   });
 }
 
-/** A fresh, not-yet-existing output package path inside its own empty temporary parent. */
-export function outputPath(): string {
-  return path.join(tempDir(), 'http-first-fifteen-v1_0_2');
+/**
+ * A not-yet-existing output package path, by default inside its own empty temporary parent. A test
+ * that shares one build across several assertions passes a parent it removes itself.
+ */
+export function outputPath(parent = tempDir()): string {
+  return path.join(parent, 'http-first-fifteen-v1_0_2');
 }
 
 export function readJson<T>(file: string): T {

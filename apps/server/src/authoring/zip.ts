@@ -65,7 +65,14 @@ function fromDos(date: number, time: number): Date {
   );
 }
 
+/** DOS date/time, read as UTC. A zip can only record 1980–2107; anything else is refused, not wrapped. */
 function toDos(moment: Date): { date: number; time: number } {
+  const year = moment.getUTCFullYear();
+  if (Number.isNaN(year) || year < 1980 || year > 2107) {
+    throw new Error(
+      `A zip member can only be dated 1980 to 2107; ${String(moment)} is outside that range.`,
+    );
+  }
   return {
     date:
       ((moment.getUTCFullYear() - 1980) << 9) |
