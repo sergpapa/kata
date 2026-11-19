@@ -145,6 +145,19 @@ textarea {
   font: inherit;
 }
 
+/* A select's open list is drawn by the browser, which keeps the select's text colour but brings
+   its own highlight: in dark mode that was pale text on a pale-blue row. Both colours are set here
+   so every list in the app reads in both themes, the chosen row on the primary colour. */
+option {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+option:checked {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
 button,
 summary {
   cursor: pointer;

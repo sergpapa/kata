@@ -104,7 +104,8 @@ attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-M
 - **EX15.** The course dashboard's "Your records" card — whose text still says notes "are not
   recorded yet" — is replaced by an Export card headed "Export your work": From and To selects
   listing the course's lessons by order and title (defaulting to the first and last), an "Include
-  AI feedback conversations" checkbox (unchecked), and an Export button. This re-aims
+  AI feedback conversations" checkbox (unchecked), and an Export button. A course with one lesson shows
+  that lesson as text under the label "Lesson" instead of the two selects. This re-aims
   `DashboardPage.test.tsx` "says plainly what is kept and what is not recorded yet", whose claim
   stopped being true in Milestone 2.
 - **EX16.** Pressing Export fetches the file and hands it to the browser as a download under the
@@ -196,3 +197,11 @@ fieldLabels.ts` and `apps/web/src/activities/fieldLabels.ts` (the server's two c
   one). `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" hit its 5 s timeout in
   two full runs while another project's `pytest -n auto` was loading the machine; it passed 10 of
   10 alone (3.7–8.5 s) and in the final full run. Its budget was not widened.
+- **Owner fix, same day.** On the one-lesson QA course the card showed From and To pickers that
+  could only agree, and in dark mode the browser's open list drew pale text on a pale-blue row,
+  because the page's light text colour reached the options while the browser kept its own
+  highlight. A one-lesson course now names its lesson instead (test first,
+  `exportCardOneLesson.test.tsx`), and `theme.css` sets option and chosen-option colours for every
+  select in the app. Computed in Chromium: chosen row `rgb(14, 23, 50)` on `rgb(138, 160, 238)`
+  dark, white on `rgb(51, 73, 179)` light. The open list itself is drawn by the browser outside
+  the page, so no screenshot here shows it.

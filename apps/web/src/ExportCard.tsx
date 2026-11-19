@@ -142,38 +142,46 @@ export function ExportCard({
         One Markdown file of your saved answers, to send with your owner review.
       </p>
 
-      <div className="export-range">
-        <div className="export-field">
-          <label htmlFor={`${ids}-from`}>From</label>
-          <select
-            id={`${ids}-from`}
-            value={fromId}
-            onChange={(event) => {
-              setFromId(event.target.value);
-              choiceChanged();
-            }}
-            aria-describedby={backwards ? rangeError : undefined}
-            aria-invalid={backwards || undefined}
-          >
-            {lessons.map(option)}
-          </select>
+      {/* One lesson is no range: two pickers that can only agree are a question with no choice. */}
+      {lessons.length === 1 && lessons[0] ? (
+        <p className="export-single">
+          <span className="export-single-label">Lesson</span>
+          {twoDigits(lessons[0].order)} · {lessons[0].displayTitle}
+        </p>
+      ) : (
+        <div className="export-range">
+          <div className="export-field">
+            <label htmlFor={`${ids}-from`}>From</label>
+            <select
+              id={`${ids}-from`}
+              value={fromId}
+              onChange={(event) => {
+                setFromId(event.target.value);
+                choiceChanged();
+              }}
+              aria-describedby={backwards ? rangeError : undefined}
+              aria-invalid={backwards || undefined}
+            >
+              {lessons.map(option)}
+            </select>
+          </div>
+          <div className="export-field">
+            <label htmlFor={`${ids}-to`}>To</label>
+            <select
+              id={`${ids}-to`}
+              value={toId}
+              onChange={(event) => {
+                setToId(event.target.value);
+                choiceChanged();
+              }}
+              aria-describedby={backwards ? rangeError : undefined}
+              aria-invalid={backwards || undefined}
+            >
+              {lessons.map(option)}
+            </select>
+          </div>
         </div>
-        <div className="export-field">
-          <label htmlFor={`${ids}-to`}>To</label>
-          <select
-            id={`${ids}-to`}
-            value={toId}
-            onChange={(event) => {
-              setToId(event.target.value);
-              choiceChanged();
-            }}
-            aria-describedby={backwards ? rangeError : undefined}
-            aria-invalid={backwards || undefined}
-          >
-            {lessons.map(option)}
-          </select>
-        </div>
-      </div>
+      )}
       {backwards && (
         <p id={rangeError} className="export-range-error">
           From must be at or before To. Change one of them to export.

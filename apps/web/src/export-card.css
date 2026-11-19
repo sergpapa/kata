@@ -45,6 +45,18 @@
   text-overflow: ellipsis;
 }
 
+.export-single {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.export-single-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 .export-field select[aria-invalid='true'] {
   border-color: var(--state-failed);
 }
