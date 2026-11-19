@@ -74,9 +74,9 @@ describe('the walking skeleton', () => {
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(200);
-    // '6' since migration 6 gave each course its own resume point; declared in
-    // docs/specs/multi-course.md (re-aim 1). It was '5' from slice 12's learner_response_revision.
-    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '6' });
+    // '7' since migration 7 added the practice feedback tables; declared in
+    // docs/specs/practice-feedback.md (re-aim 1). It was '6' from the per-course resume point.
+    expect(response.json()).toEqual({ status: 'ok', schemaVersion: '7' });
     await app.close();
   });
 
@@ -87,10 +87,10 @@ describe('the walking skeleton', () => {
 
     const rows = db.prepare('SELECT count(*) AS n FROM schema_meta').get() as { n: number };
     expect(rows.n).toBe(1);
-    // '6' since migration 6 (per-course resume point); declared in docs/specs/multi-course.md
+    // '7' since migration 7 (practice feedback); declared in docs/specs/practice-feedback.md
     // (re-aim 2). The claim is unchanged: running every migration twice leaves one row, at the
     // version the last migration set.
-    expect(readSchemaVersion(db)).toBe('6');
+    expect(readSchemaVersion(db)).toBe('7');
   });
 });
 

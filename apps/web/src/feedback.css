@@ -1,0 +1,182 @@
+/**
+ * Claude's feedback inside an activity panel (docs/specs/practice-feedback.md).
+ *
+ * It sits below the boxes, separated by a hairline, and reads as the app's own chrome like the rest
+ * of the panel: tokens only, no new colour. Claude's words get the quote rule the earlier versions
+ * use, so text the app did not write is set apart from text the learner wrote and from the lesson.
+ */
+
+.feedback-area {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.feedback-area > * + * {
+  margin-top: 0.55rem;
+}
+
+.feedback-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.feedback-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.feedback-model {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.feedback-model select {
+  min-height: 44px;
+  padding: 0.3rem 0.5rem;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+}
+
+.feedback-note,
+.feedback-status,
+.feedback-held {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.feedback-notice,
+.feedback-stopped {
+  margin: 0;
+  color: var(--state-failed);
+}
+
+.feedback-turns {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feedback-turn + .feedback-turn {
+  margin-top: 0.85rem;
+}
+
+.feedback-turn-label {
+  margin: 0 0 0.25rem;
+  color: var(--eyebrow);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.feedback-turn-text,
+.feedback-writing {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.feedback-turn-claude .feedback-reply,
+.feedback-writing {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--quote-rule);
+}
+
+.feedback-reply > *:first-child {
+  margin-top: 0;
+}
+
+.feedback-reply > *:last-child {
+  margin-bottom: 0;
+}
+
+.feedback-unfinished-lead {
+  margin: 0.4rem 0 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.feedback-sent {
+  margin-top: 0.25rem;
+}
+
+/* 44px, the floor every other disclosure in the panel clears. */
+.feedback-sent-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.feedback-sent-summary:hover {
+  color: var(--foreground);
+}
+
+.feedback-sent-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.feedback-sent-list {
+  margin: 0.25rem 0 0;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--quote-rule);
+}
+
+.feedback-sent-field + .feedback-sent-field {
+  margin-top: 0.5rem;
+}
+
+.feedback-sent-list dt {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+
+.feedback-sent-list dd {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.feedback-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+/* A pressed run is not a control the reader can press again, and it looks it. */
+.feedback-area button:disabled,
+.feedback-area button:disabled:hover {
+  cursor: default;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border-color: var(--input);
+}
+
+.feedback-area button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

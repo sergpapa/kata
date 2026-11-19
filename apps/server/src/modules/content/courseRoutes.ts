@@ -16,6 +16,12 @@ import { loadEarlierRevisions, loadResponsesForActivities } from '../learner/res
 import { registerResponseRoutes, responseWithHistory } from '../learner/responseRoutes.js';
 import type { CourseState } from './types.js';
 import type { FeedbackDeps } from '../feedback/types.js';
+import {
+  lessonFeedback,
+  registerFeedbackRoutes,
+  type FeedbackRouteDeps,
+} from '../feedback/feedbackRoutes.js';
+import { workedAnswerLookup } from '../feedback/lessonAnswers.js';
 
 /**
  * Everything one course serves, under `/api/courses/<courseId>/` (ADR 0018).
@@ -31,7 +37,6 @@ export function registerCourseRoutes(
   course: CourseState,
   feedback: FeedbackDeps,
 ): void {
-  void feedback;
   const { release } = course;
 
   /**
@@ -64,6 +69,26 @@ export function registerCourseRoutes(
     parsedActivities = parsed.activities;
     return parsed.activities;
   }
+
+  /** The version and release a write against this lesson is recorded under (ADR 0011). */
+  function provenanceOf(candidateLessonId: string) {
+    if (release.state === 'failed') return undefined;
+    // One read of the release summary, not one per field of it: it loads every lesson row.
+    const summary = loadReleaseSummary(db, release.releaseRowId);
+    const lesson = summary?.lessons.find((one) => one.candidateLessonId === candidateLessonId);
+    if (!summary || !lesson) return undefined;
+    return { contentVersion: lesson.contentVersion, releaseId: summary.releaseId };
+  }
+
+  const feedbackDeps: FeedbackRouteDeps = {
+    db,
+    release,
+    feedback,
+    activitiesOfRelease: allActivities,
+    workedAnswerOf:
+      release.state === 'failed' ? () => null : workedAnswerLookup(db, release.releaseRowId),
+    provenanceOf,
+  };
 
   function summaryOf(releaseRowId: number) {
     const summary = loadReleaseSummary(db, releaseRowId);
@@ -120,6 +145,8 @@ export function registerCourseRoutes(
         // The learner's own work rides on the answer the page is already waiting for, each field
         // with its superseded answers (docs/specs/acknowledged-saves.md F2, prediction-history A10).
         responses: lessonResponses(db, activities),
+        // Each activity's feedback area, and whether a turn can start (practice-feedback PF8).
+        feedback: lessonFeedback(feedbackDeps, activities),
         // The kit the manifest declares for this lesson, which is what the download route serves.
         labKit: stored.labId
           ? (labKitForPage(db, release.releaseRowId, stored.labId) ?? null)
@@ -171,16 +198,11 @@ export function registerCourseRoutes(
     db,
     release,
     activitiesOfRelease: allActivities,
-    // One read of the release summary, not one per field of it: it loads every lesson row.
-    provenanceOf: (candidateLessonId) => {
-      if (release.state === 'failed') return undefined;
-      const summary = loadReleaseSummary(db, release.releaseRowId);
-      const lesson = summary?.lessons.find((one) => one.candidateLessonId === candidateLessonId);
-      if (!summary || !lesson) return undefined;
-      return { contentVersion: lesson.contentVersion, releaseId: summary.releaseId };
-    },
+    provenanceOf,
     now: () => new Date().toISOString(),
   });
+
+  registerFeedbackRoutes(app, feedbackDeps);
 }
 
 /**

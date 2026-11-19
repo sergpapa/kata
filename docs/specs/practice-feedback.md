@@ -161,6 +161,19 @@ and Claude Code 2.1.293 on the owner's machine, commit `3b51ab9`:
   `http://` on one of those names, on every feedback route. A POST whose body is not JSON (any
   content type but `application/json`, with or without a charset) gets 415 `feedback_not_json`.
 
+## Re-aims
+
+Migration 7 adds the feedback tables and moves `app_schema_version` from `6` to `7`, so five
+existing assertions change their expected value, as `multi-course.md` did for `5` to `6`:
+
+1. `/api/health` reports `schemaVersion: '7'` (`app.test.ts`).
+2. Running every migration twice leaves one `schema_meta` row, at `7` (`app.test.ts`).
+3. to 5. Three `responseRevisions.test.ts` assertions open or upgrade a store through every
+   migration and now expect `7`. Two test names say "to 7" for the same reason. What they prove
+   about migration 5 is unchanged.
+
+Found during Green, not in the PRE-reviewed commit; the POST review checks this diff.
+
 ## Assumptions (defaults, not asked)
 
 - Conversations are keyed by activity alone, like answers (ADR 0018). A lesson shared between

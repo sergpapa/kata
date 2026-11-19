@@ -204,4 +204,70 @@ export const migrations: readonly Migration[] = [
       UPDATE schema_meta SET value = '6' WHERE key = 'app_schema_version';
     `,
   },
+  {
+    id: 7,
+    name: 'practice_feedback',
+    sql: `
+      -- Claude's feedback on practice activities (ADR 0019, docs/specs/practice-feedback.md).
+      -- Additive: no existing table is touched.
+      --
+      -- A conversation is keyed by activity alone, like an answer (ADR 0018). Start over sets
+      -- cleared_at once; nothing else about a conversation ever changes, and none is deleted.
+      -- The session id is chosen by the app before the first run (--session-id), so the row is
+      -- born complete and never needs filling in.
+      CREATE TABLE feedback_conversation (
+        id                INTEGER PRIMARY KEY,
+        activity_id       TEXT NOT NULL,
+        claude_session_id TEXT NOT NULL,
+        started_at        TEXT NOT NULL,
+        cleared_at        TEXT
+      );
+      -- At most one current conversation per activity, whatever two tabs do at once.
+      CREATE UNIQUE INDEX feedback_conversation_current
+        ON feedback_conversation (activity_id) WHERE cleared_at IS NULL;
+
+      -- Every turn, append-only, stamped with what it answered (as ADR 0011 stamps a save).
+      CREATE TABLE feedback_turn (
+        conversation_id     INTEGER NOT NULL REFERENCES feedback_conversation (id),
+        turn_number         INTEGER NOT NULL,
+        role                TEXT NOT NULL CHECK (role IN ('learner', 'claude')),
+        text                TEXT NOT NULL,
+        sent_fields_json    TEXT,
+        model               TEXT,
+        outcome             TEXT CHECK (outcome IN ('complete', 'failed')),
+        failure             TEXT,
+        candidate_lesson_id TEXT NOT NULL,
+        content_version     TEXT NOT NULL,
+        release_id          TEXT NOT NULL,
+        written_at          TEXT NOT NULL,
+        PRIMARY KEY (conversation_id, turn_number)
+      );
+
+      -- The newest usage report Claude Code gave, for the pause that keeps the plan out of paid
+      -- extra usage (PF20). One row, replaced: only the newest report counts.
+      CREATE TABLE feedback_usage (
+        id          INTEGER PRIMARY KEY CHECK (id = 1),
+        info_json   TEXT NOT NULL,
+        observed_at TEXT NOT NULL
+      );
+
+      -- The store itself refuses what the app must never do (PF7), so a later bug cannot.
+      CREATE TRIGGER feedback_turn_no_update BEFORE UPDATE ON feedback_turn
+      BEGIN SELECT RAISE(ABORT, 'feedback turns are never edited'); END;
+      CREATE TRIGGER feedback_turn_no_delete BEFORE DELETE ON feedback_turn
+      BEGIN SELECT RAISE(ABORT, 'feedback turns are never deleted'); END;
+      CREATE TRIGGER feedback_conversation_no_delete BEFORE DELETE ON feedback_conversation
+      BEGIN SELECT RAISE(ABORT, 'feedback conversations are never deleted'); END;
+      CREATE TRIGGER feedback_conversation_clear_once BEFORE UPDATE ON feedback_conversation
+      WHEN OLD.cleared_at IS NOT NULL
+        OR NEW.cleared_at IS NULL
+        OR NEW.id IS NOT OLD.id
+        OR NEW.activity_id IS NOT OLD.activity_id
+        OR NEW.claude_session_id IS NOT OLD.claude_session_id
+        OR NEW.started_at IS NOT OLD.started_at
+      BEGIN SELECT RAISE(ABORT, 'a feedback conversation changes only by being cleared, once'); END;
+
+      UPDATE schema_meta SET value = '7' WHERE key = 'app_schema_version';
+    `,
+  },
 ];

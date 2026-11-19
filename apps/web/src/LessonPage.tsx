@@ -5,6 +5,8 @@ import { CourseScope, courseApi } from './course.js';
 import { BackToLessons, NeighbourNav, type LessonNeighbour } from './LessonNav.js';
 import { useReportLessonOutline, useReportPageName } from './Shell.js';
 import { ActivityPanel } from './activities/ActivityPanel.js';
+import { FeedbackScope } from './activities/feedbackScope.js';
+import type { LessonFeedback } from './activities/feedbackTypes.js';
 import type { LessonContext } from './activities/recoveryFile.js';
 import type { UnplacedActivity } from './activities/placeActivities.js';
 import { LabKitPanel } from './LabKitPanel.js';
@@ -105,6 +107,8 @@ type LessonView =
       readonly labKit: LabKit | null;
       readonly activities: readonly LessonActivity[];
       readonly responses: readonly StoredResponse[];
+      /** Practice feedback for the lesson's activities; absent from an older server (PF11). */
+      readonly feedback?: LessonFeedback;
       /**
        * What a recovery file says about where an answer came from (criterion F4).
        *
@@ -337,19 +341,21 @@ function LessonPageBody({
       </p>
       <FactList facts={lesson.facts} />
       <LabKitPanel labKit={view.labKit ?? null} />
-      <LessonMarkdown
-        markdown={lesson.bodyMarkdown}
-        activities={view.activities}
-        responses={view.responses}
-        lessonContext={lessonContext}
-        onOutline={handleOutline}
-        onUnplacedActivities={handleUnplaced}
-      />
-      <UnplacedActivities
-        unplaced={unplaced}
-        responses={view.responses}
-        lessonContext={lessonContext}
-      />
+      <FeedbackScope feedback={view.feedback ?? null}>
+        <LessonMarkdown
+          markdown={lesson.bodyMarkdown}
+          activities={view.activities}
+          responses={view.responses}
+          lessonContext={lessonContext}
+          onOutline={handleOutline}
+          onUnplacedActivities={handleUnplaced}
+        />
+        <UnplacedActivities
+          unplaced={unplaced}
+          responses={view.responses}
+          lessonContext={lessonContext}
+        />
+      </FeedbackScope>
       <NeighbourNav previous={view.previous} next={view.next} />
     </article>
   );

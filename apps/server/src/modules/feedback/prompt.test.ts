@@ -114,7 +114,7 @@ describe('the coaching rules', () => {
   it('forbids a grade, score or pass/fail', () => {
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/grade/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/score/i);
-    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/pass(\/fail| or fail)/i);
+    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/\bpass(\/fail| or fail)\b/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/(no|never|not|don't|do not)[^.]*grade/i);
   });
 

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import type { EarlierVersion, StoredResponse } from '../releaseTypes.js';
 import { courseApi, useCourseId } from '../course.js';
 import { setUnsaved } from '../unsavedGuard.js';
@@ -6,6 +6,7 @@ import { storedWhen } from '../format.js';
 import { ConflictPanel } from './ConflictPanel.js';
 import { RecoverActions } from './RecoverActions.js';
 import { ResponseHistory } from './ResponseHistory.js';
+import { fieldLabel } from './fieldLabels.js';
 import type { LessonContext, RecoverySubject } from './recoveryFile.js';
 
 /**
@@ -21,18 +22,6 @@ import type { LessonContext, RecoverySubject } from './recoveryFile.js';
  */
 
 export type FieldState = 'unsaved' | 'saving' | 'saved' | 'failed' | 'conflict';
-
-/** The `response_fields` this app has words for. An unknown one is shown as the author wrote it. */
-const FIELD_LABELS: Readonly<Record<string, string>> = {
-  prediction: 'Your prediction',
-  observation: 'What you observed',
-  explanation: 'Your explanation',
-  help_used: 'Whether you used help',
-};
-
-function fieldLabel(fieldName: string): string {
-  return FIELD_LABELS[fieldName] ?? fieldName;
-}
 
 /**
  * What the reader is told, per state.
@@ -74,9 +63,15 @@ export function ResponseField({
   fieldName,
   stored,
   lessonContext,
+  onTextChange,
 }: {
   readonly activityId: string;
   readonly fieldName: string;
+  /**
+   * Told the box's text whenever it changes, saved or not: feedback is asked for on the boxes as
+   * typed (docs/specs/practice-feedback.md PF1). Optional because a box stands on its own.
+   */
+  readonly onTextChange?: (fieldName: string, text: string) => void;
   /** What the server said was stored when this lesson answered. Absent means nothing is. */
   readonly stored?: StoredResponse | undefined;
   /** Which lesson this box belongs to, so a recovery file can say where the answer came from. */
@@ -94,6 +89,9 @@ export function ResponseField({
   const scope = `${label}, ${activityId}`;
 
   const [text, setText] = useState(stored?.text ?? '');
+  useEffect(() => {
+    onTextChange?.(fieldName, text);
+  }, [onTextChange, fieldName, text]);
   /** The text and revision the server last acknowledged. The whole state machine hangs off this. */
   const [acknowledged, setAcknowledged] = useState({
     text: stored?.text ?? '',

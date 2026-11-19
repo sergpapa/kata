@@ -81,7 +81,8 @@ describe('asking (PF1)', () => {
     expect((screen.getByLabelText(/your prediction/i) as HTMLTextAreaElement).value).toBe(
       'Typed, never saved.',
     );
-    expect(seen.some((one) => one.method === 'PUT')).toBe(false);
+    // No box was saved. (Opening the lesson PUTs its resume point, which is not a box.)
+    expect(seen.some((one) => one.method === 'PUT' && one.url.includes('/responses/'))).toBe(false);
     stream.end();
   });
 });

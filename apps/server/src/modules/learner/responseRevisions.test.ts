@@ -84,10 +84,10 @@ function allRevisions(database: Db, activityId = 'ACT-FIX-01', fieldName = 'pred
 }
 
 describe('the revision table', () => {
-  it('brings the schema to 6, through migration 5', () => {
+  it('brings the schema to 7, through migration 5', () => {
     db = openDatabase(':memory:');
 
-    expect(readSchemaVersion(db)).toBe('6');
+    expect(readSchemaVersion(db)).toBe('7');
   });
 
   it('leaves the live record table exactly as schema 4 left it', () => {
@@ -147,7 +147,7 @@ describe('a store that was already carrying work before this table existed', () 
 
     migrate(db);
 
-    expect(readSchemaVersion(db)).toBe('6');
+    expect(readSchemaVersion(db)).toBe('7');
     expect(allRevisions(db)).toEqual([
       {
         revision: 3,
@@ -186,10 +186,10 @@ describe('a store that was already carrying work before this table existed', () 
     expect(allRevisions(db)[0]?.text).toBe(loadResponse(db, 'ACT-FIX-01', 'prediction')?.text);
   });
 
-  it('brings a store with no work at all to 6 without inventing a revision', () => {
+  it('brings a store with no work at all to 7 without inventing a revision', () => {
     db = openDatabase(':memory:');
 
-    expect(readSchemaVersion(db)).toBe('6');
+    expect(readSchemaVersion(db)).toBe('7');
     expect(db.prepare('SELECT count(*) AS n FROM learner_response_revision').get()).toEqual({
       n: 0,
     });

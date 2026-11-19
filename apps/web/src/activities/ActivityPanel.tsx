@@ -1,7 +1,10 @@
 import type { LessonActivity, StoredResponse } from '../releaseTypes.js';
 import type { LessonContext } from './recoveryFile.js';
 import type { UnplacedReason } from './placeActivities.js';
+import { useCallback, useState } from 'react';
 import { ResponseField } from './ResponseField.js';
+import { FeedbackArea } from './FeedbackArea.js';
+import { useActivityFeedback } from './feedbackScope.js';
 
 /**
  * What an activity looks like on the page: what it is, and one writing surface per field its
@@ -71,6 +74,14 @@ export function ActivityPanel({
   const namesItsOwnHeading = activity.title === headingText || activity.title === authoredHeading;
   const showTitle = headingText === null || !namesItsOwnHeading;
 
+  // Each box's text as typed, for feedback on the boxes as they are (practice-feedback PF1). Read
+  // from the boxes, never written back to them.
+  const [drafts, setDrafts] = useState<Readonly<Record<string, string>>>({});
+  const onTextChange = useCallback((fieldName: string, text: string) => {
+    setDrafts((known) => (known[fieldName] === text ? known : { ...known, [fieldName]: text }));
+  }, []);
+  const feedback = useActivityFeedback(activity.activityId);
+
   return (
     <aside
       className={`activity-panel${notPlaced ? ' activity-panel-unplaced' : ''}`}
@@ -98,8 +109,19 @@ export function ActivityPanel({
             (one) => one.activityId === activity.activityId && one.fieldName === fieldName,
           )}
           lessonContext={lessonContext}
+          onTextChange={onTextChange}
         />
       ))}
+
+      {feedback && (
+        <FeedbackArea
+          activityId={activity.activityId}
+          fieldNames={activity.responseFields}
+          drafts={drafts}
+          area={feedback.area}
+          availability={feedback.availability}
+        />
+      )}
     </aside>
   );
 }

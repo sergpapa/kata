@@ -12,12 +12,12 @@ import { FEEDBACK_TIMEOUT_MS, feedbackRunnerOptions } from './compose.js';
  */
 
 const dataDir = path.join('C:', 'Users', 'learner', 'EduCode', 'data');
-const exe = 'D:\tools\claude.exe';
+const exe = 'D:\\tools\\claude.exe';
 
 function options(env: NodeJS.ProcessEnv = {}, found = true) {
   return feedbackRunnerOptions({
     dataDir,
-    env: { EDUCODE_CLAUDE_PATH: exe, PATH: 'C:\Windows', ...env },
+    env: { EDUCODE_CLAUDE_PATH: exe, PATH: 'C:\\Windows', ...env },
     platform: 'win32',
     exists: (candidate) => found && candidate === exe,
   });
@@ -59,7 +59,7 @@ describe('the runner the app starts', () => {
     ]) {
       expect(names).not.toContain(name);
     }
-    expect(env.PATH).toBe('C:\Windows');
+    expect(env.PATH).toBe('C:\\Windows');
   });
 
   it('starts the executable it found, with nothing in front of the arguments', () => {
