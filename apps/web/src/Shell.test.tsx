@@ -124,13 +124,38 @@ describe('the shell around every page', () => {
 
     render(<App />);
 
+    // B1 and B4 in docs/specs/kata-brand.md: the product became Kata on 2026-11-19, and its name
+    // is the KATA wordmark, an image, so the name is asserted as that image's accessible name.
     const sidebar = await screen.findByRole('navigation', { name: /sections/i });
-    expect(sidebar.textContent).toContain('EduCode');
+    expect(within(sidebar).getAllByRole('img', { name: 'Kata' })).toHaveLength(1);
+    expect(sidebar.textContent).not.toContain('EduCode');
     // Corrected 2026-09-11: this asserted `queryByRole('banner')` was null, which is wrong twice
     // over — a `header` inside `main` is not a banner in the HTML-AAM mapping, and this testing
     // library does not apply that scoping anyway, so it matched the dashboard's own page title.
     // The claim S6 actually makes is that the brand is not repeated in the page body.
-    expect(screen.getByRole('main').textContent).not.toContain('EduCode');
+    expect(within(screen.getByRole('main')).queryByRole('img', { name: /kata/i })).toBeNull();
+    expect(screen.getByRole('main').textContent).not.toMatch(/\bKata\b|EduCode/);
+  });
+
+  /** B1: the brush mark sits beside the wordmark, so a screen reader must not hear the name twice. */
+  it('shows the brush mark beside the wordmark as decoration, not as a second name', async () => {
+    answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
+
+    render(<App />);
+
+    const sidebar = await screen.findByRole('navigation', { name: /sections/i });
+    const wordmark = await within(sidebar).findByRole('img', { name: 'Kata' });
+    const images = Array.from(sidebar.querySelectorAll('img'));
+    const decorative = images.filter((img) => img.getAttribute('alt') === '');
+    expect(decorative).toHaveLength(1);
+    const mark = decorative[0];
+    if (!mark) throw new Error('the sidebar has no decorative brush mark');
+    // Two different files, the mark first: it reads mark, then name, like the logo lockup.
+    expect(wordmark.getAttribute('src')).toMatch(/\.svg/);
+    expect(mark.getAttribute('src')).toMatch(/\.svg/);
+    expect(mark.getAttribute('src')).not.toBe(wordmark.getAttribute('src'));
+    expect(images.indexOf(mark)).toBeLessThan(images.indexOf(wordmark as HTMLImageElement));
+    expect(sidebar.textContent).toContain('Owner rehearsal');
   });
 
   /** Criterion D2 reaches the shell too: the sidebar describes the release it actually loaded. */

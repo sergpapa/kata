@@ -166,7 +166,11 @@ describe('the course list at / (C10, C13)', () => {
 
     const trail = await screen.findByRole('navigation', { name: 'Breadcrumb' });
     await waitFor(() => expect(trail.textContent).toContain('Courses'));
-    expect(trail.textContent).toContain('EduCode');
+    // B2 in docs/specs/kata-brand.md: the product is called Kata.
+    expect(trail.textContent).toContain('Kata');
+    expect(trail.textContent).not.toContain('EduCode');
+    // On the course list the name is where you are, so it is text, not a link back to itself.
+    expect(within(trail).queryByRole('link', { name: 'Kata' })).toBeNull();
   });
 });
 
@@ -386,7 +390,7 @@ describe('a course’s own pages (C11, C13, C14)', () => {
 
     const trail = await screen.findByRole('navigation', { name: 'Breadcrumb' });
     await waitFor(() => expect(trail.textContent).toContain('QA Automation Engineering'));
-    expect(within(trail).getByRole('link', { name: 'EduCode' }).getAttribute('href')).toBe('/');
+    expect(within(trail).getByRole('link', { name: 'Kata' }).getAttribute('href')).toBe('/');
     expect(within(trail).getAllByRole('listitem').at(-1)?.textContent?.trim()).toBe(
       'Learning workspace',
     );
