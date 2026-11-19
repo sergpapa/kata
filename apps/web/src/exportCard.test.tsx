@@ -90,7 +90,8 @@ function status(card: HTMLElement): HTMLElement {
 const BACKWARDS = 'From must be at or before To.';
 
 describe('the card (EX15)', () => {
-  it('replaces the old records text with range pickers, an unticked box and Export', async () => {
+  // Re-aimed by docs/specs/earlier-conversations.md EC13: the checkbox became a three-way choice.
+  it('replaces the old records text with range pickers, a conversations choice set to None, and Export', async () => {
     stubServer('FSSE');
     render(<App />);
     const card = await exportCard();
@@ -104,11 +105,15 @@ describe('the card (EX15)', () => {
     expect(from.options).toHaveLength(5);
     expect(from.selectedOptions[0]?.text).toContain('Lesson 1: What happens');
     expect(to.selectedOptions[0]?.text).toContain('Lesson 5: One page can make several requests');
-    const box = within(card).getByLabelText(
-      'Include AI feedback conversations',
-    ) as HTMLInputElement;
-    expect(box.type).toBe('checkbox');
-    expect(box.checked).toBe(false);
+    const group = within(card).getByRole('group', { name: 'AI feedback conversations' });
+    const choices = within(group).getAllByRole('radio') as HTMLInputElement[];
+    expect(choices.map((one) => one.labels?.[0]?.textContent)).toEqual([
+      'None',
+      'Current only',
+      'Current and earlier',
+    ]);
+    expect(choices.map((one) => one.checked)).toEqual([true, false, false]);
+    expect(within(card).queryByRole('checkbox')).toBeNull();
     expect(exportButton(card).disabled).toBe(false);
     expect(status(card).textContent).toBe('');
   });
@@ -148,7 +153,8 @@ describe('pressing Export (EX16)', () => {
     expect(exportButton(card).disabled).toBe(false);
   });
 
-  it('asks for the range chosen, with conversations when the box is ticked', async () => {
+  // Re-aimed by docs/specs/earlier-conversations.md EC13: "Current only" is what the tick was.
+  it('asks for the range chosen, with current conversations when Current only is chosen', async () => {
     const server = stubServer('FSSE');
     stubDownloads();
     render(<App />);
@@ -156,7 +162,7 @@ describe('pressing Export (EX16)', () => {
 
     choose(card, 'From', 'Lesson 2:');
     choose(card, 'To', 'Lesson 4:');
-    fireEvent.click(within(card).getByLabelText('Include AI feedback conversations'));
+    fireEvent.click(within(card).getByLabelText('Current only'));
     fireEvent.click(exportButton(card));
 
     await waitFor(() => expect(status(card).textContent).toBe('Downloaded'));
