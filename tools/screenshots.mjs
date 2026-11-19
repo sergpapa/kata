@@ -15,7 +15,8 @@ import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
-import { checkRouteA11y, runA11yJourneys } from './a11y-checks.mjs';
+import { checkRouteA11y } from './a11y-checks.mjs';
+import { runA11yJourneys } from './a11y-journeys.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
