@@ -151,3 +151,48 @@ it names the release and app version, lists Lessons 6, 7 and 8 with every activi
 answer with the content version it was written against and any earlier wording, and shows the
 Lesson 6–8 feedback conversations labelled as AI feedback. Without the tick, the same file has no
 conversations.
+
+## Slice record
+
+**2026-11-19.** Built in one session, the day practice feedback landed.
+
+- **Stage 0.** Three forks asked in one batch; the owner took all three recommendations:
+  conversations are a choice at export time (off by default, hidden ones never), one export covers
+  a lesson range, and answers carry their earlier versions. ADR 0020 records the format.
+- **test-guardian PRE:** FAIL on 11 findings, all taken before implementation. The ones that
+  mattered: `to` could be ignored (every test ended at the last lesson), lesson ids sorted in
+  manifest order so an id-ordered file would pass (lesson 3 is now `FIX-A3`), and facts were checked
+  "somewhere in the file" rather than beside their item, which is why the file's heading structure
+  and labelled lines are now pinned. Second pass: PASS, four low items, all taken. Tests pinned in
+  `19309e5`.
+- **Green:** 55 server tests passed on the first full run; the page needed one fix of my own (a
+  wrapping `<label>` would have put every option's text into the select's name). The download
+  hand-over was extracted from `useFileDownload` into `handFileToBrowser`, so the recovery
+  download and Export share it.
+- **test-guardian POST:** skipped. `git diff 19309e5 18842de` over the test files is empty.
+- **`/code-review` (medium):** three defects and four nits, all taken. The defects, each with a
+  failing test first (`99b612b`): an answer to a field an activity no longer declares vanished from
+  the file; another course's work on a shared lesson id showed up as this course's dropped work;
+  and a multi-line failure message could open a heading or a fence in the middle of the file. The
+  nits: a header-safe course id in the filename, a ref-based double-press guard, doc comments, and
+  three test files over 350 lines, split in `1202d46` with every describe body unchanged.
+- **Design review:** ship with nits. Taken: a changed choice clears a stale "Downloaded"; the
+  Export button takes the lime primary's shape in the quieter `--primary`; a shorter lede; the
+  range error says how to recover; the full title on each option's `title`. **Declined:** dropping
+  "Lesson N:" from the option text. The pinned tests choose options by that text, and lessons 9–15
+  would still share leading words after the number.
+- **Hygiene:** two raw NUL bytes, written by a shell edit into the field keys of `exportData.ts`,
+  made git and grep treat the file as binary; a `fieldKey` helper now writes the escape. Two
+  heading constants were exported for nobody.
+- **Verified in the real app** (built, port 8319, scratch store, Chromium): Lessons 6–8 with
+  conversations ticked downloaded as `EduCode_FSSE_Lessons_06-08_2026-11-19.md` with Lessons 6–8
+  only, the current and earlier answer, an owner's own code fence intact inside a four-backtick
+  fence, and the seeded conversation under its label; the status settled to empty; a keyboard-only
+  export (Space, Tab, Enter) had no conversations; a backwards range held Export; no sideways
+  scroll at 375 or 768. The conversation was written into the scratch store directly, so no Claude
+  run was started. `npm run screenshots` passed on 22 routes × 3 widths × 2 schemes.
+- **Known:** the field labels are still written twice, now `apps/server/src/modules/learner/
+fieldLabels.ts` and `apps/web/src/activities/fieldLabels.ts` (the server's two copies became
+  one). `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" hit its 5 s timeout in
+  two full runs while another project's `pytest -n auto` was loading the machine; it passed 10 of
+  10 alone (3.7–8.5 s) and in the final full run. Its budget was not widened.

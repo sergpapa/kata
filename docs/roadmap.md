@@ -2,45 +2,46 @@
 
 ## Current state
 
-Last updated 2026-11-19. **Practice activities can ask Claude for feedback, in the lesson.** ADR 0019
-(amends 0017): the local server runs the owner's own Claude Code, one headless process per turn, on
-their Team plan — `--safe-mode`, no tools, no MCP servers, no API key in its environment, and killed
-at its init event if it reports any of those. Replies stream under the activity, labelled AI
-feedback with the model that answered; follow-ups resume the session; Start over hides a
-conversation without deleting it; Sonnet (default), Opus or Haiku per browser. Migration 7 stores
-every turn append-only, guarded by triggers. Criteria and slice record:
-`docs/specs/practice-feedback.md`.
+Last updated 2026-11-19. **The owner can export their work.** ADR 0020: the course dashboard's
+Export card downloads one Markdown file for a chosen lesson range (From/To, default the whole
+course), named like `EduCode_FSSE_Lessons_06-08_2026-11-19.md`. The file names the course, release
+and app version, then gives each lesson, activity and field with the current answer, its earlier
+versions, and the content version and release each one answered; work the release no longer shows
+closes the file. Claude's feedback conversations go only when "Include AI feedback conversations"
+is ticked, labelled as AI feedback; hidden ones never go. Every text is fenced verbatim. Criteria
+and slice record: `docs/specs/export.md`.
 
-**Money.** The owner's org has paid extra usage switched on. New turns pause while the last usage
-report showed any window at 90% or more, or extra usage in use, until it resets; at most one reply
-can start inside extra usage before the pause stops the next. This development session draws on
-the same plan allowance, so a heavy build day can pause feedback.
+**Money.** The owner's org has paid extra usage switched on. New feedback turns pause while the last
+usage report showed any window at 90% or more, or extra usage in use, until it resets; at most one
+reply can start inside extra usage before the pause stops the next. This development session draws
+on the same plan allowance. Export starts no Claude run.
 
-**The owner's real store has not been migrated to schema 7 yet.** Their `npm run dev` server applies
-migration 7 to `data/educode.sqlite` the next time it restarts; the migration is additive and
-touches no existing table. Verified on a scratch store only.
+**The owner's real store may not be on schema 7 yet.** Their `npm run dev` server applies migration
+7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export
+adds no migration. Both were verified on scratch stores only.
 
-`npm test` (1369 tests), `npm run lint`, `npm run typecheck`, `npm run build` and `npm run
-format:check` pass under nvm's Node 24.12. **`npm run screenshots` was not run this slice**; the new
-area was checked instead with real-app screenshots at 375, 768 and 1440 and one ask driven through
-the page in Chromium.
+`npm test` (1442 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
+format:check` and `npm run screenshots` (22 routes × 3 widths × 2 schemes) pass under nvm's Node
+24.12.
 
-**Known and not fixed.** `README.md` does not describe practice feedback yet: the owner has an
-uncommitted rewrite of its "How to run it" section in progress, and this slice did not touch that
-file. The four field labels are written twice (`apps/server/src/modules/feedback/prompt.ts` and
-`apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines; three new test files are
-363–410. Try again hides the failed conversation before its second step, so a refused second step
-leaves the area empty (nothing is lost from the store). Everything under the previous state that
-this slice did not touch still stands (see "Superseded state notes").
+**Known and not fixed.** `README.md` describes neither practice feedback nor Export: the owner has
+an uncommitted rewrite of its "How to run it" section in progress, and neither slice touched that
+file. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts` and
+`apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines. Try again hides the failed
+conversation before its second step, so a refused second step leaves the area empty (nothing is
+lost from the store). `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" can hit its
+5 s timeout in a full run when another process is loading the machine; it passed 10 of 10 alone.
+Everything under the previous state that these slices did not touch still stands (see "Superseded
+state notes").
 
 Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
 yet; the owner will judge Lessons 6+ first and decide then.
 
-Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and
-continues reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
+Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and exports
+Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13, 14–15 with theirs). They
+continue reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
 `docs/courses/qa-automation/`. The next QA content is the BookingLab practice-application spec. The
-app's next slice is Milestone 3's Export, which now also decides whether conversations travel with
-the owner's answers.
+app's next slice is Milestone 3's accessibility and responsiveness pass.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -160,9 +161,12 @@ the owner's answers.
       (ship-with-nits; taken but two, declined with reasons), `/hygiene` clean. Verified against
       the real Claude Code: a first turn, a resumed follow-up, and an ask through the page. Record
       in `docs/specs/practice-feedback.md`.
-- [ ] **Export.** The owner's actual work with lesson, activity, content-version and release context,
-      in a form that travels with the owner review forms (`Owner_Review_After_Lesson_05.md`, `_08`,
-      `_13`).
+- [x] **Export.** Done 2026-11-19 (ADR 0020). One Markdown file per lesson range from the course
+      dashboard, earlier versions included, conversations only when ticked. test-guardian PRE (FAIL
+      on 11 findings, then PASS), POST skipped (test diff empty), `/code-review` at medium (three
+      defects and four nits, all taken), design review (ship-with-nits; taken but one, declined with
+      a reason), `/hygiene` clean after one fix. Verified in Chromium against the built app. Record
+      in `docs/specs/export.md`.
 - [ ] **Accessibility and responsiveness pass.** Keyboard operation of navigation, notes, downloads,
       help and export; 375 / 768 / 1440 with no horizontal page scroll; diagram meaning as text.
 - [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
@@ -521,6 +525,48 @@ need an approved data policy and a named reviewer before they mean anything.
 ## Superseded state notes
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-11-19, before Export.**
+
+  Last updated 2026-11-19. **Practice activities can ask Claude for feedback, in the lesson.** ADR 0019
+  (amends 0017): the local server runs the owner's own Claude Code, one headless process per turn, on
+  their Team plan — `--safe-mode`, no tools, no MCP servers, no API key in its environment, and killed
+  at its init event if it reports any of those. Replies stream under the activity, labelled AI
+  feedback with the model that answered; follow-ups resume the session; Start over hides a
+  conversation without deleting it; Sonnet (default), Opus or Haiku per browser. Migration 7 stores
+  every turn append-only, guarded by triggers. Criteria and slice record:
+  `docs/specs/practice-feedback.md`.
+
+  **Money.** The owner's org has paid extra usage switched on. New turns pause while the last usage
+  report showed any window at 90% or more, or extra usage in use, until it resets; at most one reply
+  can start inside extra usage before the pause stops the next. This development session draws on
+  the same plan allowance, so a heavy build day can pause feedback.
+
+  **The owner's real store has not been migrated to schema 7 yet.** Their `npm run dev` server applies
+  migration 7 to `data/educode.sqlite` the next time it restarts; the migration is additive and
+  touches no existing table. Verified on a scratch store only.
+
+  `npm test` (1369 tests), `npm run lint`, `npm run typecheck`, `npm run build` and `npm run
+format:check` pass under nvm's Node 24.12. **`npm run screenshots` was not run this slice**; the new
+  area was checked instead with real-app screenshots at 375, 768 and 1440 and one ask driven through
+  the page in Chromium.
+
+  **Known and not fixed.** `README.md` does not describe practice feedback yet: the owner has an
+  uncommitted rewrite of its "How to run it" section in progress, and this slice did not touch that
+  file. The four field labels are written twice (`apps/server/src/modules/feedback/prompt.ts` and
+  `apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines; three new test files are
+  363–410. Try again hides the failed conversation before its second step, so a refused second step
+  leaves the area empty (nothing is lost from the store). Everything under the previous state that
+  this slice did not touch still stands (see "Superseded state notes").
+
+  Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
+  yet; the owner will judge Lessons 6+ first and decide then.
+
+  Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and
+  continues reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
+  `docs/courses/qa-automation/`. The next QA content is the BookingLab practice-application spec. The
+  app's next slice is Milestone 3's Export, which now also decides whether conversations travel with
+  the owner's answers.
 
 - **2026-11-19, before practice feedback.**
 
