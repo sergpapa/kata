@@ -154,6 +154,15 @@ describe('the usage guard', () => {
     expect(pause.paused && pause.resumesAt).toBe('2026-11-19T10:59:00.000Z');
   });
 
+  it('skips windows it cannot read instead of throwing', () => {
+    const odd = {
+      unifiedWindows: { seven_day_opus: null, five_hour: 'high' },
+    } as unknown as RateLimitInfo;
+    expect(usagePause({ info: odd, observedAt }, now)).toEqual({ paused: false });
+    const notAMap = { unifiedWindows: 'none' } as unknown as RateLimitInfo;
+    expect(usagePause({ info: notAMap, observedAt }, now)).toEqual({ paused: false });
+  });
+
   it('treats a report it cannot read as no evidence, not as a pause', () => {
     expect(usagePause({ info: {}, observedAt }, now)).toEqual({ paused: false });
   });

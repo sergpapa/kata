@@ -86,6 +86,8 @@ export interface TestStream {
   readonly response: Response;
   send(event: string, data: unknown): void;
   end(): void;
+  /** Breaks the connection mid-stream, as a dropped network or a reset proxy would. */
+  fail(): void;
 }
 
 export function testStream(): TestStream {
@@ -107,6 +109,9 @@ export function testStream(): TestStream {
     },
     end() {
       control.close();
+    },
+    fail() {
+      control.error(new TypeError('network error'));
     },
   };
 }
