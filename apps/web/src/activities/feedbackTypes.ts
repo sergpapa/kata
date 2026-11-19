@@ -37,10 +37,18 @@ export interface FeedbackConversation {
   readonly turns: readonly FeedbackTurn[];
 }
 
+/** A conversation Start over hid that had a reply; shown read-only (earlier-conversations EC1). */
+export interface EarlierConversation extends FeedbackConversation {
+  readonly startedAt: string;
+  readonly clearedAt: string;
+}
+
 export interface FeedbackArea {
   readonly activityId: string;
   readonly hasWorkedAnswer: boolean;
   readonly conversation: FeedbackConversation | null;
+  /** Newest first. Absent from a server older than this list, which means none (EC6). */
+  readonly earlier?: readonly EarlierConversation[];
   readonly replying: boolean;
 }
 

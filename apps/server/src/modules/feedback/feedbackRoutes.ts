@@ -6,6 +6,7 @@ import {
   clearConversation,
   conversationForPage,
   currentConversation,
+  earlierConversations,
   loadUsage,
   startConversation,
   appendTurn,
@@ -65,6 +66,7 @@ function areaOf(deps: FeedbackRouteDeps, activity: LessonActivity): FeedbackForP
     activityId: activity.activityId,
     hasWorkedAnswer: deps.workedAnswerOf(activity) !== null,
     conversation: conversationForPage(currentConversation(deps.db, activity.activityId)),
+    earlier: earlierConversations(deps.db, activity.activityId),
     replying: replyingOf(deps.feedback).has(activity.activityId),
   };
 }
@@ -159,11 +161,18 @@ export function registerFeedbackRoutes(app: FastifyInstance, deps: FeedbackRoute
         }
         if (replyingOf(deps.feedback).has(activity.activityId)) return inProgress(reply);
         const current = currentConversation(deps.db, activity.activityId);
-        if (!current || current.id !== conversationId) return changed(reply, current);
-        if (!clearConversation(deps.db, conversationId, deps.feedback.now().toISOString())) {
-          return changed(reply, currentConversation(deps.db, activity.activityId));
+        if (!current || current.id !== conversationId) {
+          return changed(reply, deps.db, activity.activityId, current);
         }
-        return { state: 'cleared' };
+        if (!clearConversation(deps.db, conversationId, deps.feedback.now().toISOString())) {
+          return changed(
+            reply,
+            deps.db,
+            activity.activityId,
+            currentConversation(deps.db, activity.activityId),
+          );
+        }
+        return { state: 'cleared', earlier: earlierConversations(deps.db, activity.activityId) };
       },
     );
 
@@ -189,7 +198,7 @@ export function registerFeedbackRoutes(app: FastifyInstance, deps: FeedbackRoute
               current.id !== asked.conversationId ||
               current.turns.length !== asked.expectedTurns
         ) {
-          return changed(reply, current);
+          return changed(reply, deps.db, activity.activityId, current);
         }
 
         const availability = feedbackAvailability(deps);
@@ -297,13 +306,17 @@ function inProgress(reply: FastifyReply): FastifyReply {
   });
 }
 
+/** A 409 that carries the area as it is now, so the page can redraw from it (PF14, EC3). */
 function changed(
   reply: FastifyReply,
+  db: Db,
+  activityId: string,
   current: ReturnType<typeof currentConversation>,
 ): FastifyReply {
   return reply.code(409).send({
     error: 'feedback_conversation_changed',
     message: 'This conversation changed somewhere else, so the page now shows it as it is.',
     conversation: conversationForPage(current),
+    earlier: earlierConversations(db, activityId),
   });
 }

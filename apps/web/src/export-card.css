@@ -71,12 +71,26 @@
   font-weight: 600;
 }
 
+/* The conversations choice (earlier-conversations.md EC13): a plain fieldset, its legend set like
+   the From and To labels, the three radios stacked so each keeps a 44px row at any width. */
+.export-conversations {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.export-conversations legend {
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 .export-check {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   min-height: 44px;
-  margin-top: 0.75rem;
   font-size: 0.9375rem;
   cursor: pointer;
 }

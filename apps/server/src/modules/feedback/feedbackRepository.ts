@@ -1,5 +1,6 @@
 import type { Db } from '../lifecycle/database.js';
 import type {
+  EarlierConversationForPage,
   FeedbackConversationForPage,
   FeedbackTurnForPage,
   RateLimitInfo,
@@ -51,6 +52,16 @@ function turnForPage(row: TurnRow): FeedbackTurnForPage {
   };
 }
 
+function turnsOf(db: Db, conversationId: number): FeedbackTurnForPage[] {
+  const rows = db
+    .prepare(
+      `SELECT turn_number, role, text, sent_fields_json, model, outcome, failure, written_at
+         FROM feedback_turn WHERE conversation_id = ? ORDER BY turn_number`,
+    )
+    .all(conversationId) as TurnRow[];
+  return rows.map(turnForPage);
+}
+
 export function currentConversation(db: Db, activityId: string): StoredConversation | null {
   const conversation = db
     .prepare(
@@ -58,18 +69,36 @@ export function currentConversation(db: Db, activityId: string): StoredConversat
     )
     .get(activityId) as { id: number; claude_session_id: string } | undefined;
   if (!conversation) return null;
-
-  const rows = db
-    .prepare(
-      `SELECT turn_number, role, text, sent_fields_json, model, outcome, failure, written_at
-         FROM feedback_turn WHERE conversation_id = ? ORDER BY turn_number`,
-    )
-    .all(conversation.id) as TurnRow[];
   return {
     id: conversation.id,
     sessionId: conversation.claude_session_id,
-    turns: rows.map(turnForPage),
+    turns: turnsOf(db, conversation.id),
   };
+}
+
+/**
+ * The conversations Start over hid on one activity, newest hide first (earlier-conversations EC1).
+ *
+ * Only those with a complete Claude reply: a hidden conversation without one is what Try again
+ * leaves behind, a question asked again rather than an attempt worth reading (EC2). The rule reads
+ * the turns, so it holds whichever button did the hiding.
+ */
+export function earlierConversations(db: Db, activityId: string): EarlierConversationForPage[] {
+  const rows = db
+    .prepare(
+      `SELECT c.id, c.started_at, c.cleared_at FROM feedback_conversation c
+        WHERE c.activity_id = ? AND c.cleared_at IS NOT NULL
+          AND EXISTS (SELECT 1 FROM feedback_turn t WHERE t.conversation_id = c.id
+                         AND t.role = 'claude' AND t.outcome = 'complete')
+        ORDER BY c.cleared_at DESC, c.id DESC`,
+    )
+    .all(activityId) as { id: number; started_at: string; cleared_at: string }[];
+  return rows.map((row) => ({
+    conversationId: row.id,
+    startedAt: row.started_at,
+    clearedAt: row.cleared_at,
+    turns: turnsOf(db, row.id),
+  }));
 }
 
 export function conversationForPage(

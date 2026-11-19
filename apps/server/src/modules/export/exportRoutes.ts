@@ -6,7 +6,7 @@ import type { Db } from '../lifecycle/database.js';
 import type { LessonActivity } from '../content/activitySet.js';
 import { loadReleaseSummary } from '../content/repository.js';
 import type { CourseState } from '../content/types.js';
-import { readExport } from './exportData.js';
+import { readExport, type ConversationsChoice } from './exportData.js';
 import { exportMarkdown, twoDigits } from './exportMarkdown.js';
 
 /**
@@ -43,17 +43,19 @@ function refuse(error: string, message: string): never {
   throw new Refusal(error, message);
 }
 
-function conversationsOf(query: Query): boolean {
+/** `0` none, `1` current only, `all` current and earlier (EX9–EX10, earlier-conversations EC10). */
+function conversationsOf(query: Query): ConversationsChoice {
   const value = query.conversations;
-  if (value === undefined) return false;
+  if (value === undefined) return 'none';
   if (Array.isArray(value)) {
     return refuse('export_parameter_repeated', '`conversations` was given more than once.');
   }
-  if (value === '0') return false;
-  if (value === '1') return true;
+  if (value === '0') return 'none';
+  if (value === '1') return 'current';
+  if (value === 'all') return 'all';
   return refuse(
     'export_conversations_invalid',
-    `\`conversations\` must be 0 or 1, and it was ${JSON.stringify(value)}.`,
+    `\`conversations\` must be 0, 1 or all, and it was ${JSON.stringify(value)}.`,
   );
 }
 

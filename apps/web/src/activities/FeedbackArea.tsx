@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { courseApi, useCourseId } from '../course.js';
+import { timeOnDay } from '../format.js';
+import { EarlierConversations } from './EarlierConversations.js';
 import { FeedbackTurns } from './FeedbackTurns.js';
 import { useFeedbackConversation } from './useFeedbackConversation.js';
 import {
@@ -40,14 +42,6 @@ function remember(model: FeedbackModel): void {
   }
 }
 
-/** "15:00 on 19 November", in the reader's own time zone (PF20). */
-function resumesAtWords(iso: string): string {
-  const when = new Date(iso);
-  const time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  const day = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-  return `${time} on ${day}`;
-}
-
 function ModelPicker({
   model,
   onChange,
@@ -86,7 +80,7 @@ export function FeedbackArea({
 }) {
   const url = `${courseApi(useCourseId())}/activities/${encodeURIComponent(activityId)}/feedback`;
   const talk = useFeedbackConversation(url, area, loadedAvailability);
-  const { conversation, availability, busy, writing, replyingElsewhere, pending } = talk;
+  const { conversation, earlier, availability, busy, writing, replyingElsewhere, pending } = talk;
   const [message, setMessage] = useState('');
   const [model, setModel] = useState<FeedbackModel>(rememberedModel);
   const choose = (chosen: FeedbackModel) => {
@@ -116,7 +110,7 @@ export function FeedbackArea({
   } else if (availability.state === 'paused') {
     controls = (
       <p className="feedback-held">
-        {availability.reason} It starts again at {resumesAtWords(availability.resumesAt)}.
+        {availability.reason} It starts again at {timeOnDay(availability.resumesAt)}.
       </p>
     );
   } else if (conversation === null || pending === 'start') {
@@ -211,6 +205,7 @@ export function FeedbackArea({
       )}
 
       {controls}
+      <EarlierConversations conversations={earlier} />
     </section>
   );
 }

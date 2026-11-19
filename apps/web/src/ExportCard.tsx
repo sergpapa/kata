@@ -20,6 +20,15 @@ type Outcome =
   | { readonly state: 'failed'; readonly message: string };
 
 const NOT_ARRIVED = 'The export did not arrive. Nothing was downloaded.';
+
+/** The conversations choice, in the order shown, with the value the server reads (EC13). */
+const CONVERSATION_CHOICES = [
+  { value: '0', label: 'None' },
+  { value: '1', label: 'Current only' },
+  { value: 'all', label: 'Current and earlier' },
+] as const;
+
+type ConversationsValue = (typeof CONVERSATION_CHOICES)[number]['value'];
 const NOT_SAVED = 'Your browser did not save the file. Nothing was downloaded.';
 
 /** The name the server gave the file, or a plain fallback if a proxy dropped the header. */
@@ -52,7 +61,7 @@ export function ExportCard({
   const ids = useId();
   const [fromId, setFromId] = useState(lessons[0]?.candidateLessonId ?? '');
   const [toId, setToId] = useState(lessons[lessons.length - 1]?.candidateLessonId ?? '');
-  const [conversations, setConversations] = useState(false);
+  const [conversations, setConversations] = useState<ConversationsValue>('0');
   const [outcome, setOutcome] = useState<Outcome>({ state: 'idle' });
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlight = useRef<AbortController | null>(null);
@@ -99,7 +108,7 @@ export function ExportCard({
     const query = new URLSearchParams({
       from: fromId,
       to: toId,
-      conversations: conversations ? '1' : '0',
+      conversations,
     });
     let response: Response;
     let body: string;
@@ -188,17 +197,24 @@ export function ExportCard({
         </p>
       )}
 
-      <label className="export-check">
-        <input
-          type="checkbox"
-          checked={conversations}
-          onChange={(event) => {
-            setConversations(event.target.checked);
-            choiceChanged();
-          }}
-        />
-        <span>Include AI feedback conversations</span>
-      </label>
+      <fieldset className="export-conversations">
+        <legend>AI feedback conversations</legend>
+        {CONVERSATION_CHOICES.map((choice) => (
+          <label key={choice.value} className="export-check">
+            <input
+              type="radio"
+              name={`${ids}-conversations`}
+              value={choice.value}
+              checked={conversations === choice.value}
+              onChange={() => {
+                setConversations(choice.value);
+                choiceChanged();
+              }}
+            />
+            <span>{choice.label}</span>
+          </label>
+        ))}
+      </fieldset>
 
       <div className="export-actions">
         <button

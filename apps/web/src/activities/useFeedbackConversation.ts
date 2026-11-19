@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { postFeedback } from './feedbackStream.js';
 import type {
+  EarlierConversation,
   FeedbackArea,
   FeedbackAvailability,
   FeedbackConversation,
@@ -30,6 +31,7 @@ export function useFeedbackConversation(
   loaded: FeedbackAvailability,
 ) {
   const [conversation, setConversation] = useState<FeedbackConversation | null>(area.conversation);
+  const [earlier, setEarlier] = useState<readonly EarlierConversation[]>(area.earlier ?? []);
   const [availability, setAvailability] = useState(loaded);
   /** A run this page is not streaming: started elsewhere, or its stream was lost. */
   const [replyingElsewhere, setReplyingElsewhere] = useState(area.replying);
@@ -49,6 +51,7 @@ export function useFeedbackConversation(
           availability: FeedbackAvailability;
         };
         setConversation(body.conversation);
+        takeEarlier(body);
         setAvailability(body.availability);
         setReplyingElsewhere(body.replying);
       } catch {
@@ -67,9 +70,15 @@ export function useFeedbackConversation(
     );
   }
 
+  /** The server's list replaces the page's whenever an answer carries one (EC7). */
+  function takeEarlier(body: { readonly earlier?: unknown }): void {
+    if (Array.isArray(body.earlier)) setEarlier(body.earlier as EarlierConversation[]);
+  }
+
   function onRefusal(status: number, body: Record<string, unknown>): void {
     if (body.error === 'feedback_conversation_changed') {
       setConversation((body.conversation as FeedbackConversation | null) ?? null);
+      takeEarlier(body);
     } else if (body.error === 'feedback_usage_paused' && typeof body.resumesAt === 'string') {
       setAvailability({
         state: 'paused',
@@ -181,6 +190,7 @@ export function useFeedbackConversation(
     setPending(null);
     if (outcome.kind === 'answered' && outcome.status === 200) {
       setConversation(null);
+      takeEarlier(outcome.body);
       return true;
     }
     if (outcome.kind === 'answered') onRefusal(outcome.status, outcome.body);
@@ -196,6 +206,7 @@ export function useFeedbackConversation(
 
   return {
     conversation,
+    earlier,
     availability,
     replyingElsewhere,
     writing,

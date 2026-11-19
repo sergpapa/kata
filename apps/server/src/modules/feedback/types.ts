@@ -93,12 +93,20 @@ export interface FeedbackConversationForPage {
   readonly turns: readonly FeedbackTurnForPage[];
 }
 
+/** A conversation Start over hid that had a reply, shown read-only (earlier-conversations EC1). */
+export interface EarlierConversationForPage extends FeedbackConversationForPage {
+  readonly startedAt: string;
+  readonly clearedAt: string;
+}
+
 /** One activity's feedback area, as the lesson answer and `GET …/feedback` carry it. */
 export interface FeedbackForPage {
   readonly activityId: string;
   /** False when the activity has no worked-answer section to coach against (PF3). */
   readonly hasWorkedAnswer: boolean;
   readonly conversation: FeedbackConversationForPage | null;
+  /** Newest first; never the current conversation, never one without a complete reply (EC2). */
+  readonly earlier: readonly EarlierConversationForPage[];
   /** True while a run for this activity is going (PF15). */
   readonly replying: boolean;
 }

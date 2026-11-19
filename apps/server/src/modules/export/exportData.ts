@@ -8,8 +8,8 @@ import {
   type StoredResponse,
   type StoredRevision,
 } from '../learner/responseRepository.js';
-import { currentConversation } from '../feedback/feedbackRepository.js';
-import type { FeedbackTurnForPage } from '../feedback/types.js';
+import { currentConversation, earlierConversations } from '../feedback/feedbackRepository.js';
+import type { EarlierConversationForPage, FeedbackTurnForPage } from '../feedback/types.js';
 
 /**
  * Everything one export file says, read from the store (docs/specs/export.md, ADR 0020).
@@ -31,7 +31,12 @@ export interface ExportedActivity {
   readonly fields: readonly ExportedField[];
   /** The current conversation's turns; absent when none was asked for or none is current. */
   readonly turns?: readonly FeedbackTurnForPage[];
+  /** Newest first; only with `all`, and absent when there are none (earlier-conversations EC11). */
+  readonly earlier?: readonly EarlierConversationForPage[];
 }
+
+/** Which of Claude's conversations go with the file: the `conversations` parameter, read. */
+export type ConversationsChoice = 'none' | 'current' | 'all';
 
 export interface ExportedLesson {
   readonly lesson: StoredLessonSummary;
@@ -51,7 +56,7 @@ export interface ExportContent {
   readonly to: StoredLessonSummary;
   readonly lessons: readonly ExportedLesson[];
   readonly dropped: readonly DroppedActivity[];
-  readonly conversations: boolean;
+  readonly conversations: ConversationsChoice;
 }
 
 /** One field of one activity as a map key. NUL occurs in neither id, so no two keys collide. */
@@ -72,7 +77,7 @@ function revisionsByField(revisions: readonly StoredRevision[]): Map<string, Sto
 
 /**
  * Reads the range's lessons, their activities' answers and history, the dropped work, and — only
- * when asked — the current conversations. The caller runs it inside one transaction.
+ * when asked — the current conversations, and with `all` the earlier ones. The caller runs it inside one transaction.
  *
  * `from` and `to` are positions in `release.lessons`, already validated by the caller.
  */
@@ -85,7 +90,7 @@ export function readExport(
     readonly activities: readonly LessonActivity[];
     readonly fromIndex: number;
     readonly toIndex: number;
-    readonly conversations: boolean;
+    readonly conversations: ConversationsChoice;
   },
 ): ExportContent {
   const { release, activities } = input;
@@ -135,9 +140,12 @@ export function readExport(
     activities: inRange
       .filter((activity) => activity.lessonId === lesson.candidateLessonId)
       .map((activity) => {
-        const turns = input.conversations
-          ? currentConversation(db, activity.activityId)?.turns
-          : undefined;
+        const turns =
+          input.conversations === 'none'
+            ? undefined
+            : currentConversation(db, activity.activityId)?.turns;
+        const earlier =
+          input.conversations === 'all' ? earlierConversations(db, activity.activityId) : [];
         return {
           activity,
           fields: activity.responseFields.map((fieldName) =>
@@ -148,6 +156,7 @@ export function readExport(
             ),
           ),
           ...(turns && turns.length > 0 ? { turns } : {}),
+          ...(earlier.length > 0 ? { earlier } : {}),
         };
       }),
   }));

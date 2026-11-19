@@ -76,13 +76,16 @@ function ClaudeTurn({ turn }: { readonly turn: FeedbackTurn }) {
 export function FeedbackTurns({
   turns,
   writing,
+  label = 'Conversation',
 }: {
   readonly turns: readonly FeedbackTurn[];
   /** Text Claude is writing now, shown as it arrives and replaced by the stored reply. */
   readonly writing: string | null;
+  /** The list's accessible name; an earlier conversation names itself by when it ended (EC9). */
+  readonly label?: string;
 }) {
   return (
-    <ol className="feedback-turns" aria-label="Conversation" aria-busy={writing !== null}>
+    <ol className="feedback-turns" aria-label={label} aria-busy={writing !== null}>
       {turns.map((turn) =>
         turn.role === 'learner' ? (
           <LearnerTurn key={turn.turn} turn={turn} />
