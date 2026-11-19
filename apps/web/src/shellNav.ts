@@ -52,7 +52,7 @@ export interface Crumb {
 }
 
 /**
- * The trail always starts at EduCode, which leads to the course list, and inside a course names the
+ * The trail always starts at Kata, the product, which leads to the course list, and inside a course names the
  * course second (design review 2026-11-03): on a phone the sidebar is a closed drawer, and the
  * trail is the only place the reader can see which course they are in.
  */
@@ -61,8 +61,8 @@ export function trailFor(
   pageName: string | null,
   courseTitle: string | null,
 ): readonly Crumb[] {
-  const home: Crumb = { text: 'EduCode', href: '/' };
-  if (route.kind === 'home') return [{ text: 'EduCode' }, { text: 'Courses' }];
+  const home: Crumb = { text: 'Kata', href: '/' };
+  if (route.kind === 'home') return [{ text: 'Kata' }, { text: 'Courses' }];
   if (route.kind === 'course') {
     return [
       home,

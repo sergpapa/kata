@@ -57,7 +57,7 @@ for (const course of courses) {
 
 try {
   await app.listen({ host: config.host, port: config.port });
-  console.log(`EduCode is running at http://${config.host}:${config.port}`);
+  console.log(`Kata is running at http://${config.host}:${config.port}`);
   console.log(`Your work is stored on this computer only, in ${config.databaseFile}`);
   console.log(
     feedbackRunner.unavailableReason
@@ -65,7 +65,7 @@ try {
       : 'Practice feedback runs your own Claude Code, on your plan.',
   );
 } catch (error) {
-  console.error('EduCode failed to start:', error);
+  console.error('Kata failed to start:', error);
   process.exit(1);
 }
 
@@ -75,7 +75,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
     // must not leave the learner's record store open behind a process that is going away anyway.
     void app
       .close()
-      .catch((error: unknown) => console.error('EduCode did not shut down cleanly:', error))
+      .catch((error: unknown) => console.error('Kata did not shut down cleanly:', error))
       .finally(() => {
         db.close();
         process.exit(0);

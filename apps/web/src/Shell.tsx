@@ -8,7 +8,10 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ChevronRightIcon, CodeIcon, MenuIcon } from './icons.js';
+import kataMarkUrl from './assets/kata-mark.svg';
+// Kept a file, as the mark is: Vite would otherwise inline anything this small as a data URL.
+import kataWordmarkUrl from './assets/kata-wordmark.svg?no-inline';
+import { ChevronRightIcon, MenuIcon } from './icons.js';
 import { RouteLink } from './RouteLink.js';
 import { UnsavedDialog } from './UnsavedDialog.js';
 import type { OutlineEntry } from './markdown/LessonMarkdown.js';
@@ -182,12 +185,12 @@ export function Shell({
         aria-label="Sections"
         data-open={open ? 'true' : 'false'}
       >
+        {/* The logo files in docs/brand/kata/ are the source of both images. The mark is
+            decoration beside the wordmark, so the name is announced once. */}
         <p className="brand">
-          <span className="brand-mark">
-            <CodeIcon />
-          </span>
+          <img className="brand-mark" src={kataMarkUrl} alt="" />
           <span className="brand-name">
-            EduCode
+            <img className="brand-wordmark" src={kataWordmarkUrl} alt="Kata" />
             <span>Owner rehearsal</span>
           </span>
         </p>

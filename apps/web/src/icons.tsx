@@ -28,17 +28,6 @@ function Glyph({ children }: { readonly children: ReactNode }) {
   );
 }
 
-/** The brand mark: angle brackets around a slash, the oldest shorthand there is for code. */
-export function CodeIcon() {
-  return (
-    <Glyph>
-      <path d="M8.5 8 4.5 12l4 4" />
-      <path d="m15.5 8 4 4-4 4" />
-      <path d="M13.5 6.5 10.5 17.5" />
-    </Glyph>
-  );
-}
-
 export function BookIcon() {
   return (
     <Glyph>

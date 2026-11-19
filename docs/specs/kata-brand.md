@@ -25,9 +25,10 @@ Kata brush mark replaces the old angle-bracket mark.
       the heading `# EduCode export`, because ADR 0020 fixes that format and the owner may already
       have sent files under it. Internal names stay: `EDUCODE_*` environment variables, the
       `@educode/*` workspace packages, the `educode.*` storage keys and the SQLite file name.
-- [ ] **B7. Every route, both schemes, three widths.** `npm run screenshots` passes, including the
-      axe-core check (ADR 0021). The sidebar is navy in light and dark, so one light-on-navy asset
-      serves both.
+- [ ] **B7. Every route, both schemes, three widths.** `npm run screenshots` passes. The sidebar is
+      navy in light and dark, so one light-on-navy asset serves both. (ADR 0021's axe-core check is
+      not in the gate yet, so it cannot vouch for this slice; the images' text alternatives are
+      asserted by B1's tests instead.)
 
 ## Assumptions (not asked; defaults recorded)
 
