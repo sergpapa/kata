@@ -593,5 +593,6 @@ ${failures.length} layout check(s) failed:`);
 const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
 Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
+Accessibility: axe-core found nothing at 375 and 1440 in either scheme, every control was at least 44px at 375 (the open drawer too), the Tab walks reached every control in order with a visible focus, and the dashboard's two cards line up.
 ${drawn} diagram(s) were opened and read inside their frames at every width and scheme.
 ${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.`);

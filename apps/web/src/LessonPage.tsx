@@ -88,7 +88,11 @@ function UnplacedActivities({
               slugs independently of the body's. */}
           {reason === 'heading_missing' && (
             <div className="activity-prompt">
-              <LessonMarkdown markdown={activity.promptMarkdown} headingIds={false} />
+              <LessonMarkdown
+                markdown={activity.promptMarkdown}
+                headingIds={false}
+                place={`the prompt for ${activity.title}`}
+              />
             </div>
           )}
         </ActivityPanel>

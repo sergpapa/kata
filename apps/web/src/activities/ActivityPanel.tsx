@@ -116,6 +116,7 @@ export function ActivityPanel({
       {feedback && (
         <FeedbackArea
           activityId={activity.activityId}
+          activityTitle={activity.title}
           fieldNames={activity.responseFields}
           drafts={drafts}
           area={feedback.area}

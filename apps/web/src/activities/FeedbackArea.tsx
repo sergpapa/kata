@@ -71,12 +71,15 @@ function ModelPicker({
 
 export function FeedbackArea({
   activityId,
+  activityTitle,
   fieldNames,
   drafts,
   area,
   availability: loadedAvailability,
 }: {
   readonly activityId: string;
+  /** Names this area for a screen reader: “Feedback from Claude on <title>” (accessibility-pass AX8). */
+  readonly activityTitle: string;
   /** The activity's declared boxes, in order. */
   readonly fieldNames: readonly string[];
   /** Each box's text as typed, saved or not. */
@@ -181,7 +184,7 @@ export function FeedbackArea({
   }
 
   return (
-    <section className="feedback-area" aria-labelledby={titleId}>
+    <section className="feedback-area" aria-label={`Feedback from Claude on ${activityTitle}`}>
       <p id={titleId} className="feedback-title">
         Feedback from Claude
       </p>
@@ -195,7 +198,9 @@ export function FeedbackArea({
         )}
       </p>
 
-      {(turns.length > 0 || writing !== null) && <FeedbackTurns turns={turns} writing={writing} />}
+      {(turns.length > 0 || writing !== null) && (
+        <FeedbackTurns turns={turns} writing={writing} activityTitle={activityTitle} />
+      )}
       {replyingElsewhere && writing === null && (
         <p className="feedback-status">Claude is still replying…</p>
       )}

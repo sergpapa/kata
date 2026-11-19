@@ -89,12 +89,23 @@
   accent-color: var(--primary);
 }
 
+/* A column, so the actions can be pinned to the bottom when the grid stretches this card to the
+   continue card's height. The bottom padding plus the 1px border equals the continue card's
+   bottom padding (the grid's --overview-card-bottom), which is what puts Export and Continue
+   lesson on one line at every width (accessibility-pass AX4). */
+.export-card {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--overview-card-bottom, 2rem) - 1px);
+}
+
 .export-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
 }
 
 .export-button {

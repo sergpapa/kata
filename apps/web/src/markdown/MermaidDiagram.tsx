@@ -89,9 +89,12 @@ const NO_DIMENSIONS =
 
 export function MermaidDiagram({
   source,
+  describedBy,
   children,
 }: {
   readonly source: string;
+  /** The id of the author's "In words:" paragraph after this diagram, when there is one (AX9). */
+  readonly describedBy?: string | undefined;
   readonly children: ReactNode;
 }) {
   const [drawing, setDrawing] = useState<Drawing>({ state: 'pending' });
@@ -271,6 +274,7 @@ export function MermaidDiagram({
           tabIndex={0}
           role="region"
           aria-label={drawing.title}
+          aria-describedby={describedBy}
           ref={scroller}
         >
           {/*
