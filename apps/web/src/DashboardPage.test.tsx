@@ -109,17 +109,18 @@ describe('the counts on the dashboard', () => {
     expect(screen.queryAllByRole('progressbar')).toHaveLength(0);
   });
 
-  // Re-aimed in slice 4, declared in docs/specs/reader-navigation-and-resume.md: "nothing is
-  // recorded" stopped being true when the resume point arrived. The card now has to state both
-  // truths — what is kept, and what still is not.
-  it('says plainly what is kept and what is not recorded yet', async () => {
+  // Re-aimed in slice 4 (docs/specs/reader-navigation-and-resume.md), and again by Export
+  // (docs/specs/export.md EX15): "not recorded yet" stopped being true when Milestone 2 saved the
+  // owner's work, and the card that said it is now the Export card.
+  it('no longer claims the owner’s work is not recorded', async () => {
     answerRoutes({ '/api/courses/FSSE/release': importedRelease() });
 
     render(<App />);
+    await screen.findByTestId('current-lesson');
 
-    expect(await screen.findByText(/lesson you last open/i)).toBeTruthy();
-    expect(screen.getByText(/not recorded yet/i)).toBeTruthy();
-    expect(screen.getByText(/milestone 2/i)).toBeTruthy();
+    expect(screen.queryByText(/not recorded yet/i)).toBeNull();
+    expect(screen.queryByText(/milestone 2/i)).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Export your work' })).toBeTruthy();
   });
 });
 
