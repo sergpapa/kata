@@ -121,7 +121,8 @@ builds a fresh release from it. Releases stay read-only.
 ## Scope fence — not in this slice
 
 - **Adding or removing lessons or kits.** The build refuses all four cases, naming the lesson or
-  kit. Their first consumer is Lesson 16, which gets its own slice.
+  kit. Their first consumer is Lesson 16, which gets its own slice. (Adding was built on
+  2026-11-19 for Q01: `docs/specs/release-additions.md`. Removing is still refused.)
 - **Making a built release current** (flipping `config.ts`, `config.test.ts` and
   `content/RELEASES.md`). The build prints those steps. Doing them stays a deliberate act.
 - **Content checks**: Mermaid, browser, and kit runtime suites. `tools/diagram-checks.mjs` and the

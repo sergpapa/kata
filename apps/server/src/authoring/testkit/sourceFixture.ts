@@ -94,6 +94,7 @@ export interface SourceRelease {
   labs: { lab_id: string; archive: string; lesson_ids: string[] }[];
 }
 
+export const LESSON_1 = 'HTTP_Lesson_01_Student_Edition_v2.md';
 export const LESSON_2 = 'HTTP_Lesson_02_Student_Edition_v1.md';
 export const LESSON_5 = 'HTTP_Lesson_05_Student_Edition_v1.md';
 export const KIT_02 = 'HTTP_Lesson_02_Local_Server_Kit_v1';
@@ -159,6 +160,134 @@ export function setActivityLessonVersion(source: string, lessonId: string, versi
     if (activity.lesson_id === lessonId) activity.lesson_version = version;
   }
   fs.writeFileSync(file, `${JSON.stringify(set, null, 2)}\n`);
+}
+
+export const NEW_LESSON = 'HTTP_Lesson_16_Student_Edition_v1.md';
+export const NEW_LESSON_ID = 'LS-M021-08';
+export const NEW_KIT = 'HTTP_Lesson_16_Review_Kit_v1';
+export const NEW_KIT_ID = 'FSSE-HTTP-LAB-16';
+export const NEW_KIT_FOLDER = 'http-lesson-16-lab';
+
+/**
+ * Writes a minimal new lesson into the source and lists it in `release.json`, at `position` (a
+ * zero-based index into `lessons`) or at the end. It is a lesson the previous release does not have.
+ */
+export function addLesson(
+  source: string,
+  options: { position?: number; version?: string } = {},
+): void {
+  const version = options.version ?? '1.0.0-draft';
+  fs.writeFileSync(
+    lessonFile(source, NEW_LESSON),
+    [
+      '---',
+      'document_id: FSSE-HTTP-STUDENT-16',
+      `version: "${version}"`,
+      'date: "2026-11-19"',
+      'module: M021',
+      `candidate_lesson_id: ${NEW_LESSON_ID}`,
+      'status: "Test fixture"',
+      '---',
+      '',
+      '# Lesson 16: Review, justified disagreement, revision',
+      '',
+      'A lesson the previous release does not have.',
+      '',
+      '## Practice A: review a claim',
+      '',
+      'Say what evidence would change your mind.',
+      '',
+    ].join('\n'),
+  );
+  editReleaseJson(source, (release) => {
+    const at = options.position ?? release.lessons.length;
+    release.lessons.splice(at, 0, NEW_LESSON);
+  });
+}
+
+/** Adds one activity for the new lesson, at the lesson's version. */
+export function addActivity(source: string, version = '1.0.0-draft'): void {
+  const file = path.join(source, 'trial-activities.json');
+  const set = JSON.parse(fs.readFileSync(file, 'utf8')) as { activities: unknown[] };
+  set.activities.push({
+    activity_id: 'ACT-M021-08-01',
+    lesson_id: NEW_LESSON_ID,
+    lesson_version: version,
+    kind: 'explanation',
+    title: 'Practice A: review a claim',
+    source_heading: 'Practice A: review a claim',
+    prompt_markdown: 'Say what evidence would change your mind.',
+    prompt_scope: 'Exact authored section excerpt.',
+    feedback_source_heading: null,
+    response_fields: ['explanation', 'help_used'],
+    response_fields_required: false,
+    grading: null,
+    formal_evidence_award: null,
+  });
+  fs.writeFileSync(file, `${JSON.stringify(set, null, 2)}\n`);
+}
+
+/**
+ * Writes a new kit into the source and lists it in `release.json`, serving `lessonIds`. Its
+ * manifest lists no files yet: keeping `files[]` honest is the build's job. `extra` adds authored
+ * members by path relative to the kit's top folder.
+ */
+export function addKit(
+  source: string,
+  lessonIds: string[],
+  extra: Record<string, string> = {},
+  options: {
+    /** `kit` writes the older manifest shape: `kit_id`, `kit_version`, `bytes` per file. */
+    shape?: 'lab' | 'kit';
+    /** Fields merged over the authored manifest, `undefined` removing one. */
+    manifest?: Record<string, unknown>;
+  } = {},
+): string {
+  const folder = path.join(source, 'labs', NEW_KIT, NEW_KIT_FOLDER);
+  fs.mkdirSync(folder, { recursive: true });
+  const base: Record<string, unknown> =
+    options.shape === 'kit'
+      ? {
+          manifest_version: '1.0',
+          kit_id: NEW_KIT_ID,
+          kit_version: '1.0.0-draft',
+          lesson_ids: lessonIds,
+          files: [{ path: 'README.md', bytes: 0, sha256: '' }],
+        }
+      : {
+          manifest_version: '1.0',
+          lab_id: NEW_KIT_ID,
+          version: '1.0.0-draft',
+          entry_document: 'README.md',
+          lesson_ids: lessonIds,
+          files: [],
+        };
+  const manifest = { ...base, ...options.manifest };
+  for (const [field, value] of Object.entries(manifest)) {
+    if (value === undefined) delete manifest[field];
+  }
+  const members: Record<string, string> = {
+    'manifest.json': `${JSON.stringify(manifest, null, 2)}\n`,
+    'README.md': '# Lesson 16 kit\n\nA kit the previous release does not have.\n',
+    'tools/check.mjs': "console.log('checked');\n",
+    ...extra,
+  };
+  for (const [relative, text] of Object.entries(members)) {
+    fs.mkdirSync(path.dirname(path.join(folder, relative)), { recursive: true });
+    fs.writeFileSync(path.join(folder, relative), text);
+  }
+  editReleaseJson(source, (release) => {
+    release.labs.push({ lab_id: NEW_KIT_ID, archive: `${NEW_KIT}.zip`, lesson_ids: lessonIds });
+  });
+  return folder;
+}
+
+/** Moves the release version, which every build that releases anything must do. */
+export function moveReleaseVersion(source: string, version = '1.1.0-draft'): void {
+  editReleaseJson(source, (release) => {
+    release.release.version = version;
+    release.release.date = CORRECTION_DATE;
+  });
 }
 
 /** Every file under a directory, as forward-slash paths relative to it. */

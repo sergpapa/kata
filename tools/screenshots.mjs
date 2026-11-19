@@ -52,6 +52,11 @@ const routes = [
   { name: 'home', path: '/courses/FSSE' },
   { name: 'qa-home', path: '/courses/QAAE' },
   { name: 'qa-lesson-01', path: '/courses/QAAE/lessons/LS-Q01-01', diagram: 'drawn' },
+  // The rest of Q01 (docs/specs/release-additions.md A11): each draws its diagram and offers its kit.
+  { name: 'qa-lesson-02', path: '/courses/QAAE/lessons/LS-M001-01', diagram: 'drawn' },
+  { name: 'qa-lesson-03', path: '/courses/QAAE/lessons/LS-M001-02', diagram: 'drawn' },
+  { name: 'qa-lesson-04', path: '/courses/QAAE/lessons/LS-Q01-02', diagram: 'drawn' },
+  { name: 'qa-lesson-05', path: '/courses/QAAE/lessons/LS-Q01-03', diagram: 'drawn' },
   { name: 'practice', path: '/practice' },
   { name: 'reviews', path: '/reviews' },
   { name: 'progress', path: '/progress' },
