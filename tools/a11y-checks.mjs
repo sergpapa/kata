@@ -98,6 +98,10 @@ export async function tabWalk(page, mustContain) {
     };
     const visible = [...document.querySelectorAll(selector)].filter((element) => {
       if (element.closest('[inert], [hidden]')) return false;
+      // Inside a closed disclosure, only its summary can take focus. Chromium still gives the
+      // hidden content a box, so the box test below cannot tell; the open state can.
+      const closed = element.closest('details:not([open])');
+      if (closed && element.closest('summary')?.parentElement !== closed) return false;
       const box = element.getBoundingClientRect();
       if (getComputedStyle(element).visibility === 'hidden') return false;
       // A radio group is one Tab stop: the checked radio, or the first when none is checked.
@@ -248,7 +252,12 @@ export async function checkGhost(page) {
     );
   }
   // Counted as a whole number, so a title holding "2010" cannot be mistaken for a second "01".
-  const tree = await card.ariaSnapshot();
+  // What is said, not where links point: the snapshot's `/url:` lines are addresses, and a lesson
+  // address such as …/LS-M020-06 would otherwise count as a second "06".
+  const tree = (await card.ariaSnapshot())
+    .split('\n')
+    .filter((line) => !/^\s*- \/url:/.test(line))
+    .join('\n');
   const said = kicker ? (tree.match(new RegExp(`(?<!\\d)${kicker}(?!\\d)`, 'g')) ?? []).length : 0;
   if (said !== 1) {
     failures.push(`the card's accessibility tree says ${kicker} ${said} time(s), not once`);
