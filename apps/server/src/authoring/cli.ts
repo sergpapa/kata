@@ -22,15 +22,15 @@ function summary(changes: ReleaseChanges, outDir: string): string[] {
   const lines = [
     `Built ${changes.release_id} ${changes.previous_version} -> ${changes.version} at ${outDir}`,
   ];
-  for (const lesson of changes.lessons.filter((entry) => entry.status === 'changed')) {
-    lines.push(
-      `  lesson ${lesson.lesson_id}  ${lesson.previous_version} -> ${lesson.version}  ${short(lesson.previous_sha256)} -> ${short(lesson.sha256)}`,
-    );
+  const moved = (entry: ReleaseChanges['lessons'][number] | ReleaseChanges['labs'][number]) =>
+    entry.status === 'added'
+      ? `added  ${entry.version}  ${short(entry.sha256)}`
+      : `${entry.previous_version} -> ${entry.version}  ${short(entry.previous_sha256 ?? '')} -> ${short(entry.sha256)}`;
+  for (const lesson of changes.lessons.filter((entry) => entry.status !== 'unchanged')) {
+    lines.push(`  lesson ${lesson.lesson_id}  ${moved(lesson)}`);
   }
-  for (const lab of changes.labs.filter((entry) => entry.status === 'changed')) {
-    lines.push(
-      `  kit ${lab.lab_id}  ${lab.previous_version} -> ${lab.version}  ${short(lab.previous_sha256)} -> ${short(lab.sha256)}`,
-    );
+  for (const lab of changes.labs.filter((entry) => entry.status !== 'unchanged')) {
+    lines.push(`  kit ${lab.lab_id}  ${moved(lab)}`);
   }
   if (changes.activities.status === 'changed') {
     const { previous_sha256: before, sha256: after } = changes.activities;

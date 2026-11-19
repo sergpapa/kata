@@ -9,13 +9,15 @@ verifies those hashes. Proposed content changes go to `docs/content-feedback.md`
 `apps/server/src/config.ts`:
 
 - Full-Stack Software Engineering (`FSSE`): `releases/http-first-fifteen-v1_0_1/`.
-- QA Automation Engineering (`QAAE`): `releases/qaae-lesson-01-v1/`, authored in this repo and
-  assembled once by script, because `release:build` needs a previous release to build from.
+- QA Automation Engineering (`QAAE`): `releases/qaae-q01-v1/`, built in this repo with
+  `release:build` from `content/source/qaae/`. Its predecessor `qaae-lesson-01-v1` was assembled
+  once by script, because a course's first release has no previous release to build from.
 
 | Directory                                   | Package / release ID                                                    | Received   | Status                                                                                                                                                                            |
 | ------------------------------------------- | ----------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `releases/http-first-fifteen-v1_0_1/`       | `FSSE-HTTP-FIRST-FIFTEEN@1.0.1-draft`                                   | 2026-09-21 | **Current.** Lessons 1–15 with CF-001/CF-002 accepted (lessons 2 and 7 at 1.0.1-draft); the investigation kit still ships deliberately faulty starter code — that is the exercise |
-| `releases/qaae-lesson-01-v1/`               | `QAAE-LESSON-01` / `QAAE-LESSON-01@1.0.0-draft`                         | 2026-11-03 | **Current for QAAE.** QA Lesson 1, owner-review candidate; no lab                                                                                                                 |
+| `releases/qaae-q01-v1/`                     | `QAAE-Q01` / `QAAE-Q01@1.1.0-draft`                                     | 2026-11-19 | **Current for QAAE.** Module Q01: five lessons, three kits, 24 activities; Lesson 1 corrected to 1.0.1-draft; owner-review candidate                                              |
+| `releases/qaae-lesson-01-v1/`               | `QAAE-LESSON-01` / `QAAE-LESSON-01@1.0.0-draft`                         | 2026-11-03 | Superseded by `qaae-q01-v1`; QA Lesson 1 only, no lab; the build's comparison baseline for `qaae-q01-v1`                                                                          |
 | `releases/http-lessons-14-15-release-v1/`   | `FSSE-HTTP-INVESTIGATION-14-15` / `FSSE-HTTP-FIRST-FIFTEEN@1.0.0-draft` | 2026-09-21 | Superseded; verified baseline, and the pre-correction bytes `content-corrections.json` names as previous                                                                          |
 | `releases/http-lessons-09-13-release-v1/`   | `FSSE-HTTP-CACHING-09-13` / `FSSE-HTTP-FIRST-THIRTEEN`                  | 2026-09-21 | Superseded; verified baseline for lessons 1–13 continuity                                                                                                                         |
 | `releases/http-depth-and-lessons-06-08-v1/` | `FSSE-HTTP-FIRST-EIGHT` chain                                           | 2026-09-21 | Superseded content; current curriculum specifications (v1_1) and the Lesson-08 owner review                                                                                       |

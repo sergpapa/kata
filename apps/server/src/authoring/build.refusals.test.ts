@@ -10,10 +10,8 @@ import {
   correctLesson5,
   editReleaseJson,
   kitFolder,
-  lessonFile,
   listFiles,
   outputPath,
-  replaceInFile,
   seededSource,
   setActivityLessonVersion,
   setKitVersion,
@@ -100,20 +98,7 @@ describe('nothing to release, and the output directory (C3, C11)', () => {
   });
 });
 
-describe('adding or removing lessons and kits is outside this slice (scope fence)', () => {
-  it('refuses an added lesson, naming it', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const added = lessonFile(source, 'HTTP_Lesson_16_Draft.md');
-    fs.copyFileSync(lessonFile(source, LESSON_5), added);
-    replaceInFile(added, 'candidate_lesson_id: LS-M020-05', 'candidate_lesson_id: LS-M021-08');
-    replaceInFile(added, 'document_id: FSSE-HTTP-STUDENT-05', 'document_id: FSSE-HTTP-STUDENT-16');
-    editReleaseJson(source, (release) => {
-      release.lessons.push('HTTP_Lesson_16_Draft.md');
-    });
-    expectRefusal(source, /HTTP_Lesson_16_Draft\.md|LS-M021-08/);
-  });
-
+describe('removing lessons and kits is refused (scope fence; adding is docs/specs/release-additions.md)', () => {
   it('refuses a removed lesson, naming it', () => {
     const source = seededSource();
     correctLesson5(source);
@@ -127,25 +112,6 @@ describe('adding or removing lessons and kits is outside this slice (scope fence
       }));
     });
     expectRefusal(source, /HTTP_Lesson_15_Student_Edition_v1\.md|LS-M021-07/);
-  });
-
-  it('refuses an added kit, naming it', () => {
-    const source = seededSource();
-    correctLesson5(source);
-    const folder = path.join(source, 'labs', 'HTTP_Lesson_16_Kit_v1', 'http-lesson-16-lab');
-    fs.mkdirSync(folder, { recursive: true });
-    fs.writeFileSync(
-      path.join(folder, 'manifest.json'),
-      `${JSON.stringify({ lab_id: 'FSSE-HTTP-LAB-16', version: '1.0.0-draft', files: [] }, null, 2)}\n`,
-    );
-    editReleaseJson(source, (release) => {
-      release.labs.push({
-        lab_id: 'FSSE-HTTP-LAB-16',
-        archive: 'HTTP_Lesson_16_Kit_v1.zip',
-        lesson_ids: [],
-      });
-    });
-    expectRefusal(source, /FSSE-HTTP-LAB-16|HTTP_Lesson_16_Kit_v1/);
   });
 
   it('refuses a removed kit, naming it', () => {

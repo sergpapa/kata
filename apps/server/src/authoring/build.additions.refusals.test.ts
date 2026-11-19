@@ -105,6 +105,15 @@ describe('generated folders never ship (A7)', () => {
     expectRefusal(source, NEW_KIT_NAMED, /test-results/);
   });
 
+  it.each([
+    ['an anchored /name/', '/test-results/\n', 'test-results/run.json'],
+    ['a **/name', '**/coverage\n', 'site/coverage/index.html'],
+    ['a name/* line', 'playwright-report/*\n', 'playwright-report/index.html'],
+  ])('reads %s line as naming that directory', (_form, gitignore, member) => {
+    const source = sourceWithKit({ '.gitignore': gitignore, [member]: 'generated\n' });
+    expectRefusal(source, NEW_KIT_NAMED, new RegExp(member.split('/').slice(-2, -1)[0]!));
+  });
+
   it('refuses node_modules at any depth even when no .gitignore names it', () => {
     const source = sourceWithKit({
       'tools/node_modules/some-package/index.js': 'module.exports = 1;\n',
@@ -214,6 +223,39 @@ describe('a malformed addition is refused by name (A12)', () => {
       expectRefusal(source, NEW_KIT_NAMED, /FSSE-HTTP-LAB-99/);
     },
   );
+
+  it.each([
+    ['null', null],
+    ['a number', 16],
+  ])('refuses a kit manifest whose lab_id is %s', (_what, value) => {
+    const source = seededSource();
+    addLesson(source);
+    addKit(source, [NEW_LESSON_ID], {}, { manifest: { lab_id: value } });
+    moveReleaseVersion(source);
+    expectRefusal(source, NEW_KIT_NAMED, /lab_id/);
+  });
+
+  it('refuses a kit that lists one lesson twice', () => {
+    const source = seededSource();
+    addLesson(source);
+    addKit(source, [NEW_LESSON_ID]);
+    editReleaseJson(source, (release) => {
+      release.labs[release.labs.length - 1]!.lesson_ids = [NEW_LESSON_ID, NEW_LESSON_ID];
+    });
+    moveReleaseVersion(source);
+    expectRefusal(source, NEW_KIT_NAMED, new RegExp(NEW_LESSON_ID));
+  });
+
+  it('refuses two archive names that differ only in letter case', () => {
+    const source = seededSource();
+    addLesson(source);
+    addKit(source, [NEW_LESSON_ID]);
+    editReleaseJson(source, (release) => {
+      release.labs[release.labs.length - 1]!.archive = 'http_lesson_02_local_server_kit_v1.ZIP';
+    });
+    moveReleaseVersion(source);
+    expectRefusal(source, /http_lesson_02_local_server_kit_v1/i, /archive/);
+  });
 
   it('refuses a kit serving a lesson the release does not list', () => {
     const source = seededSource();

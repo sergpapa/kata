@@ -1,0 +1,47 @@
+{
+  "package_id": "QAAE-Q01",
+  "read_first": "START_HERE.md",
+  "previous_release": "../../releases/qaae-lesson-01-v1",
+  "accepted_feedback": [],
+  "release": {
+    "schema_version": "1.0.0",
+    "release_id": "QAAE-Q01",
+    "version": "1.1.0-draft",
+    "date": "2026-11-19",
+    "status": "owner-review candidate; module Q01 complete (five lessons, three kits); not learner-tested",
+    "audience": "Experienced manual testers starting test automation",
+    "source_of_truth": "The supplied UTF-8 Markdown lesson files",
+    "lesson_key_field": "candidate_lesson_id"
+  },
+  "lessons": [
+    "QAAE_Lesson_01_Student_Edition_v1.md",
+    "M001_Lesson_01_Student_Edition_v1.md",
+    "M001_Lesson_02_Student_Edition_v1.md",
+    "QAAE_Lesson_04_Student_Edition_v1.md",
+    "QAAE_Lesson_05_Student_Edition_v1.md"
+  ],
+  "labs": [
+    {
+      "lab_id": "M001-LAB-01",
+      "archive": "Workspace_Check_Kit_v1.zip",
+      "lesson_ids": [
+        "LS-M001-01",
+        "LS-M001-02"
+      ]
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-02",
+      "archive": "QAAE_First_Run_Kit_v1.zip",
+      "lesson_ids": [
+        "LS-Q01-02"
+      ]
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-03",
+      "archive": "QAAE_Sample_Grading_Kit_v1.zip",
+      "lesson_ids": [
+        "LS-Q01-03"
+      ]
+    }
+  ]
+}

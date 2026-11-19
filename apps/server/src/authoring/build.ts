@@ -9,13 +9,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { verifyRelease } from '../modules/content/verify.js';
 import { assembleKit, readPreviousKit, sha256, type AssembledKit } from './kits.js';
+import {
+  checkActivityVersions,
+  checkLabIdentities,
+  checkLabLessons,
+  checkNothingRemoved,
+  type PreviousRelease,
+} from './buildChecks.js';
 import { deriveLessons, type LessonSource } from './lessons.js';
 import {
   ACTIVITIES_FILE,
   GENERATED_PACKAGE_FILES,
   RELEASE_JSON,
   Refusal,
-  parseJson,
   readJsonFile,
   jsonText,
   listFiles,
@@ -24,13 +30,14 @@ import {
   type SourceRelease,
 } from './sourceTree.js';
 
-type Status = 'changed' | 'unchanged';
+type Status = 'added' | 'changed' | 'unchanged';
 
+/** An added entry has no previous version or hash, so both are `null` (spec A3). */
 interface Transition {
   status: Status;
-  previous_version: string;
+  previous_version: string | null;
   version: string;
-  previous_sha256: string;
+  previous_sha256: string | null;
   sha256: string;
 }
 
@@ -41,24 +48,17 @@ export interface ReleaseChanges {
   readonly accepted_feedback: readonly string[];
   readonly lessons: readonly ({ lesson_id: string; path: string } & Transition)[];
   readonly labs: readonly ({ lab_id: string; path: string } & Transition)[];
-  readonly activities: { path: string; status: Status; previous_sha256: string; sha256: string };
+  readonly activities: {
+    path: string;
+    status: 'changed' | 'unchanged';
+    previous_sha256: string;
+    sha256: string;
+  };
 }
 
 export type BuildOutcome =
   | { readonly state: 'built'; readonly changes: ReleaseChanges }
   | { readonly state: 'refused'; readonly reason: string };
-
-interface PreviousRelease {
-  readonly version: string;
-  readonly lessons: readonly { lesson_id: string; version: string; sha256: string; path: string }[];
-  readonly lab_downloads: readonly {
-    lab_id: string;
-    version: string;
-    path: string;
-    sha256: string;
-  }[];
-  readonly activities: { path: string; sha256: string };
-}
 
 /** Builds `outDir` from `sourceDir`, or refuses naming why and leaves nothing behind. */
 export function buildRelease(sourceDir: string, outDir: string): BuildOutcome {
@@ -105,11 +105,24 @@ function planRelease(sourceDir: string): Plan {
     path.join(previousContent, 'learning-release.json'),
   );
 
+  checkLabIdentities(release);
   const lessons = deriveLessons(sourceDir, release);
-  checkSameScope(lessons, release, previous);
+  checkNothingRemoved(lessons, release, previous);
+  checkLabLessons(lessons, release);
 
   const lessonChanges = lessons.map(({ entry, fileName }) => {
-    const before = previous.lessons.find((lesson) => lesson.lesson_id === entry.lesson_id)!;
+    const before = previous.lessons.find((lesson) => lesson.lesson_id === entry.lesson_id);
+    if (before === undefined) {
+      return {
+        lesson_id: entry.lesson_id,
+        path: entry.path,
+        status: 'added' as Status,
+        previous_version: null,
+        version: entry.version,
+        previous_sha256: null,
+        sha256: entry.sha256,
+      };
+    }
     const changed = before.sha256 !== entry.sha256;
     if (changed && before.version === entry.version) {
       throw new Refusal(
@@ -138,20 +151,35 @@ function planRelease(sourceDir: string): Plan {
     );
   }
   const kits = release.labs.map((lab) => {
-    const before = previous.lab_downloads.find((entry) => entry.lab_id === lab.lab_id)!;
+    const before = previous.lab_downloads.find((entry) => entry.lab_id === lab.lab_id);
     const copies = new Map(
       lessons
         .filter(({ entry }) => lab.lesson_ids.includes(entry.lesson_id))
         .map(({ fileName, bytes }) => [fileName, bytes] as const),
     );
-    const previousKit = readPreviousKit(
-      fs.readFileSync(path.join(previousContent, before.path)),
-      `${lab.lab_id} (${lab.archive})`,
-    );
+    const previousKit =
+      before === undefined
+        ? null
+        : readPreviousKit(
+            fs.readFileSync(path.join(previousContent, before.path)),
+            `${lab.lab_id} (${lab.archive})`,
+          );
     return assembleKit(sourceDir, lab, copies, previousKit, modified);
   });
   const labChanges = kits.map((kit) => {
-    const before = previous.lab_downloads.find((entry) => entry.lab_id === kit.labId)!;
+    const before = previous.lab_downloads.find((entry) => entry.lab_id === kit.labId);
+    const sha = sha256(kit.zip);
+    if (before === undefined) {
+      return {
+        lab_id: kit.labId,
+        path: `labs/${kit.archive}`,
+        status: 'added' as Status,
+        previous_version: null,
+        version: kit.version,
+        previous_sha256: null,
+        sha256: sha,
+      };
+    }
     return {
       lab_id: kit.labId,
       path: `labs/${kit.archive}`,
@@ -159,7 +187,7 @@ function planRelease(sourceDir: string): Plan {
       previous_version: before.version,
       version: kit.version,
       previous_sha256: before.sha256,
-      sha256: sha256(kit.zip),
+      sha256: sha,
     };
   });
 
@@ -167,8 +195,8 @@ function planRelease(sourceDir: string): Plan {
   const activitiesChanged = activitySha !== previous.activities.sha256;
   const anything =
     activitiesChanged ||
-    lessonChanges.some((lesson) => lesson.status === 'changed') ||
-    labChanges.some((lab) => lab.status === 'changed');
+    lessonChanges.some((lesson) => lesson.status !== 'unchanged') ||
+    labChanges.some((lab) => lab.status !== 'unchanged');
   if (!anything) {
     throw new Refusal(
       'Nothing to release: no lesson, kit or activity byte differs from the previous release.',
@@ -200,62 +228,6 @@ function planRelease(sourceDir: string): Plan {
       },
     },
   };
-}
-
-/** Adding or removing a lesson or kit is a later slice (Lesson 16); refuse it by name here. */
-function checkSameScope(
-  lessons: readonly LessonSource[],
-  release: SourceRelease,
-  previous: PreviousRelease,
-): void {
-  const ids = new Set(lessons.map(({ entry }) => entry.lesson_id));
-  for (const { entry, fileName } of lessons) {
-    if (!previous.lessons.some((lesson) => lesson.lesson_id === entry.lesson_id)) {
-      throw new Refusal(
-        `${fileName} (${entry.lesson_id}) is a new lesson; adding lessons is not supported yet.`,
-      );
-    }
-  }
-  for (const lesson of previous.lessons) {
-    if (!ids.has(lesson.lesson_id)) {
-      throw new Refusal(
-        `${lesson.lesson_id} (${lesson.path}) was removed; removing lessons is not supported yet.`,
-      );
-    }
-  }
-  for (const lab of release.labs) {
-    if (!previous.lab_downloads.some((entry) => entry.lab_id === lab.lab_id)) {
-      throw new Refusal(
-        `${lab.lab_id} (${lab.archive}) is a new kit; adding kits is not supported yet.`,
-      );
-    }
-  }
-  for (const lab of previous.lab_downloads) {
-    if (!release.labs.some((entry) => entry.lab_id === lab.lab_id)) {
-      throw new Refusal(
-        `${lab.lab_id} (${lab.path}) was removed; removing kits is not supported yet.`,
-      );
-    }
-  }
-}
-
-function checkActivityVersions(activities: Buffer, lessons: readonly LessonSource[]): void {
-  const set = parseJson<{ activities?: unknown }>(activities.toString('utf8'), ACTIVITIES_FILE);
-  if (!Array.isArray(set.activities)) {
-    throw new Refusal(`${ACTIVITIES_FILE} has no activities list.`);
-  }
-  for (const activity of set.activities as {
-    activity_id?: string;
-    lesson_id?: string;
-    lesson_version?: string;
-  }[]) {
-    const lesson = lessons.find(({ entry }) => entry.lesson_id === activity.lesson_id);
-    if (lesson !== undefined && activity.lesson_version !== lesson.entry.version) {
-      throw new Refusal(
-        `${activity.activity_id} records lesson version ${activity.lesson_version}, but ${lesson.entry.lesson_id} is now ${lesson.entry.version}.`,
-      );
-    }
-  }
 }
 
 function writePackage(sourceDir: string, plan: Plan, out: string): void {

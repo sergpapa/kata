@@ -1,0 +1,88 @@
+{
+  "release_id": "QAAE-Q01",
+  "previous_version": "1.0.0-draft",
+  "version": "1.1.0-draft",
+  "accepted_feedback": [],
+  "lessons": [
+    {
+      "lesson_id": "LS-Q01-01",
+      "path": "lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "status": "changed",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.1-draft",
+      "previous_sha256": "59b07e264ac609d050fd4a5cd12349bbb43ce6de89b15d440f273a07b85e1875",
+      "sha256": "e84905fa4c28bd7bbfaec1cb458f4ecd8793384019f198cd099ff668b6744768"
+    },
+    {
+      "lesson_id": "LS-M001-01",
+      "path": "lessons/M001_Lesson_01_Student_Edition_v1.md",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "8ed0a1ca0c1493fad509f409d254c8dd3d9e63991ae59e19444cb2f87323bb9b"
+    },
+    {
+      "lesson_id": "LS-M001-02",
+      "path": "lessons/M001_Lesson_02_Student_Edition_v1.md",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "c031b9d8732d5c9ea44ae71b96507239e38329ad999d2ef939d4761c87937864"
+    },
+    {
+      "lesson_id": "LS-Q01-02",
+      "path": "lessons/QAAE_Lesson_04_Student_Edition_v1.md",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "224055dad45b47fc29f33cecb606582950ae020b331f450b20b45c7fd7e64c9c"
+    },
+    {
+      "lesson_id": "LS-Q01-03",
+      "path": "lessons/QAAE_Lesson_05_Student_Edition_v1.md",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "438fd7d4064757c379a5d1274b57a4dacce22ee937a7ac770edc1540f2982c2a"
+    }
+  ],
+  "labs": [
+    {
+      "lab_id": "M001-LAB-01",
+      "path": "labs/Workspace_Check_Kit_v1.zip",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "eae128624434ff7f4e950df1d6494069fe3a48ffb6c4848ec65951f8b34c9619"
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-02",
+      "path": "labs/QAAE_First_Run_Kit_v1.zip",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "d960f0b846b57bb9cc37d756f10a2d54f328f7a0f04861530d2551c5335e5a7c"
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-03",
+      "path": "labs/QAAE_Sample_Grading_Kit_v1.zip",
+      "status": "added",
+      "previous_version": null,
+      "version": "1.0.0-draft",
+      "previous_sha256": null,
+      "sha256": "a26eaa83fdba3c3522ddb8cf4d4d9e9bb6c2096edce178666cff337be40c66e3"
+    }
+  ],
+  "activities": {
+    "path": "trial-activities.json",
+    "status": "changed",
+    "previous_sha256": "35487838b2c522217fb473852c457a3a4621c5190a668e4717bad2e6c69dbb96",
+    "sha256": "af04f255aa1d342c313d65b718a911adf5732da2c73ec258ba7819ece724b635"
+  }
+}

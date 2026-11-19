@@ -1,0 +1,24 @@
+{
+  "lab_id": "M001-LAB-01",
+  "version": "1.0.0-draft",
+  "date": "2026-11-19",
+  "lessons": [
+    "LS-M001-01",
+    "LS-M001-02"
+  ],
+  "entry_document": "README.md",
+  "runtime": "Node.js 24.x; standard library only; no packages to install",
+  "start_commands": [
+    "node check-workspace.mjs",
+    "node greeting.mjs"
+  ],
+  "execution_location": "learner native desktop",
+  "writes": "check-workspace.mjs creates and deletes .workspace-check-write-test in the kit folder; nothing else",
+  "validation": {
+    "windows_11_node_24_12": "passed",
+    "macos": "not_verified",
+    "linux": "not_verified",
+    "learner_trial": "not_performed"
+  },
+  "files": []
+}

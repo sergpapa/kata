@@ -25,11 +25,28 @@ on the same plan allowance. Neither Export nor this slice's checks start a Claud
 7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export and
 earlier conversations add no migration.
 
-`npm test` (1492 tests at the last full run, before the split that kept the count), `npm run
-typecheck`, `npm run build` and `npm run screenshots` (22 routes × 3 widths × 2 schemes, now also
-opening an earlier conversation) pass under nvm's Node 24.12. `npm run lint` and `npm run
-format:check` fail only on the untracked `content/drafts/qaae-q01/` (another session's drafting);
-`apps`, `tools` and `docs` are clean. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
+**The QA course now serves all of module Q01** (2026-11-19). `npm run release:build` can add
+lessons and kits to a release (spec `docs/specs/release-additions.md`; removal is still refused).
+It built `content/releases/qaae-q01-v1/` (`QAAE-Q01@1.1.0-draft`) from the QA course's editable
+source `content/source/qaae/`, and `config.ts` points the QA course at it. That release holds
+five lessons in course order: QA Lesson 1 (corrected to 1.0.1-draft), "Set up a safe workspace",
+"When something goes wrong", QA Lesson 4 "Run a test someone else wrote" and QA Lesson 5 "How good
+are your tests?". It also has three kits and 24 activities (ADR 0023). The owner has not read the
+four new lessons. Every kit command was run on Windows 11 only. The review and verification record
+is the package's `Verification_and_Known_Limits.md`. A test rebuilds the release from its source
+and compares byte for byte, so `previous_release` in `content/source/qaae/release.json` stays on
+`qaae-lesson-01-v1` until the next reissue starts (handbook, "Reissuing a release"). The owner's
+running `npm run dev` server restarted on the `config.ts` change at 17:04 and imported it.
+
+**Incident, 2026-11-19.** Removing the finished Q01 drafts with `rm -rf content/drafts` also deleted
+21 uncommitted files of another session's Q02 drafts in `content/drafts/qaae-q02/`. That session
+restored all 21 from its transcript by 17:10. The `content/drafts/` ignore lines in
+`eslint.config.js`, `.prettierignore` and `.gitattributes` are kept for it.
+
+`npm test` (1540 tests), `npm run typecheck`, `npm run lint`, `npm run build` and `npm run
+screenshots` (26 routes × 3 widths × 2 schemes; 10 diagrams read) pass under nvm's Node 24.12.
+`npm run format:check` fails only on files inside `.claude/worktrees/a11y-pass`, another session's
+worktree. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
 
 **Known and not fixed.** `README.md` describes neither practice feedback, Export nor earlier
 conversations, and calls feedback "in progress": the owner has an uncommitted rewrite of it in
@@ -49,8 +66,10 @@ Next action: the owner restarts their dev server, tries feedback and Start over 
 activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13,
 14–15 with theirs), choosing None, Current only or Current and earlier per review. They continue
 reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
-`docs/courses/qa-automation/`. The app's next slice is Milestone 3's accessibility and
-responsiveness pass, in progress in the `a11y-pass` worktree.
+`docs/courses/qa-automation/`, and now read the rest of Q01 in the app (QA Lessons 2–5). They
+decide whether to split the two longest new lessons; a split is now an ordinary reissue. The app's
+next slice is Milestone 3's accessibility and responsiveness pass, in progress in the `a11y-pass`
+worktree.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -206,6 +225,11 @@ responsiveness pass, in progress in the `a11y-pass` worktree.
       one declined, one a process finding reported to the owner), design review (needs work; the
       in-course findings taken). Record in `docs/specs/multi-course.md`.
 - [ ] **Owner reading of QA Lesson 1** and review of the QA course plans (`docs/courses/qa-automation/`).
+- [x] **Release additions and the Q01 release.** Done 2026-11-19. `release:build` adds lessons
+      and kits; `qaae-q01-v1` is current for the QA course (ADR 0023). test-guardian PRE (FAIL on
+      13 findings, all taken; then PASS) and POST (PASS), `/code-review` at medium (9 findings, 6
+      taken, 3 declined with reasons). Record in `docs/specs/release-additions.md`.
+- [ ] **Owner reading of QA Lessons 2–5**, and a run of the three kits on macOS or Linux.
 - [ ] **BookingLab practice-application spec**, the QA course's critical path.
 - [ ] **Owner reading of Lessons 5–15**, then a correction reissue built with the tool.
 - [ ] **Lesson 16 (M021-08)**, written and reviewed in separate sessions; adding a lesson and kit to
@@ -539,6 +563,8 @@ need an approved data policy and a named reviewer before they mean anything.
   output, and the ADRs record where this build narrows it.
 
 ## Superseded state notes
+
+- 2026-11-19, before the release-additions slice: `npm test` (1492 tests at the last full run, before the split that kept the count), `npm run typecheck`, `npm run build` and `npm run screenshots` (22 routes × 3 widths × 2 schemes, now also opening an earlier conversation) pass under nvm's Node 24.12. `npm run lint` and `npm run format:check` failed only on the untracked `content/drafts/qaae-q01/`; the drafting session has since added `content/drafts/` to `eslint.config.js`, `.prettierignore` and `.gitattributes`, and checked that both tools now skip it. Neither full command was re-run after that. `apps`, `tools` and `docs` are clean. Run filtered vitest from `C:/…`, not `c:\…` (see memory). **The rest of QA module Q01 is drafted, reviewed and not released** (ADR 0023, 2026-11-19). Four lessons and three kits are in `content/drafts/qaae-q01/`, uncommitted: two M001 lessons shared with the full-stack course ("Set up a safe workspace", "When something goes wrong") and QA Lessons 4 and 5 ("Run a test someone else wrote", "How good are your tests?", with a Docker-free sample grading kit). Two fresh reviewers found 12 high, 35 medium and 25 low; all were taken except the proposal to split the two longest lessons, which is the owner's call. Every command was run on Windows 11 only. The app cannot show them yet: `release:build` refuses a build that adds a lesson or a kit. The packaging brief, the Lesson 1 wording correction it needs, and the full list of what was and was not checked are in `content/drafts/qaae-q01/README.md`.
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
 

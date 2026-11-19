@@ -12,6 +12,9 @@ content/releases/** -text
 # so line-ending conversion here would change every hash too (docs/specs/release-packaging.md).
 content/source/** -text
 
+# Lessons and kits being drafted before they enter a source tree: they move there unchanged.
+content/drafts/** -text
+
 *.zip binary
 *.png binary
 *.jpg binary

@@ -1,0 +1,26 @@
+{
+  "lab_id": "QAAE-LAB-Q01-02",
+  "version": "1.0.0-draft",
+  "date": "2026-11-19",
+  "lessons": [
+    "LS-Q01-02"
+  ],
+  "entry_document": "README.md",
+  "runtime": "Node.js 24.x; Playwright Test 1.65.1 and its Chromium build, installed by the learner with npm install and npx playwright install chromium",
+  "start_commands": [
+    "node site/server.mjs",
+    "npx playwright test",
+    "npm run watch"
+  ],
+  "host": "127.0.0.1",
+  "default_port": 4410,
+  "execution_location": "learner native desktop",
+  "validation": {
+    "windows_11_node_24_12": "passed",
+    "macos": "not_verified",
+    "linux": "not_verified",
+    "interactive_terminal": "not_verified",
+    "learner_trial": "not_performed"
+  },
+  "files": []
+}

@@ -1,0 +1,486 @@
+{
+  "schema_version": "1.0.0",
+  "activity_set_id": "QAAE-Q01-ACTIVITIES",
+  "version": "1.1.0-draft",
+  "purpose": "Owner learning rehearsal of module Q01 of the QA course",
+  "presentation": "Use source_heading to place recording fields beside the canonical lesson section. Do not render prompt_markdown a second time when the section is already visible.",
+  "prediction_policy": "Keep the original acknowledged prediction separate from later explanation; do not hide the authored walkthrough or impose an answer embargo.",
+  "attempt_provenance": "The app records the learner’s own written answers. Kits run on the learner’s computer; the app executes nothing and an answer alone does not prove that a kit was run.",
+  "activities": [
+    {
+      "activity_id": "ACT-Q01-01-01",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.1-draft",
+      "kind": "interpretation",
+      "title": "Practice A: find the unwritten knowledge",
+      "source_heading": "Practice A: find the unwritten knowledge",
+      "prompt_markdown": "Here is another manual test case:\n\n**TC-031: Reset a forgotten password**\n\n| Step | Action | Expected result |\n| --- | --- | --- |\n| 1 | Open the login page and choose **Forgot password** | The reset form is shown |\n| 2 | Enter the account's email address and press **Send link** | \"Check your email\" is shown |\n| 3 | Open the email and follow the link | The new-password form is shown |\n| 4 | Enter a new password twice and press **Save** | \"Password changed\" is shown |\n\nImagine handing this to the literal colleague, or to a machine. Using the four kinds from Section 2 (data and starting state, when a step is finished, what \"correct\" means beyond the expected result, and what to do with a surprise), list at least four things you would know or do that TC-031 does not say. Name the kind each one belongs to.",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-01-02",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.1-draft",
+      "kind": "judgment",
+      "title": "Practice B: say exactly what a test checks",
+      "source_heading": "Practice B: say exactly what a test checks",
+      "prompt_markdown": "Here is an automated test for applying a discount code:\n\n```ts\ntest('a member can apply a discount code', async ({ page }) => {\n  await page.goto('https://bookinglab.example/basket');\n  await page.getByLabel('Discount code').fill('WINTER10');\n  await page.getByRole('button', { name: 'Apply' }).click();\n  await expect(page.getByText('Code applied')).toBeVisible();\n});\n```\n\nThe basket holds one two-hour Harbour Room booking at €24.00. `WINTER10` is meant to take 10% off.\n\n1. In one sentence, what exactly does this test check?\n2. Name two different defects this test would let pass.\n3. In plain words, not code, describe one more check that would catch one of your defects.",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-01-03",
+      "lesson_id": "LS-Q01-01",
+      "lesson_version": "1.0.1-draft",
+      "kind": "prediction",
+      "title": "Practice C: predict a failure, then interpret it",
+      "source_heading": "Practice C: predict a failure, then interpret it",
+      "prompt_markdown": "Return to the room-booking test from Section 4. A developer changes the booking button's wording from **Book this room** to **Confirm booking**. Nothing else changes, and booking still works correctly for users.\n\n1. Predict what happens when the test runs. Which step goes wrong, and roughly how long does the test take to fail?\n2. Is the failing test evidence of a defect in the product? What would you need to know to decide?",
+      "prompt_scope": "Exact authored section excerpt. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-01-01",
+      "lesson_id": "LS-M001-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Predict, then run the check",
+      "source_heading": "Predict, then run the check",
+      "prompt_markdown": "Before you run the check, write down two predictions. A prediction you can compare with a result teaches more than a result alone, even when the prediction is wrong.\n\n1. The check reports the **current folder** of the terminal. What path do you expect it to show?\n2. The check reports whether the kit is in a **synced folder**. Given where you created `course-work`, do you expect a pass or a warning?\n\nNow run it:\n\n```sh\nnode check-workspace.mjs\n```\n\nHere `node` is again the program to start, and `check-workspace.mjs` tells it which file of instructions to carry out.\n\nThis is what the author's run printed on Windows 11. The folder path has been shortened to the example user from Section 4, and it has the extra step that Extract All adds on Windows (Section 6). Your numbers and paths will differ.\n\n```text\nWorkspace check\n===============\nPASS  Node.js version: v24.12.0 (the course uses the 24.x line)\nINFO  Operating system: Windows_NT 10.0.26200 (x64)\nPASS  Current folder: C:\\Users\\maria\\course-work\\Workspace_Check_Kit_v1\\workspace-check-kit\nPASS  Synced folder: The path does not contain the name of a sync service.\nPASS  Write permission: Created, read back and deleted a test file in the kit folder.\nINFO  Memory (RAM): 31.5 GiB available to the system\nINFO  Free disk space: 83.0 GiB free on the drive holding the kit.\n\nSummary: 4 passed, 0 warnings, 0 failed.\nYour workspace is ready. Read any WARN lines: they will not stop you today.\n```\n\nCompare the report with your two predictions before you read on.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "What each line establishes",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-01-02",
+      "lesson_id": "LS-M001-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice A: judge three instructions",
+      "source_heading": "Practice A: judge three instructions",
+      "prompt_markdown": "For each instruction, answer the three questions: source, action, permission. Then decide: run it, refuse it, or say what you would need to find out first.\n\n1. The official documentation of a database tool, which you reached from the maker's own site, says: *\"Download the installer from this page and run it. It will ask for administrator permission in order to install a background service.\"* A background service is a program that starts together with the computer, for every account.\n2. In a help forum, a stranger replies to your question: *\"Known bug. Turn off Windows Security's real-time protection, then run the file I've attached, fix-node.exe. Takes ten seconds.\"*\n3. A colleague you trust sends a chat message: *\"Don't bother with the official site, it's slow. Use this instead, it's a faster Node installer:\"* followed by a link to `nodejs-downloads.example`.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-01-03",
+      "lesson_id": "LS-M001-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice B: read two paths",
+      "source_heading": "Practice B: read two paths",
+      "prompt_markdown": "A learner says: \"VS Code will not open the kit as a folder, and when I give Node.js the path of the program it answers `Cannot find module`.\" Here are the paths of two attempts:\n\n```text\nAttempt 1   C:\\Users\\li\\Downloads\\Workspace_Check_Kit_v1.zip\\workspace-check-kit\\check-workspace.mjs\nAttempt 2   C:\\Users\\li\\course-work\\Workspace_Check_Kit_v1\\workspace-check-kit\\check-workspace.mjs\n```\n\n1. In attempt 2, name the home folder, the folder the program is in, the file, and its extension.\n2. One of the attempts could not have worked. Which one, and what in the path tells you?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-01-04",
+      "lesson_id": "LS-M001-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "explanation",
+      "title": "Practice C: explain a failure before you fix it",
+      "source_heading": "Practice C: explain a failure before you fix it",
+      "prompt_markdown": "You install Node.js while VS Code is open. The installer reports success. In VS Code you open a brand-new terminal, type `node --version`, and the terminal answers that `node` is not recognised.\n\n1. In two or three sentences, explain why this happens although the installation succeeded. Use the words *shell*, *PATH* and *copy*.\n2. What do you do, and why does that work?\n3. Suppose it still fails after you have closed and restarted VS Code. Name two things you would check next.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-01-05",
+      "lesson_id": "LS-M001-01",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice D: read a report",
+      "source_heading": "Practice D: read a report",
+      "prompt_markdown": "Another learner sends you this report and writes: \"Three passed and it says my workspace is ready, so I'm ignoring the warning. And 7.8 GiB of memory is fine, the check didn't complain.\"\n\n```text\nWorkspace check\n===============\nPASS  Node.js version: v24.12.0 (the course uses the 24.x line)\nINFO  Operating system: Windows_NT 10.0.26200 (x64)\nWARN  Current folder: The terminal is in C:\\Users\\li\\course-work, but this program is in C:\\Users\\li\\course-work\\Workspace_Check_Kit_v1\\workspace-check-kit. Open a terminal in the kit folder before running the commands in the lessons.\nPASS  Synced folder: The path does not contain the name of a sync service.\nPASS  Write permission: Created, read back and deleted a test file in the kit folder.\nINFO  Memory (RAM): 7.8 GiB available to the system\nINFO  Free disk space: 41.2 GiB free on the drive holding the kit.\n\nSummary: 3 passed, 1 warning, 0 failed.\nYour workspace is ready. Read any WARN lines: they will not stop you today.\n```\n\n1. Which three things does this report establish?\n2. The learner's terminal is in `course-work`. What will happen if they now type `node check-workspace.mjs` there, and why?\n3. Is the learner right that the check found 7.8 GiB of memory to be fine?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-02-01",
+      "lesson_id": "LS-M001-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "What the three failures had in common",
+      "source_heading": "What the three failures had in common",
+      "prompt_markdown": "Put your three predictions beside what happened. Then look at the pattern:\n\n| Failure | Who spoke | What went wrong | Where the message pointed |\n| --- | --- | --- | --- |\n| 1 | The shell | No program with that name | The misspelled name |\n| 2 | Node.js | The file was not found | The full path it looked in |\n| 3 | Node.js | The program's text breaks the grammar | A file and a line number |\n\nThe three failures are three stops on one road. Read this diagram from top to bottom. Each diamond is a question with two answers.\n\n```mermaid\nflowchart TD\n    A[\"You type a command and press Enter\"] --> B{\"Does the shell find a program with that name?\"}\n    B -- No --> C[\"The shell speaks: the name was not found. Failure 1\"]\n    B -- Yes --> D{\"Does Node.js find the file you named?\"}\n    D -- No --> E[\"Node.js speaks: Cannot find module, and the path. Failure 2\"]\n    D -- Yes --> F{\"Does the file follow the grammar of the language?\"}\n    F -- No --> G[\"Node.js speaks: SyntaxError, and a line number. Failure 3\"]\n    F -- Yes --> H[\"The program runs\"]\n```\n\nIn words: first the shell looks for a program with the name you typed. If it finds none, the shell reports it, and nothing else happens. If it finds Node.js, Node.js looks for the file you named. If the file is not there, Node.js reports the path it tried. If the file is there, Node.js checks its grammar. If the grammar is broken, Node.js reports the line. Only when all three questions are answered \"yes\" does the program run.\n\nThis is why \"who is speaking?\" comes first. It tells you how far along the road you got, and so which question failed.\n\nIn all three failures the message contained the answer, once you knew which line to read. That will not always be true. It is true far more often than a beginner expects.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-02-02",
+      "lesson_id": "LS-M001-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice A: sort a learner's message",
+      "source_heading": "Practice A: sort a learner's message",
+      "prompt_markdown": "A learner sends this message to a help channel:\n\n> \"Node is broken on my machine. I ran the workspace check and it crashed. The terminal says `Error: Cannot find module 'C:\\Users\\li\\course-work\\check-workspace.mjs'`. I think the download was corrupted.\"\n\n1. The message has four sentences. Say for each one whether it is an observation, a report or an inference.\n2. Using only the observation, what is the most likely cause? Read the path.\n3. The learner suspects a corrupted download. Name one quick check whose result would be different depending on which cause is the real one: the wrong folder, or a damaged download.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-02-03",
+      "lesson_id": "LS-M001-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "interpretation",
+      "title": "Practice B: read a message you have not seen before",
+      "source_heading": "Practice B: read a message you have not seen before",
+      "prompt_markdown": "A learner changed one line of `greeting.mjs` and now gets this. It is the author's run on Windows 11, with the path shortened.\n\n```text\nfile:///C:/Users/maria/course-work/Workspace_Check_Kit_v1/workspace-check-kit/greeting.mjs:9\nconsole.log('Hello, ' + nam + '.');\n                        ^\n\nReferenceError: nam is not defined\n    at file:///C:/Users/maria/course-work/Workspace_Check_Kit_v1/workspace-check-kit/greeting.mjs:9:25\n    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.12.0\n```\n\nYou have not been taught what a `ReferenceError` is, and you do not need to know yet.\n\n1. Who is speaking?\n2. Which single line says what went wrong?\n3. Where does the message point? Give the file and the line number.\n4. Without knowing the programming language, what would you compare that line with, and what do you suspect?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-02-04",
+      "lesson_id": "LS-M001-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice C: repair a help request",
+      "source_heading": "Practice C: repair a help request",
+      "prompt_markdown": "Here is a help request. It has at least five problems.\n\n> \"Hi, the check thing isn't working, it's broken since the update. I get some error about permissions (photo attached). I logged in with my work account maria.k@northwind-logistics.example, password Winter2026!, in case you need to try it. Please help, it's urgent!!\"\n\n1. List the problems. Use the seven parts from Section 6 and the three checks from Section 7.\n2. One sentence in it states a cause as if it were a fact. Which one?\n3. Write down the questions a helper would have to ask before they could even begin.\n4. Rewrite the third sentence so that the request could be sent safely.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-M001-02-05",
+      "lesson_id": "LS-M001-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "local_practice",
+      "title": "Practice D: write your recovery note",
+      "source_heading": "Practice D: write your recovery note",
+      "prompt_markdown": "Complete your `recovery-note.md` as described in Section 10, then test it with the question from that section: could a careful stranger rebuild your workspace from it?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-01",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Do the test case",
+      "source_heading": "Do the test case",
+      "prompt_markdown": "Open your ordinary browser and go to `http://127.0.0.1:4410/rooms`. Here is TC-014 again. Lesson 1's version had a precondition, \"Logged in as a member\". This small site has no login: everyone who opens it is treated as a member.\n\nRun the case as you would run any case, and before step 4, **write down the total you expect to see.**\n\n| Step | Action | Expected result |\n| --- | --- | --- |\n| 1 | Open the Rooms page | The list of rooms is shown |\n| 2 | Select the Harbour Room | The room's booking form is shown |\n| 3 | Enter date 1 December 2026, start 10:00, end 12:00 | — |\n| 4 | Press **Book this room** | A \"Booking confirmed\" message is shown |\n\nIf your browser shows times with AM and PM, the end time is 12:00 PM, noon.\n\nYou should see **Booking confirmed**, the room, the date, the time, and **Total: €0.00**.\n\nThe Harbour Room costs €12 an hour, as the Rooms page says. Two hours should cost €24.00. This site has that defect planted in it on purpose, and you have just found it the way you find defects every day: you knew what the total should be, and you looked.\n\nRecord two things before going on.\n\n1. If you follow TC-014 exactly as written, did the case pass? Look at the expected result column.\n2. Roughly how long did the four steps take you?\n\nNow look at the terminal where the site is running. It has printed a line for each thing your browser asked for:\n\n```text\nGET /rooms\nGET /rooms/harbour\nPOST /bookings\nGET /bookings/1\n```\n\nEach line is one message from your browser to the site: three requests to *get* a page, and one that *posts*, which means sends, your booking. In Lesson 1 these were arrows in a diagram between \"Browser tab\" and \"Booking site\". Here they are real, and you can watch them arrive.\n\nAnd the answer to the first question: followed exactly as written, TC-014 passed. The expected result column asks only for the message, and the message was there. That was your new colleague's first run in Lesson 1.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-02",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Predict, then run the test",
+      "source_heading": "Predict, then run the test",
+      "prompt_markdown": "Make sure the site is stopped. You pressed Ctrl+C in Section 3, and the prompt is back.\n\n**Predict before you run.** You did TC-014 by hand and saw €0.00. The test in `tests/book-room.spec.ts` is the one from Lesson 1. Will it pass or fail? Write your prediction and one sentence of reasoning.\n\nNow run it:\n\n```sh\nnpx playwright test\n```\n\nThe author's run:\n\n```text\nRunning 1 test using 1 worker\n\n  ✓  1 [chromium] › tests\\book-room.spec.ts:3:1 › a member can book a free meeting room (342ms)\n\n  1 passed (1.9s)\n```\n\nIt passed. Compare that with your prediction.\n\nRead the middle line from left to right, because you will read thousands like it.\n\n- **`✓`** means the test passed. A failed test shows `✘`. Some terminals print `ok` and `x` instead.\n- **`[chromium]`** is the name the settings file gives to this browser setup. Here it means Playwright's Chromium.\n- **`tests\\book-room.spec.ts:3:1`** is where the test begins: the file, then line 3, then character 1. On macOS and Linux the path is written with `/`.\n- **`a member can book a free meeting room`** is the test's name, the text in quotes on that line of the file.\n- **`(342ms)`** is how long the test took: about a third of a second. Your figure will differ from run to run.\n\nThe first line says `using 1 worker`: one copy of the test runner did the work. Larger suites use several at once, which a later stage teaches. The last line is the summary: `1 passed`, and the time for the whole run, which includes starting everything up.\n\nLess than a second, against the minute or two the same four steps took you. And it passed a booking page that says a two-hour booking is free. That is the sentence from Lesson 1, no longer something you were told: **a passing test means every check that was written came out true. It does not mean the feature works.** The test checked for the heading \"Booking confirmed\". The heading was there.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-03",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Add the check, predict, then run",
+      "source_heading": "Add the check, predict, then run",
+      "prompt_markdown": "In Lesson 1 you read the line that would catch the €0.00 total. Now add it.\n\nOpen `tests/book-room.spec.ts`. Find the last line inside the test, the one that expects the heading. Directly under it, add this line, with the same two spaces at the start as the line above:\n\n```ts\n  await expect(page.getByText('Total: €24.00')).toBeVisible();\n```\n\nCopy it from this lesson so that every character is right, the `€` sign included. The end of the test should now read:\n\n```ts\n  await expect(page.getByRole('heading', { name: 'Booking confirmed' })).toBeVisible();\n  await expect(page.getByText('Total: €24.00')).toBeVisible();\n});\n```\n\n**Save the file.** You know why from *When something goes wrong*: Playwright reads the file on the disk, not the text in the editor.\n\n**Predict before you run:** pass or fail? If it fails, roughly how long will the test take, and which line will the report point to? Lesson 1, Section 5 has what you need.\n\n```sh\nnpx playwright test\n```\n\nThe author's run, with the folder path shortened:\n\n```text\nRunning 1 test using 1 worker\n\n  ✘  1 [chromium] › tests\\book-room.spec.ts:3:1 › a member can book a free meeting room (5.6s)\n\n\n  1) [chromium] › tests\\book-room.spec.ts:3:1 › a member can book a free meeting room ──────────────\n\n    Error: expect(locator).toBeVisible() failed\n\n    Locator: getByText('Total: €24.00')\n    Expected: visible\n    Timeout: 5000ms\n    Error: element(s) not found\n\n    Call log:\n      - Expect \"toBeVisible\" getByText('Total: €24.00') with timeout 5000ms\n      - waiting for getByText('Total: €24.00')\n\n\n      11 |\n      12 |   await expect(page.getByRole('heading', { name: 'Booking confirmed' })).toBeVisible();\n    > 13 |   await expect(page.getByText('Total: €24.00')).toBeVisible();\n         |                                                 ^\n      14 | });\n      15 |\n        at C:\\Users\\maria\\course-work\\QAAE_First_Run_Kit_v1\\first-run-kit\\tests\\book-room.spec.ts:13:49\n\n    Error Context: test-results\\book-room-a-member-can-book-a-free-meeting-room-chromium\\error-context.md\n\n  1 failed\n    [chromium] › tests\\book-room.spec.ts:3:1 › a member can book a free meeting room ───────────────\n```\n\nThis is a long message, and you have a method for long messages. Use it.\n\n- **Who is speaking?** Playwright Test. The `✘` line has the same shape as the `✓` line you read in Section 5.\n- **What went wrong?** `expect(locator).toBeVisible() failed`. An expectation did not come true. The four lines under it say which one: the locator was `getByText('Total: €24.00')`, it was expected to be `visible`, Playwright kept trying for `5000ms`, and no such element was found.\n- **Where?** The report prints the lines of the test file around the place, and marks one with `>`: line 13, the line you added.\n\nNow connect the details to what you already know.\n\n**The test took more than five seconds, not a third of a second.** That is the assertion's 5-second wait. Lesson 1 described it. Now you have measured it. Playwright did not look once and give up. It kept looking for the text for five seconds, in case the page was still changing, and only then failed.\n\n**Line 12 is not marked.** The heading \"Booking confirmed\" was found, exactly as before. The test got all the way through the booking and failed on the one new thing you asked about.\n\n**The message does not say \"the price is wrong\".** It says an element with the text \"Total: €24.00\" was not found. That is precisely what Playwright observed. The step from \"that text was not found\" to \"the site charges the wrong amount\" is an inference. Keep that distinction. A failure report tells you what a check observed. What it means is yours to work out.\n\nYou do not have to rely on memory to work it out. Near the end of the report, the line beginning `Error Context:` names a file, `error-context.md`, in a new folder called `test-results`. Open it from the Explorer. It begins with a few instructions addressed to an AI assistant, because the file is designed so that it can be handed to one. Below them it repeats the error. Then comes the part worth your attention: an outline, in text, of the page as it was at the moment of failure. In the author's run the outline began:\n\n```text\n- heading \"Booking confirmed\" [level=1]\n- paragraph: \"Room: Harbour Room\"\n- paragraph: \"Date: 1 December 2026\"\n- paragraph: \"Time: 10:00 to 12:00\"\n- paragraph: \"Total: €0.00\"\n```\n\nThere is the observation that supports your inference: the page said `Total: €0.00`. The machine recorded it at the moment the check failed, without anyone taking a screenshot. In Lesson 1 this appeared as one row of a table, \"the evidence can be captured automatically when a test fails\". This file is the simplest form of that evidence. Later lessons work with much richer recordings.\n\nIf you ever hand that file to an AI assistant, the rules from *When something goes wrong* apply. Check what is in it before it leaves your computer. Treat the assistant's explanation as an inference to test against the outline, not as a second observation.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-04",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Practice A: a failure that is not a defect",
+      "source_heading": "Practice A: a failure that is not a defect",
+      "prompt_markdown": "In Lesson 1, Practice C, a developer renamed the booking button and you predicted what the test would do. Now make it happen. This time, change the test, not the site: make the test look for a button that does not exist.\n\n1. In `tests/book-room.spec.ts`, find the step that clicks the button, and change `'Book this room'` to `'Confirm booking'`. Save.\n2. **Predict:** which line will the report mark? How long will the test take? Will the report mention the total?\n3. Run `npx playwright test` and compare.\n4. Open `test-results` and read the page outline in `error-context.md`. What does the page call its button?\n5. Change the name back to `'Book this room'`, save, and run once more to confirm that you are back at the failure from Section 7.\n\nThen answer: the reports from Section 7 and from this practice are both red and both end in `1 failed`. What is the difference between what the two messages say happened?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-05",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Practice B: the second morning, on your own computer",
+      "source_heading": "Practice B: the second morning, on your own computer",
+      "prompt_markdown": "In Lesson 1 your new colleague ran TC-014 on a second morning and it failed, although nothing in the product had changed. Reproduce that.\n\nKeep the test as it is at the end of Practice A, with the total check in place.\n\n1. In the terminal, start the site by hand and leave it running: `node site/server.mjs`.\n2. Open a **second** terminal with the **+** button at the top of the terminal panel. The first one stays busy with the site.\n3. **Predict:** you are about to run the test twice in the second terminal, changing nothing in between. Will the two reports be the same? If not, which line will each one mark?\n4. Run `npx playwright test`. Read the report. Run it again. Read the report.\n5. Look at the first terminal, where the site prints its lines.\n6. Stop the site with Ctrl+C in the first terminal.\n\nThen answer: the test file did not change between the two runs, and neither did the site's code. What did change, and where does it live? And one harder question: the first run *failed*. Did it leave anything behind?",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-02-06",
+      "lesson_id": "LS-Q01-02",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice C: what a colleague's green run establishes",
+      "source_heading": "Practice C: what a colleague's green run establishes",
+      "prompt_markdown": "A colleague writes in the team chat: \"I ran the booking suite on my laptop just now, all 40 tests green, so the release is good to go.\"\n\n1. Name three things that this run does not establish. Use Section 8, and what you know from Lesson 1 about what a passing test means.\n2. Write the two or three questions you would ask before agreeing, in words you would really use with a colleague.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-03-01",
+      "lesson_id": "LS-Q01-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Predict, then grade",
+      "source_heading": "Predict, then grade",
+      "prompt_markdown": "Now the fault set. The grading program reports faults by **category**, and these are the six:\n\n| Category | Faults | What the category covers |\n| --- | --- | --- |\n| pricing | 2 | What the customer is charged |\n| booking details | 1 | Whether the confirmation describes the booking that was made |\n| dates | 1 | How a date is handled or shown |\n| booking flow | 1 | Whether a valid booking goes through at all |\n| booking rules | 1 | What the site must allow and what it must refuse |\n\n**Predict before you grade.** This suite checks one heading. How many of the six faults will it catch, and in which categories? Write down a number and your reasons. This prediction is the most useful one in the lesson, so take a minute over it.\n\nThen:\n\n```sh\nnpm run grade\n```\n\nIt takes about half a minute. npm first prints two lines beginning with `>`, naming the command it starts. Then, in the author's run:\n\n```text\nSample grading kit 1.0.0-draft, fault set QAAE-SAMPLE-FAULTS-1\n\nGood build, run 1 of 3 ... passed (1 of 1 tests)\nGood build, run 2 of 3 ... passed (1 of 1 tests)\nGood build, run 3 of 3 ... passed (1 of 1 tests)\nFault build 1 of 6 ... missed\nFault build 2 of 6 ... missed\nFault build 3 of 6 ... missed\nFault build 4 of 6 ... missed\nFault build 5 of 6 ... caught\nFault build 6 of 6 ... missed\n\nGood build     passed 3 of 3 runs\nFault builds   caught 1 of 6\n\n  caught  booking flow\n  missed  pricing (2 faults)\n  missed  booking details\n  missed  dates\n  missed  booking rules\n\nWritten to results/grade-results.json\n```\n\n**One of six.** Compare that with your prediction.\n\nTake the report apart.\n\n- **`Good build passed 3 of 3 runs`.** No false alarm, and the same answer three times. So when this suite fails on a fault build, it is at least not something it also does on a correct site.\n- **`Fault builds caught 1 of 6`.** Against five of the six faulty sites, this suite reported that everything was fine.\n- **`caught booking flow`.** The one fault it caught stopped a valid booking from going through. No confirmation heading appeared, and the heading is the one thing this test looks for.\n- **The four `missed` lines.** On each of those builds a customer would have been charged wrongly, or told something untrue about their booking, or allowed to do something the site should have refused. Each time the heading \"Booking confirmed\" appeared, and the test passed.\n\nThis is Lesson 1, with a number on it. In Lesson 1 you worked out, by reading, that this test would let the €0.00 defect through. Now you have run it against six faults and counted: it lets five through. The suite's result on the good build was \"1 passed\", and on five broken builds it was also \"1 passed\". Those passes were telling you almost nothing, and until a minute ago you had no way to see that.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-03-02",
+      "lesson_id": "LS-Q01-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "prediction_and_observation",
+      "title": "Add the price check, predict, then grade",
+      "source_heading": "Add the price check, predict, then grade",
+      "prompt_markdown": "The report says two pricing faults were missed. You know one check for the price, from Lesson 4. Open `tests/book-room.spec.ts` and add it under the heading check, exactly as you did before:\n\n```ts\n  await expect(page.getByText('Total: €24.00')).toBeVisible();\n```\n\nSave the file.\n\nLook at where the value `€24.00` comes from. It is the amount you calculated in Section 3: two hours at €12. It is **not** \"whatever the site showed\". This is the test oracle from Lesson 1 doing its work, and it is the reason you ran the case by hand and wrote your expectation down first. Only the wording, `Total:` and the form of the amount, was taken from the good build.\n\nSuppose you had done it the other way round, and copied the whole line from the screen without asking what the amount should be. Such a check can only ever confirm that the screen shows what the screen showed that day. If the screen was wrong on the day you copied it, your test now protects the defect.\n\n**Predict:** the report said `missed pricing (2 faults)`. You have added one check. How many of the two will it catch?\n\n```sh\nnpm run grade\n```\n\nThe author's run, from the summary on:\n\n```text\nGood build     passed 3 of 3 runs\nFault builds   caught 3 of 6\n\n  caught  pricing (2 faults)\n  caught  booking flow\n  missed  booking details\n  missed  dates\n  missed  booking rules\n```\n\nBoth. One line caught two faults, and you still do not know what the second pricing fault is. You do not need to know. Your check does not say \"the total must not be zero\". It says \"the total must be €24.00\". That single exact expectation is false on **every** build that gets this total wrong, whatever the cause.\n\nThat is the strength of a precise expected result. You know it from manual work, where \"the correct total is shown\" is a weaker expected result than \"Total: €24.00\". The machine makes the difference measurable.\n\nNotice also that this run took longer than the first. A check that fails waits five seconds first, as you saw in Lesson 4. A check that passes costs almost nothing. So grading gets slower as your suite catches more. An ordinary run on a healthy product does not.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": null,
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-03-03",
+      "lesson_id": "LS-Q01-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "local_practice",
+      "title": "Your turn: from three to five",
+      "source_heading": "Your turn: from three to five",
+      "prompt_markdown": "Your report shows `missed booking details` and `missed dates`. Do this part yourself. The explanation follows directly below, and you may read it whenever you want.\n\n1. Look at the confirmation from Section 3 and at the test as it stands. Which facts on the confirmation does the test not check yet?\n2. For each of the two categories, **predict** which unchecked fact a fault of that kind would change.\n3. Add a check for **every** fact on the confirmation that the test does not check yet. Use the same pattern as the total check. Take each value from what you chose in Section 3, and the wording from the good build's confirmation. Save.\n4. Run `npx playwright test` first. It must pass on the good build before grading is worth the wait.\n5. Run `npm run grade` and compare the report with your predictions.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "From three to five: explanation",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-03-04",
+      "lesson_id": "LS-Q01-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "judgment",
+      "title": "Practice A: read three results",
+      "source_heading": "Practice A: read three results",
+      "prompt_markdown": "For each situation, say what the grading program would report, or what you would say to the person, and why.\n\n1. A suite catches every fault it meets. On the good build, it passes on runs 1 and 3 and fails on run 2. Nothing was changed between the runs.\n2. A colleague is proud of a suite: \"Forty tests, all green.\" You grade it against a set of ten faults and it catches two.\n3. Your check for `Time: 10:00 to 12:00` did not raise the grade. A teammate says: \"It caught nothing, so delete it. Fewer checks, less maintenance.\"",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    },
+    {
+      "activity_id": "ACT-Q01-03-05",
+      "lesson_id": "LS-Q01-03",
+      "lesson_version": "1.0.0-draft",
+      "kind": "local_practice",
+      "title": "Practice B (optional stretch): catch the booking-rules fault",
+      "source_heading": "Practice B (optional stretch): catch the booking-rules fault",
+      "prompt_markdown": "This goes beyond what the lesson has taught: it asks you to add a whole second test to the file. The complete test is in the explanation below, and there is no loss in reading it first. Try it if you are curious.\n\nAdd a second test to `tests/book-room.spec.ts`, after the first one. It should book the **Garden Room** for 2 December 2026 from 14:00 to 15:00 and expect the booking to be confirmed, then make exactly the same booking again and expect the heading \"This room is already booked\". Run `npx playwright test`, then grade.",
+      "prompt_scope": "Exact authored section excerpt; may include steps and worked feedback. Read it in lesson order.",
+      "feedback_source_heading": "Practice explanations",
+      "response_fields": [
+        "prediction",
+        "observation",
+        "explanation",
+        "help_used"
+      ],
+      "response_fields_required": false,
+      "grading": null,
+      "formal_evidence_award": null
+    }
+  ]
+}

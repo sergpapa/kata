@@ -48,7 +48,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         title: 'QA Automation Engineering',
         releaseDir:
           env.EDUCODE_RELEASE_DIR_QAAE ??
-          path.join(repoRoot, 'content', 'releases', 'qaae-lesson-01-v1', 'content'),
+          path.join(repoRoot, 'content', 'releases', 'qaae-q01-v1', 'content'),
       },
     ],
     webDistDir: path.join(repoRoot, 'apps', 'web', 'dist'),

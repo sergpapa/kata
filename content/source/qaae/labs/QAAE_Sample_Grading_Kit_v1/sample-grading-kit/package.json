@@ -1,0 +1,14 @@
+{
+  "name": "qaae-sample-grading-kit",
+  "version": "1.0.0-draft",
+  "private": true,
+  "description": "A sample grading kit: one good build of a small booking site, six builds with a planted fault each, and a command that measures which faults your tests catch.",
+  "scripts": {
+    "site": "node site/server.mjs",
+    "test": "playwright test",
+    "grade": "node grade.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

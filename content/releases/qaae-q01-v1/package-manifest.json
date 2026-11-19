@@ -1,0 +1,69 @@
+{
+  "package_id": "QAAE-Q01",
+  "version": "1.1.0-draft",
+  "date": "2026-11-19",
+  "read_first": "START_HERE.md",
+  "release_manifest": "content/learning-release.json",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "c2fc0d3d959b424a68c399fbb95479f0b8aa7c6f4800ff5311c0f1e3718a9e23"
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "af7d0383e99219c99e1b692759692c4566b1e47e9f4d797200f31a5f5ba12cfd"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "sha256": "acab595345c3accebc76cf62648dbd0144f1ce72609939610689523f9120f0a9"
+    },
+    {
+      "path": "content/labs/QAAE_First_Run_Kit_v1.zip",
+      "sha256": "d960f0b846b57bb9cc37d756f10a2d54f328f7a0f04861530d2551c5335e5a7c"
+    },
+    {
+      "path": "content/labs/QAAE_Sample_Grading_Kit_v1.zip",
+      "sha256": "a26eaa83fdba3c3522ddb8cf4d4d9e9bb6c2096edce178666cff337be40c66e3"
+    },
+    {
+      "path": "content/labs/Workspace_Check_Kit_v1.zip",
+      "sha256": "eae128624434ff7f4e950df1d6494069fe3a48ffb6c4848ec65951f8b34c9619"
+    },
+    {
+      "path": "content/learning-release.json",
+      "sha256": "49586071caa42653fbe6273cf3cffc6236ebadbfce03c392e189c30eecaf0f84"
+    },
+    {
+      "path": "content/lessons/M001_Lesson_01_Student_Edition_v1.md",
+      "sha256": "8ed0a1ca0c1493fad509f409d254c8dd3d9e63991ae59e19444cb2f87323bb9b"
+    },
+    {
+      "path": "content/lessons/M001_Lesson_02_Student_Edition_v1.md",
+      "sha256": "c031b9d8732d5c9ea44ae71b96507239e38329ad999d2ef939d4761c87937864"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "sha256": "e84905fa4c28bd7bbfaec1cb458f4ecd8793384019f198cd099ff668b6744768"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_04_Student_Edition_v1.md",
+      "sha256": "224055dad45b47fc29f33cecb606582950ae020b331f450b20b45c7fd7e64c9c"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_05_Student_Edition_v1.md",
+      "sha256": "438fd7d4064757c379a5d1274b57a4dacce22ee937a7ac770edc1540f2982c2a"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "sha256": "af04f255aa1d342c313d65b718a911adf5732da2c73ec258ba7819ece724b635"
+    },
+    {
+      "path": "package-verification.json",
+      "sha256": "67de47c3cdf276904ba287f0c94c35daf026dab03d2232919bad7e1169f771cd"
+    },
+    {
+      "path": "release-changes.json",
+      "sha256": "dc3f90486ff17c20d9b9e07c8d826590cd25fcff666f7a51e26775e35ae62642"
+    }
+  ]
+}

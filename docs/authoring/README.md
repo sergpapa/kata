@@ -105,33 +105,47 @@ for the author's next reissue. From now on, the steps below apply. ADR 0013 reco
 - **Write and review in separate sessions.** The reviewer reads only the standard, the depth-map
   row, the previous lesson and the draft, with none of the drafting conversation.
 - **The owner's review decides acceptance.**
-- **Model.** Opus 5.5 at high effort writes and reviews. Sonnet 5.5 can do mechanical packaging
-  (hashes, manifests, re-running kit tests). If the owner judges an Opus-written lesson below
-  standard, switch to Fable 5.1. Agreed with the owner on 2026-11-03.
+- **Model.** The strongest available model designs and writes lessons (Fable 5.2 on 2026-11-19).
+  A session on a weaker model proposes the switch before drafting anything. Sonnet 5.5 can do
+  mechanical packaging (hashes, manifests, re-running kit tests). The owner set this on
+  2026-11-19, replacing the 2026-11-03 agreement that Opus 5.5 writes and Fable is the fallback.
 - **Checks the old author could not run.** These are now required: parse and render every Mermaid
   block with the app's pinned Mermaid 11.17.2 in real Chromium, rehearse in a real browser, and run
   kits natively on Windows. Kits target Node 24. Use nvm's Node, not Anaconda's v22.
 
 ## Reissuing a release
 
-Every correction ships as a new cumulative release built by the packaging tool
-(`docs/specs/release-packaging.md`). Nobody edits a hash by hand.
+Every correction or new lesson ships as a new cumulative release built by the packaging tool
+(`docs/specs/release-packaging.md`, `docs/specs/release-additions.md`). Nobody edits a hash by
+hand. Each course has its own editable source: the QA course's is `content/source/qaae/`, seeded
+on 2026-11-19. The full-stack course has none yet.
 
-1. Once, seed the editable source from the current release:
-   `npm run release:seed -- content/releases/http-first-fifteen-v1_0_1 content/source`.
-2. Edit `content/source/lessons/*.md`, the kit folders under `content/source/labs/`, or
-   `trial-activities.json`. Never put a lesson copy inside a kit folder: the build injects it.
-3. Move every version the edit touches: the lesson's front-matter `version`, each of its
+1. Once per course, seed the editable source from its current release, for example
+   `npm run release:seed -- content/releases/http-first-fifteen-v1_0_1 content/source/fsse`.
+2. **Starting a reissue**, set `previous_release` in the source's `release.json` to the current
+   release, if it does not point there already. It stays on the superseded package between
+   reissues, because a test rebuilds each current release from its source
+   (`apps/server/src/authoring/realQaaeSource.test.ts`).
+3. Edit `lessons/*.md`, the kit folders under `labs/<archive>/<folder>/`, or
+   `trial-activities.json`. Never put a lesson copy inside a kit folder: the build injects it. Never
+   run a kit inside the source tree either: the build refuses a kit folder that holds
+   `node_modules` or a folder its `.gitignore` names. Run a copy.
+4. **Adding a lesson** means adding its file and listing it in `release.json` `lessons` at its
+   course position. **Adding a kit** means adding `labs/<archive without .zip>/<top folder>/` with a
+   `manifest.json` (its `lab_id`, `version` and an empty `files` list) and listing it in
+   `release.json` `labs`. Removing either is refused.
+5. Move every version the edit touches: the lesson's front-matter `version`, each of its
    activities' `lesson_version`, the version in the manifest of the kit that carries it, and
-   `release.version` and `release.date` in `content/source/release.json`. Also rewrite
-   `release.status` and the package documents under `content/source/package/`. The build carries
-   them as written.
-4. `npm run release:build -- content/source content/releases/<new package name>`. It refuses
-   anything inconsistent by name and prints exactly which lessons and kits changed.
-5. Follow the printed make-current steps, including pointing `previous_release` at the new
-   package.
-6. Check what the tool does not: render the changed lesson's Mermaid blocks in the app, and run
-   the changed kit's own tests.
+   `release.version` and `release.date` in `release.json`. Also rewrite `release.status` and the
+   package documents under `package/`. The build carries them as written.
+6. `npm run release:build -- content/source/<course> content/releases/<new package name>`. It
+   refuses anything inconsistent by name and prints exactly which lessons and kits changed or
+   were added.
+7. Follow the printed make-current steps 1 to 3. Leave step 4, `previous_release`, for the start of
+   the next reissue (step 2 above). Update the release path in the test that rebuilds the course's
+   release from its source.
+8. Check what the tool does not: render the changed lessons' Mermaid blocks in the app
+   (`npm run screenshots`), and run the changed kits' own tests.
 
 ## Lessons from the old loop
 

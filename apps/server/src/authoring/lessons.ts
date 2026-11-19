@@ -36,41 +36,59 @@ function requiredField(frontMatter: Record<string, unknown>, field: string, file
 
 /** Every lesson `release.json` lists, in its order, with the entry the manifest will carry. */
 export function deriveLessons(sourceDir: string, release: SourceRelease): LessonSource[] {
-  return release.lessons.map((fileName, index) => {
-    const file = path.join(sourceDir, 'lessons', fileName);
-    if (!fs.existsSync(file))
-      throw new Refusal(`release.json lists ${fileName}, but lessons/ has no such file.`);
-    const bytes = fs.readFileSync(file);
-    const split = splitFrontMatter(bytes.toString('utf8'));
-    if (!split.ok) {
+  const lessons = release.lessons.map((fileName, index) =>
+    readLesson(sourceDir, release, fileName, index),
+  );
+  const seen = new Map<string, string>();
+  for (const { entry, fileName } of lessons) {
+    const earlier = seen.get(entry.lesson_id);
+    if (earlier !== undefined) {
       throw new Refusal(
-        `${fileName} does not carry readable front matter: ${split.problem.detail}.`,
+        `${earlier} and ${fileName} both carry candidate_lesson_id ${entry.lesson_id}; a lesson ID names one lesson.`,
       );
     }
-    const { frontMatter, body } = split.value;
-    const lessonId = requiredField(frontMatter, 'candidate_lesson_id', fileName);
-    const title = firstHeadingOneText(body);
-    if (title === undefined) throw new Refusal(`${fileName} has no level-one heading to title it.`);
-    const kits = release.labs.filter((lab) => lab.lesson_ids.includes(lessonId));
-    if (kits.length > 1) {
-      throw new Refusal(
-        `${lessonId} is served by ${kits.length} kits; a lesson belongs to one at most.`,
-      );
-    }
-    return {
-      fileName,
-      bytes,
-      entry: {
-        order: index + 1,
-        lesson_id: lessonId,
-        document_id: requiredField(frontMatter, 'document_id', fileName),
-        version: requiredField(frontMatter, 'version', fileName),
-        module: requiredField(frontMatter, 'module', fileName),
-        title,
-        path: `lessons/${fileName}`,
-        sha256: sha256(bytes),
-        lab_id: kits[0]?.lab_id ?? null,
-      },
-    };
-  });
+    seen.set(entry.lesson_id, fileName);
+  }
+  return lessons;
+}
+
+function readLesson(
+  sourceDir: string,
+  release: SourceRelease,
+  fileName: string,
+  index: number,
+): LessonSource {
+  const file = path.join(sourceDir, 'lessons', fileName);
+  if (!fs.existsSync(file))
+    throw new Refusal(`release.json lists ${fileName}, but lessons/ has no such file.`);
+  const bytes = fs.readFileSync(file);
+  const split = splitFrontMatter(bytes.toString('utf8'));
+  if (!split.ok) {
+    throw new Refusal(`${fileName} does not carry readable front matter: ${split.problem.detail}.`);
+  }
+  const { frontMatter, body } = split.value;
+  const lessonId = requiredField(frontMatter, 'candidate_lesson_id', fileName);
+  const title = firstHeadingOneText(body);
+  if (title === undefined) throw new Refusal(`${fileName} has no level-one heading to title it.`);
+  const kits = release.labs.filter((lab) => lab.lesson_ids.includes(lessonId));
+  if (kits.length > 1) {
+    throw new Refusal(
+      `${lessonId} is served by ${kits.length} kits; a lesson belongs to one at most.`,
+    );
+  }
+  return {
+    fileName,
+    bytes,
+    entry: {
+      order: index + 1,
+      lesson_id: lessonId,
+      document_id: requiredField(frontMatter, 'document_id', fileName),
+      version: requiredField(frontMatter, 'version', fileName),
+      module: requiredField(frontMatter, 'module', fileName),
+      title,
+      path: `lessons/${fileName}`,
+      sha256: sha256(bytes),
+      lab_id: kits[0]?.lab_id ?? null,
+    },
+  };
 }

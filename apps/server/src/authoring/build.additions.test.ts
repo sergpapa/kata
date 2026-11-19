@@ -20,13 +20,16 @@ import {
   addActivity,
   addKit,
   addLesson,
+  LESSON_1,
   cleanTemps,
   lessonFile,
+  listFiles,
   moveReleaseVersion,
   outputPath,
   readJson,
   seededSource,
   sha256,
+  tempDir,
 } from './testkit/sourceFixture.js';
 import { built, kitZip } from './testkit/buildAssertions.js';
 

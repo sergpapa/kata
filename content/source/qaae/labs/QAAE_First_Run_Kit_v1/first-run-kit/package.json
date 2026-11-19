@@ -1,0 +1,14 @@
+{
+  "name": "qaae-first-run-kit",
+  "version": "1.0.0-draft",
+  "private": true,
+  "description": "A small booking site and one Playwright test, for running an automated test for the first time.",
+  "scripts": {
+    "site": "node site/server.mjs",
+    "test": "playwright test",
+    "watch": "playwright test --config=playwright.watch.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}

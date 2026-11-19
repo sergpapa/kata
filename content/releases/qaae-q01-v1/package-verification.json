@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-19",
+  "release_id": "QAAE-Q01",
+  "release_version": "1.1.0-draft",
+  "importer_verification": "passed",
+  "checks_run": [
+    "importer_verification",
+    "nested_lesson_copies_match_canonical",
+    "all_hashes_recomputed"
+  ],
+  "not_run_by_this_tool": [
+    "mermaid_parse_and_render",
+    "browser_rehearsal",
+    "kit_runtime_suites"
+  ]
+}
