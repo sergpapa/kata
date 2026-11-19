@@ -1,0 +1,127 @@
+/* The dashboard's Export card (docs/specs/export.md EX15–EX18). It sits in the overview grid's
+   narrow column, so the range pickers stack unless the card spans the page. */
+
+.export-card h2 {
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.export-lede {
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.9375rem;
+}
+
+.export-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.export-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.export-field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* min-width 0 and width 100%: a lesson title is long, and a select sizes itself to its longest
+   option unless told otherwise, which pushes a 375px page sideways. */
+.export-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.3rem 0.5rem;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+}
+
+.export-field select[aria-invalid='true'] {
+  border-color: var(--state-failed);
+}
+
+/* --state-failed is too low-contrast for a sentence on a light surface (lesson.css records it),
+   so the words keep the text colour and the red is the edge beside them. */
+.export-range-error {
+  margin: 0.6rem 0 0;
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--state-failed);
+  font-size: 0.9rem;
+}
+
+.export-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.export-check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  flex: none;
+  accent-color: var(--primary);
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.export-button {
+  min-height: 44px;
+  padding: 0.4rem 1.1rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+
+.export-button:hover {
+  border-color: var(--foreground);
+}
+
+.export-button:disabled,
+.export-button:disabled:hover {
+  cursor: default;
+  background: var(--card);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  border-style: dashed;
+}
+
+.export-status {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.export-failure {
+  margin: 0.75rem 0 0;
+  border-left-color: var(--state-failed);
+  font-size: 0.9rem;
+}
+
+/* Below 901px the overview grid is one column, so the card spans the page and has room for two. */
+@media (min-width: 600px) and (max-width: 900px) {
+  .export-range {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

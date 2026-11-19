@@ -69,15 +69,7 @@
 /* The current-lesson card lives in continue-card.css — its own responsibility, split when the
    edge refinement grew this file past the size rule. */
 
-.records-card h2 {
-  font-size: 1rem;
-  margin-bottom: 0.9rem;
-}
-
-.records-card p {
-  color: var(--muted-foreground);
-  font-size: 0.9375rem;
-}
+/* The Export card's own rules are in export-card.css. */
 
 /* A ruled heading: the hairline is the Swiss ornament doing the section's work. */
 .section-heading {

@@ -124,6 +124,29 @@ export function loadResponsesForActivities(
   return rows.map(toResponse);
 }
 
+/**
+ * Every stored field whose latest write was made against one of the named lessons, whatever its
+ * activity. The export uses it to find work whose activity a later release dropped: such work is
+ * still the owner's, and the lesson stamp is the only thing left that says where it belongs.
+ */
+export function loadResponsesForLessons(
+  db: Db,
+  candidateLessonIds: readonly string[],
+): readonly StoredResponse[] {
+  if (candidateLessonIds.length === 0) return [];
+  const slots = candidateLessonIds.map(() => '?').join(', ');
+  const rows = db
+    .prepare(
+      `SELECT activity_id, field_name, candidate_lesson_id, content_version, release_id,
+              text, revision, updated_at
+         FROM learner_response
+        WHERE candidate_lesson_id IN (${slots})
+        ORDER BY activity_id, id`,
+    )
+    .all(...candidateLessonIds) as ResponseRow[];
+  return rows.map(toResponse);
+}
+
 interface RevisionRow {
   activity_id: string;
   field_name: string;

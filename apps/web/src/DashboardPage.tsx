@@ -1,5 +1,6 @@
 import { useApi, type ApiResult } from './api.js';
 import { courseApi } from './course.js';
+import { ExportCard } from './ExportCard.js';
 import { twoDigits } from './format.js';
 import { ArrowRightIcon, ChevronRightIcon } from './icons.js';
 import { RouteLink } from './RouteLink.js';
@@ -168,17 +169,7 @@ export function DashboardPage({
           </section>
         )}
 
-        <section className="card records-card">
-          <h2>Your records</h2>
-          <p>
-            The lesson you last open is kept, so the app can offer the way back to it. Your notes,
-            predictions and observations are not recorded yet — they arrive with acknowledged
-            saving, in Milestone 2.
-          </p>
-          <p className="fine">
-            Until then nothing you type would survive a refresh, so nothing here asks you to type.
-          </p>
-        </section>
+        <ExportCard courseId={courseId} lessons={lessons} />
       </div>
 
       <div className="section-heading">

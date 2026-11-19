@@ -22,6 +22,7 @@ import {
   type FeedbackRouteDeps,
 } from '../feedback/feedbackRoutes.js';
 import { workedAnswerLookup } from '../feedback/lessonAnswers.js';
+import { registerExportRoutes } from '../export/exportRoutes.js';
 
 /**
  * Everything one course serves, under `/api/courses/<courseId>/` (ADR 0018).
@@ -203,6 +204,7 @@ export function registerCourseRoutes(
   });
 
   registerFeedbackRoutes(app, feedbackDeps);
+  registerExportRoutes(app, { db, course, activitiesOfRelease: allActivities });
 }
 
 /**

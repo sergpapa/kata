@@ -32,47 +32,54 @@ export function useFileDownload(): {
   }, []);
 
   function download(fileName: string, body: string, type: string): void {
-    let href: string | null = null;
-    try {
-      // Read at press time for the same reason the clipboard is: a browser can be without this
-      // entirely — jsdom is, and so is any context where object URLs are disallowed — and the
-      // answer belongs to this press. Checked rather than called blind, so "no such method" and
-      // "the method said no" both arrive here as the same honest refusal.
-      const make = URL.createObjectURL;
-      if (typeof make !== 'function') {
-        throw new Error('This browser gave the page no way to make a file.');
-      }
-      href = URL.createObjectURL(new Blob([body], { type }));
-      const anchor = document.createElement('a');
-      anchor.href = href;
-      anchor.download = fileName;
-      // In the document for the press, and out again straight after. Chromium obliges a detached
-      // anchor; Firefox and several WebViews ignore the click entirely, so the reader would be
-      // told "Downloaded" and get no file — the exact false success this whole slice exists to
-      // prevent, in the control meant to prevent it. Hidden, because it is machinery and not
-      // something anybody should see land on the page.
-      anchor.style.display = 'none';
-      document.body.append(anchor);
-      try {
-        anchor.click();
-      } finally {
-        anchor.remove();
-      }
-      setState('downloaded');
-    } catch {
-      setState('failed');
-      // Nothing was handed over, so nothing may be claimed — and if the URL was made before the
-      // failure, it is still ours to clean up.
-      if (href !== null) revokeSoon(href);
-      href = null;
-    }
-
-    if (href !== null) revokeSoon(href);
+    setState(handFileToBrowser(fileName, body, type) ? 'downloaded' : 'failed');
     if (timer.current !== null) clearTimeout(timer.current);
     timer.current = setTimeout(() => setState('idle'), DOWNLOAD_SETTLE_MS);
   }
 
   return { state, download };
+}
+
+/**
+ * Hands `body` to the browser as a file named `fileName`, and says whether it was taken.
+ *
+ * Shared by the recovery download and the Export card (docs/specs/export.md EX16), which each keep
+ * their own words for the outcome. False means nothing was handed over, so nothing may be claimed.
+ */
+export function handFileToBrowser(fileName: string, body: string, type: string): boolean {
+  let href: string | null = null;
+  try {
+    // Read at press time for the same reason the clipboard is: a browser can be without this
+    // entirely — jsdom is, and so is any context where object URLs are disallowed — and the
+    // answer belongs to this press. Checked rather than called blind, so "no such method" and
+    // "the method said no" both arrive here as the same honest refusal.
+    const make = URL.createObjectURL;
+    if (typeof make !== 'function') {
+      throw new Error('This browser gave the page no way to make a file.');
+    }
+    href = URL.createObjectURL(new Blob([body], { type }));
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = fileName;
+    // In the document for the press, and out again straight after. Chromium obliges a detached
+    // anchor; Firefox and several WebViews ignore the click entirely, so the reader would be
+    // told "Downloaded" and get no file — the exact false success this whole slice exists to
+    // prevent, in the control meant to prevent it. Hidden, because it is machinery and not
+    // something anybody should see land on the page.
+    anchor.style.display = 'none';
+    document.body.append(anchor);
+    try {
+      anchor.click();
+    } finally {
+      anchor.remove();
+    }
+    revokeSoon(href);
+    return true;
+  } catch {
+    // If the URL was made before the failure, it is still ours to clean up.
+    if (href !== null) revokeSoon(href);
+    return false;
+  }
 }
 
 /** Long enough that no browser is still reading the blob, short enough to be unmistakably a hand-back. */
