@@ -82,11 +82,12 @@
 
 .export-conversations legend {
   padding: 0;
+  margin-bottom: 0.3rem;
   font-size: 0.875rem;
   font-weight: 600;
 }
 
-.export-check {
+.export-radio {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -95,7 +96,7 @@
   cursor: pointer;
 }
 
-.export-check input {
+.export-radio input {
   width: 1.15rem;
   height: 1.15rem;
   margin: 0;

@@ -162,21 +162,21 @@
   outline-offset: 2px;
 }
 
+/* A hairline above every earlier conversation, the first included: the design review found the
+   first one ran on from the live conversation above with only whitespace between. No left rule of
+   its own, because the turns inside already carry theirs. */
 .feedback-earlier-item {
-  margin-top: 0.6rem;
-  padding-left: 0.9rem;
-  border-left: 1px solid var(--border);
-}
-
-.feedback-earlier-item + .feedback-earlier-item {
-  margin-top: 1.1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 .feedback-earlier-when {
   margin: 0;
-  color: var(--eyebrow);
+  color: var(--muted-foreground);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .feedback-sent-list {

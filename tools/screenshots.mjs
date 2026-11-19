@@ -161,14 +161,18 @@ try {
 
   // Criterion EC9 (docs/specs/earlier-conversations.md): one started-over conversation on the same
   // activity, written into the store because the feedback route would start Claude Code.
-  const lessonOne = await (await fetch(`${baseUrl}/api/courses/FSSE/lessons/LS-M020-01`)).json();
+  const lessonAnswer = await fetch(`${baseUrl}/api/courses/FSSE/lessons/LS-M020-01`);
+  const lessonOne = await lessonAnswer.json();
+  if (!lessonAnswer.ok || lessonOne.state !== 'lesson' || !lessonOne.lesson?.contentVersion) {
+    throw new Error(`Lesson 1 did not answer as a lesson, so EC9 has nothing to stamp a seed with`);
+  }
   seededEarlier = seedEarlierConversation(
     path.join(repoRoot, 'data', 'screenshots', 'educode.sqlite'),
     {
       activityId: seededHistory.activityId,
       lessonId: 'LS-M020-01',
-      contentVersion: lessonOne.lesson?.contentVersion ?? 'unknown',
-      releaseId: lessonOne.release?.releaseId ?? 'unknown',
+      contentVersion: lessonOne.lesson.contentVersion,
+      releaseId: lessonOne.release.releaseId,
     },
   );
 

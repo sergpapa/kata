@@ -108,3 +108,44 @@ appears under the feedback area; opened, it shows that conversation read-only. A
 the count does not move. On the course page they choose "Current and earlier" and export: the file
 has each current conversation, then the earlier ones newest first, each under its own labelled
 heading. With "Current only" the file is as it was before this slice.
+
+## Slice record
+
+**2026-11-19.** Built in one session, after the owner read their first feedback and asked whether it
+was kept.
+
+- **Stage 0.** Two forks asked in one batch; the owner took both recommendations: hidden
+  conversations with no reply are skipped, and Export gets one three-way choice. ADR 0021 (written
+  just before, at the owner's request) set the rules this slice keeps: one new repository query
+  (`earlierConversations`), no new table, no route touching SQL.
+- **test-guardian PRE:** PASS with eight findings, all taken before the tests were pinned. The ones
+  that mattered: the Export group was looked up as `radiogroup`, which a native fieldset is not; no
+  test checked that an earlier conversation ending in a failure offers no Try again; and the export
+  never wrote an earlier failed turn, a same-moment tie, or an earlier-only model. Tests pinned in
+  `1bd521a`.
+- **One test was wrong, fixed with the owner's approval.** "shows the turns as the current
+  conversation does" asserted a `<strong>` while the reply it rendered had no Markdown, so no
+  implementation could pass it. The input got Markdown and the assertion got stricter (`ea696b4`).
+  That is the only test change after the pin, so test-guardian POST was skipped.
+- **Green:** server 640 of 640 on the first run; web 779 of 780, the one being the test above.
+  Implementation in `689562a`.
+- **`/code-review` (medium):** seven nits. Taken: `export.md` and the roadmap amended; the gate's
+  seed refuses a lesson answer it cannot stamp from; the 426-line export test split along its
+  describe blocks (bodies byte-identical, shared seeds in `testkit/earlierFixture.ts`); the Export
+  constants reordered. **Declined:** the README, because the owner's uncommitted rewrite of it is in
+  progress; an index for `cleared_at IS NOT NULL`, because the table holds tens of rows per learner
+  and a migration on the owner's store costs more than the scan; and dating same-minute hides to
+  the second, because PF20's words are pinned and two hides in one minute still differ in content.
+- **Design review:** ship with nits. Taken: a hairline and a stronger dated line above every earlier
+  conversation, the first included (the major: it ran on from the live one), no second left rule
+  around the turns, the legend's gap, `.export-check` renamed `.export-radio`. **Declined:** the
+  375px wrap of "on 19 November", which stays legible.
+- **Verified in the real app** (built, port 8319, scratch store, Chromium, Claude Code path pointed
+  at an empty file so no run could start): Start over raised the count from 1 to 2 without a
+  reload; Enter opened the disclosure; the Try again leftover never showed; no control inside; no
+  sideways scroll at 375, 768 or 1440. "Current and earlier" downloaded a file whose context line
+  and two earlier headings were as EC11 and EC12 say, without the leftover. `npm run screenshots`
+  now seeds one earlier conversation into its store and opens it at every width and scheme.
+- **Known:** `CopyBlock.test.tsx` "puts one on the labelled source a diagram falls back to" hit
+  6907 ms in one full web run while other sessions were loading the machine; 10 of 10 alone
+  (66–1684 ms) and 780 of 780 in the next full run. Not widened.

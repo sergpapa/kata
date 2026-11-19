@@ -9,7 +9,8 @@ owner chooses, per export, whether Claude's practice feedback goes with it.
 
 1. **Conversations are a choice at export time.** A checkbox beside Export, off by default. Checked,
    each activity carries its current conversation under its answers. Conversations hidden by
-   Start over never go.
+   Start over never go. _(Amended 2026-11-19 by `docs/specs/earlier-conversations.md`: the checkbox is now None / Current only / Current
+   and earlier, and the last carries the started-over conversations that had a reply.)_
 2. **One export covers a lesson range.** From/to pickers on the course page, defaulting to the whole
    course, so one file can match one review form (Lessons 6–8, say).
 3. **Answers carry their history.** The current text first, then each earlier version with its date
@@ -35,7 +36,8 @@ attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-M
   `Course: <id> — <title>`; `Release: <release id> version <version> (<date>)`;
   `App version: <package.json version>`; `Exported: <ISO 8601 time>`;
   `Lessons: <from order> <from title> to <to order> <to title>`;
-  `AI feedback conversations: included` or `AI feedback conversations: not included`; and the
+  `AI feedback conversations: included` or `AI feedback conversations: not included` (or, since
+  EC12 of earlier-conversations.md, `…: included, with earlier conversations` for `all`); and the
   sentence "Only work the app acknowledged as saved is included." These are the fields the review
   form's Context section asks for.
 - **EX3.** Every lesson from `from` to `to` inclusive appears, in release order (the manifest's
@@ -84,7 +86,8 @@ attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-M
   the order they were taken. A Claude
   turn's text, even partial, is a block under its line; an empty one has no block.
 - **EX11.** A conversation hidden by Start over never appears, with either setting. An activity
-  whose only conversations are hidden shows none.
+  whose only conversations are hidden shows none. _(Amended 2026-11-19 by `docs/specs/earlier-conversations.md`: true for `0` and `1`; `conversations=all`
+  carries hidden conversations that had a reply, EC11.)_
 
 ### Consistency and refusals
 
@@ -95,7 +98,8 @@ attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-M
   given twice (the message names the parameter in backticks, `` `from` `` or `` `to` ``, and not the
   other); `from` or `to` not a lesson of this course's release, including another course's lesson
   (the message names the value); `from` after `to` in release order (the message names both); and
-  `conversations` other than `0` or `1`, including empty (the message names `` `conversations` ``).
+  `conversations` other than `0` or `1`, including empty (the message names `` `conversations` ``). _(Amended 2026-11-19 by `docs/specs/earlier-conversations.md`: `all`
+  is now accepted too, EC10.)_
 - **EX14.** A course whose release failed to import answers the same `failed` state its other
   routes give.
 
@@ -104,7 +108,8 @@ attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-M
 - **EX15.** The course dashboard's "Your records" card — whose text still says notes "are not
   recorded yet" — is replaced by an Export card headed "Export your work": From and To selects
   listing the course's lessons by order and title (defaulting to the first and last), an "Include
-  AI feedback conversations" checkbox (unchecked), and an Export button. A course with one lesson shows
+  AI feedback conversations" checkbox (unchecked), and an Export button. _(Amended 2026-11-19 by `docs/specs/earlier-conversations.md`: the checkbox
+  is now a radio group, EC13.)_ A course with one lesson shows
   that lesson as text under the label "Lesson" instead of the two selects. This re-aims
   `DashboardPage.test.tsx` "says plainly what is kept and what is not recorded yet", whose claim
   stopped being true in Milestone 2.

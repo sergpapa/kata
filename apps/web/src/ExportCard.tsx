@@ -20,6 +20,7 @@ type Outcome =
   | { readonly state: 'failed'; readonly message: string };
 
 const NOT_ARRIVED = 'The export did not arrive. Nothing was downloaded.';
+const NOT_SAVED = 'Your browser did not save the file. Nothing was downloaded.';
 
 /** The conversations choice, in the order shown, with the value the server reads (EC13). */
 const CONVERSATION_CHOICES = [
@@ -29,7 +30,6 @@ const CONVERSATION_CHOICES = [
 ] as const;
 
 type ConversationsValue = (typeof CONVERSATION_CHOICES)[number]['value'];
-const NOT_SAVED = 'Your browser did not save the file. Nothing was downloaded.';
 
 /** The name the server gave the file, or a plain fallback if a proxy dropped the header. */
 function fileNameFrom(disposition: string | null, courseId: string): string {
@@ -200,7 +200,7 @@ export function ExportCard({
       <fieldset className="export-conversations">
         <legend>AI feedback conversations</legend>
         {CONVERSATION_CHOICES.map((choice) => (
-          <label key={choice.value} className="export-check">
+          <label key={choice.value} className="export-radio">
             <input
               type="radio"
               name={`${ids}-conversations`}
