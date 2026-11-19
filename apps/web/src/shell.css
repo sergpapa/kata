@@ -41,29 +41,24 @@
   align-items: center;
   gap: 0.85rem;
   margin: 0;
-  padding: 1.7rem 1.5rem 2.25rem;
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 650;
+  padding: 1.7rem 1.5rem 1.75rem;
   line-height: 1.25;
-  letter-spacing: -0.02em;
 }
 
 /* The brush mark is drawn light-on-transparent for the sidebar's navy, which both schemes share.
-   Its file keeps the logo's own margin around the ring, so the box is a little larger than the
-   ink it shows. */
+   Its file is cropped to the ink, so its left edge lines up with the navigation below it. */
 .brand-mark {
   flex-shrink: 0;
-  width: 3.25rem;
-  height: 3.25rem;
+  height: 2.6rem;
+  width: auto;
 }
 
 /* The KATA wordmark is outlined lettering, so its height sets the name's size. */
 .brand-wordmark {
   display: block;
-  height: 1rem;
+  height: 1.125rem;
   width: auto;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
 }
 
 .brand-name span {

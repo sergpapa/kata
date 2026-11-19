@@ -221,15 +221,32 @@ def build():
     # 0 the master mark last, so its ids don't shift the others
     rect(b, 0, 0, 600, 600, NAVY)
     mark(b, 300, 300, 1.0, LIGHT, LIME)
-    # 6, 7: the web app's sidebar images, transparent so the sidebar's own navy shows through
-    b.add("artboard.new", x=2100, y=700, width=600, height=600, name="app-mark")
-    mark(b, 2400, 1000, 1.0, LIGHT, LIME)
-    b.add("artboard.new", x=2100, y=1400, width=700, height=200, name="app-wordmark")
-    word = wordmark(b, 2100, 1540, 168, LIGHT)
+    # 6, 7: the web app's sidebar images, transparent so the sidebar's own navy shows through.
+    # They sit in a row of their own below every other artboard: art drawn where two artboards
+    # overlap is exported by both. Each is cropped to its art, so the app sizes the ink itself.
+    b.add("artboard.new", x=0, y=1700, width=600, height=600, name="app-mark")
+    parts = mark(b, 300, 2000, 1.0, LIGHT, LIME)
+    b.add("select.set", ids=parts)
+    b.add("artboard.fitToSelection", index=6)
+    b.add("artboard.new", x=700, y=1700, width=700, height=200, name="app-wordmark")
+    word = wordmark(b, 700, 1840, 168, LIGHT)
     b.add("select.set", ids=[b.ref(word, "ids.0")])
     b.add("artboard.fitToSelection", index=7)
     b.add("select.none")
+    check_artboards_apart(b.cmds)
     return b.cmds
+
+
+def check_artboards_apart(cmds):
+    """Refuse a layout where two artboards overlap: art drawn in the overlap is exported by both,
+    so one version would silently carry another's strokes or letters."""
+    boards = [("mark-reversed", 0, 0, 600, 600)]
+    boards += [(c["params"]["name"], c["params"]["x"], c["params"]["y"], c["params"]["width"],
+                c["params"]["height"]) for c in cmds if c["command"] == "artboard.new"]
+    for i, (n1, x1, y1, w1, h1) in enumerate(boards):
+        for n2, x2, y2, w2, h2 in boards[i + 1:]:
+            if x1 < x2 + w2 and x2 < x1 + w1 and y1 < y2 + h2 and y2 < y1 + h1:
+                raise SystemExit(f"artboards {n1} and {n2} overlap")
 
 
 if __name__ == "__main__":

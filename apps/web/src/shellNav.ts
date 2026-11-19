@@ -52,9 +52,9 @@ export interface Crumb {
 }
 
 /**
- * The trail always starts at Kata, the product, which leads to the course list, and inside a course names the
- * course second (design review 2026-11-03): on a phone the sidebar is a closed drawer, and the
- * trail is the only place the reader can see which course they are in.
+ * The trail always starts at Kata, the product, which leads to the course list, and inside a
+ * course names the course second (design review 2026-11-03): on a phone the sidebar is a closed
+ * drawer, and the trail is the only place the reader can see which course they are in.
  */
 export function trailFor(
   route: Route,

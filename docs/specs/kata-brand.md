@@ -25,10 +25,9 @@ Kata brush mark replaces the old angle-bracket mark.
       the heading `# EduCode export`, because ADR 0020 fixes that format and the owner may already
       have sent files under it. Internal names stay: `EDUCODE_*` environment variables, the
       `@educode/*` workspace packages, the `educode.*` storage keys and the SQLite file name.
-- [ ] **B7. Every route, both schemes, three widths.** `npm run screenshots` passes. The sidebar is
-      navy in light and dark, so one light-on-navy asset serves both. (ADR 0021's axe-core check is
-      not in the gate yet, so it cannot vouch for this slice; the images' text alternatives are
-      asserted by B1's tests instead.)
+- [ ] **B7. Every route, both schemes, three widths.** `npm run screenshots` passes, including the
+      axe-core check (ADR 0021). The sidebar is navy in light and dark, so one light-on-navy asset
+      serves both.
 
 ## Assumptions (not asked; defaults recorded)
 
@@ -45,3 +44,38 @@ Kata brush mark replaces the old angle-bracket mark.
 
 Renaming the repository, the packages, environment variables, storage keys or the export format;
 any colour change to the app (the brand uses the existing tokens).
+
+## Slice record — 2026-11-19
+
+**Built.** The sidebar shows the brush mark (`alt=""`) beside the KATA wordmark (`alt="Kata"`),
+over "Owner rehearsal"; the breadcrumb starts at Kata; the tab is titled Kata with 32 px and 16 px
+favicons; the server's start, failure and shutdown lines say Kata. Exports still say EduCode.
+
+**Criteria.** B1–B4 are covered by `Shell.test.tsx`, `courses.test.tsx` and `pageHead.test.ts`,
+written first and audited by test-guardian (PRE); the test files did not change after the red
+commit, so POST was skipped. B5 was checked by booting the built server on a scratch store
+(`Kata is running at http://127.0.0.1:8319`). B6 holds by construction: the export code and its
+tests are untouched. B7: `npm run screenshots` passes its layout checks on 26 routes × 3 widths × 2
+schemes after the review fixes. One run before that failed 100 checks, all "no contents entries" or
+"0 panels" on lesson pages, while another session built in the same tree; that signature is a
+missing element, not a wrong value, its own screenshot of the page showed the contents, and the
+next run passed untouched. **The axe-core part of B7 is open**: ADR 0021's check is not in `tools/` yet, so nothing has
+run axe against this slice. The images' text alternatives are asserted by B1's tests meanwhile.
+
+**Review.** Code review found that the build script's two app artboards overlapped the light
+horizontal lockup, so the app mark carried four hidden navy letters and a regeneration would have
+painted the mark over that lockup. Fixed: the app artboards have a row of their own, the script
+refuses overlapping artboards, and every logo PNG regenerated pixel-identical to the committed one.
+Also taken: the app ships the documented favicon files byte for byte; a doc comment rewrapped to
+100 columns. Design review: the wordmark grew to 1.125rem, the mark is cropped to its ink (2.6rem
+tall) so it lines up with the navigation, the block's bottom padding is 1.75rem, and the `.brand`
+font rules that no longer reached any text are gone.
+
+**Not taken, with reasons.** The mark stays a 103 KB SVG: it is served from the owner's own machine,
+gzips to about a third, and stays sharp at any zoom; a PNG would trade that for bytes nobody waits
+on. No Apple touch icon or SVG favicon: the spec's assumption is favicons only, for a desktop
+browser. `Vite ?no-inline` keeps the 2 KB wordmark a file like the mark, rather than a data URL.
+
+**Working tree.** Another session's uncommitted "release additions" work shares this tree. Its red
+tests and its server type errors (`apps/server/src/authoring/cli.ts`, `kits.ts`) fail the full
+suite and `npm run build`'s server step; none of those files is in this slice.
