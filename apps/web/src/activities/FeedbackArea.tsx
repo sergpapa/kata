@@ -41,7 +41,7 @@ function remember(model: FeedbackModel): void {
 }
 
 /** "15:00 on 19 November", in the reader's own time zone (PF20). */
-export function resumesAtWords(iso: string): string {
+function resumesAtWords(iso: string): string {
   const when = new Date(iso);
   const time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const day = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });

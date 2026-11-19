@@ -2,40 +2,45 @@
 
 ## Current state
 
-Last updated 2026-11-03. **The app serves two courses, and the QA course has its first lesson.**
-ADR 0018: a fixed course list in `config.ts` (`FSSE` Full-Stack Software Engineering, then `QAAE`
-QA Automation Engineering), each course imported from its own release and refused on its own. The
-API is under `/api/courses/:courseId/`, pages under `/courses/:courseId/`, `/` is the course list,
-and old `/lessons/:id` links forward to the full-stack course. One resume point per course
-(migration 6). Work on a lesson two courses share keeps one set of answers. Criteria and slice
-record: `docs/specs/multi-course.md`.
+Last updated 2026-11-19. **Practice activities can ask Claude for feedback, in the lesson.** ADR 0019
+(amends 0017): the local server runs the owner's own Claude Code, one headless process per turn, on
+their Team plan — `--safe-mode`, no tools, no MCP servers, no API key in its environment, and killed
+at its init event if it reports any of those. Replies stream under the activity, labelled AI
+feedback with the model that answered; follow-ups resume the session; Start over hides a
+conversation without deleting it; Sonnet (default), Opus or Haiku per browser. Migration 7 stores
+every turn append-only, guarded by triggers. Criteria and slice record:
+`docs/specs/practice-feedback.md`.
 
-**QA Lesson 1 is an owner-review candidate**: `content/releases/qaae-lesson-01-v1/`
-(`QAAE-LESSON-01@1.0.0-draft`, "What changes when a machine runs your test?", 3 activities, no
-lab). It was reviewed in a separate session and revised against all 17 findings. The owner has not
-read it. Its course plans are in `docs/courses/qa-automation/` (ADRs 0014–0017), still v0.1 drafts
-awaiting the owner's review.
+**Money.** The owner's org has paid extra usage switched on. New turns pause while the last usage
+report showed any window at 90% or more, or extra usage in use, until it resets; at most one reply
+can start inside extra usage before the pause stops the next. This development session draws on
+the same plan allowance, so a heavy build day can pause feedback.
 
-**The owner's real store is already migrated.** The owner's own `npm run dev` server restarts on file
-changes, and it applied migration 6 to `data/educode.sqlite` at 15:41 on 2026-11-03. Checked
-read-only afterwards: 0 saved answers and 0 revisions, both before and after (nothing had been
-saved), and the one resume point (Lesson 5) moved to `FSSE` intact.
+**The owner's real store has not been migrated to schema 7 yet.** Their `npm run dev` server applies
+migration 7 to `data/educode.sqlite` the next time it restarts; the migration is additive and
+touches no existing table. Verified on a scratch store only.
 
-`npm test` (1193 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
-format:check` and `npm run screenshots` (22 routes, 3 widths, 2 schemes) pass under nvm's Node 24.12.
+`npm test` (1369 tests), `npm run lint`, `npm run typecheck`, `npm run build` and `npm run
+format:check` pass under nvm's Node 24.12. **`npm run screenshots` was not run this slice**; the new
+area was checked instead with real-app screenshots at 375, 768 and 1440 and one ask driven through
+the page in Chromium.
 
-**Known and not fixed.** The dashboard's "Your records" card still says work is not recorded "until
-Milestone 2", which has shipped. `release:build` cannot build a course's first release, so the QA
-package was assembled once by script. `LessonPage.tsx` is 359 lines. Everything listed under the
-previous state that this slice did not touch still stands (see "Superseded state notes").
+**Known and not fixed.** `README.md` does not describe practice feedback yet: the owner has an
+uncommitted rewrite of its "How to run it" section in progress, and this slice did not touch that
+file. The four field labels are written twice (`apps/server/src/modules/feedback/prompt.ts` and
+`apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines; three new test files are
+363–410. Try again hides the failed conversation before its second step, so a refused second step
+leaves the area empty (nothing is lost from the store). Everything under the previous state that
+this slice did not touch still stands (see "Superseded state notes").
 
 Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
 yet; the owner will judge Lessons 6+ first and decide then.
 
-Next action: the owner reads QA Lesson 1 and Lessons 5–8 of the full-stack course in the app, and
-reviews the QA course plans in `docs/courses/qa-automation/`. The next QA content is the BookingLab
-practice-application spec, which the course's Playwright stage depends on. The app's next slice
-is still Milestone 3's Export.
+Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and
+continues reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
+`docs/courses/qa-automation/`. The next QA content is the BookingLab practice-application spec. The
+app's next slice is Milestone 3's Export, which now also decides whether conversations travel with
+the owner's answers.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -149,6 +154,12 @@ is still Milestone 3's Export.
       design review (ship-with-nits, five findings, all taken). The finding that mattered would have
       broken every download on a machine whose release sits behind a symlink or a junction, and on
       none of mine. Criteria and slice record in `docs/specs/lab-downloads.md`.
+- [x] **Practice feedback from Claude.** Done 2026-11-19, ahead of Export at the owner's request
+      (ADR 0019). test-guardian PRE (FAIL on 21 findings, all taken before implementation) and
+      POST (pass), `/code-review` at medium (five defects and four nits, all taken), design review
+      (ship-with-nits; taken but two, declined with reasons), `/hygiene` clean. Verified against
+      the real Claude Code: a first turn, a resumed follow-up, and an ask through the page. Record
+      in `docs/specs/practice-feedback.md`.
 - [ ] **Export.** The owner's actual work with lesson, activity, content-version and release context,
       in a form that travels with the owner review forms (`Owner_Review_After_Lesson_05.md`, `_08`,
       `_13`).
@@ -510,6 +521,43 @@ need an approved data policy and a named reviewer before they mean anything.
 ## Superseded state notes
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-11-19, before practice feedback.**
+
+  Last updated 2026-11-03. **The app serves two courses, and the QA course has its first lesson.**
+  ADR 0018: a fixed course list in `config.ts` (`FSSE` Full-Stack Software Engineering, then `QAAE`
+  QA Automation Engineering), each course imported from its own release and refused on its own. The
+  API is under `/api/courses/:courseId/`, pages under `/courses/:courseId/`, `/` is the course list,
+  and old `/lessons/:id` links forward to the full-stack course. One resume point per course
+  (migration 6). Work on a lesson two courses share keeps one set of answers. Criteria and slice
+  record: `docs/specs/multi-course.md`.
+
+  **QA Lesson 1 is an owner-review candidate**: `content/releases/qaae-lesson-01-v1/`
+  (`QAAE-LESSON-01@1.0.0-draft`, "What changes when a machine runs your test?", 3 activities, no
+  lab). It was reviewed in a separate session and revised against all 17 findings. The owner has not
+  read it. Its course plans are in `docs/courses/qa-automation/` (ADRs 0014–0017), still v0.1 drafts
+  awaiting the owner's review.
+
+  **The owner's real store is already migrated.** The owner's own `npm run dev` server restarts on file
+  changes, and it applied migration 6 to `data/educode.sqlite` at 15:41 on 2026-11-03. Checked
+  read-only afterwards: 0 saved answers and 0 revisions, both before and after (nothing had been
+  saved), and the one resume point (Lesson 5) moved to `FSSE` intact.
+
+  `npm test` (1193 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
+format:check` and `npm run screenshots` (22 routes, 3 widths, 2 schemes) pass under nvm's Node 24.12.
+
+  **Known and not fixed.** The dashboard's "Your records" card still says work is not recorded "until
+  Milestone 2", which has shipped. `release:build` cannot build a course's first release, so the QA
+  package was assembled once by script. `LessonPage.tsx` is 359 lines. Everything listed under the
+  previous state that this slice did not touch still stands (see "Superseded state notes").
+
+  Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
+  yet; the owner will judge Lessons 6+ first and decide then.
+
+  Next action: the owner reads QA Lesson 1 and Lessons 5–8 of the full-stack course in the app, and
+  reviews the QA course plans in `docs/courses/qa-automation/`. The next QA content is the BookingLab
+  practice-application spec, which the course's Playwright stage depends on. The app's next slice
+  is still Milestone 3's Export.
 
 - **2026-11-03, before multi-course support.**
 

@@ -196,7 +196,7 @@ export function loadUsage(
   return { info: info as RateLimitInfo, observedAt: new Date(row.observed_at) };
 }
 
-export const INTERRUPTED = 'The app was stopped before Claude replied. Try again, or start over.';
+const INTERRUPTED = 'The app was stopped before Claude replied. Try again, or start over.';
 
 /**
  * Closes every current conversation whose last turn is the learner's (PF16).

@@ -204,3 +204,38 @@ On Lesson 5, Practice C, the owner types into two boxes without saving and press
 feedback**. Text starts appearing under the activity within seconds, labelled AI feedback with
 the Sonnet model id. They ask a follow-up and get an answer that knows the first exchange. A
 refresh shows both exchanges. **Start over** clears the area, and **Get feedback** starts afresh.
+
+## Slice record
+
+**2026-11-19.** Built in one session after the owner's request of 2026-11-03.
+
+- **Measured first.** Four real headless runs of the owner's Claude Code fixed the stream format
+  before any test was written (the trimmed copies are `testkit/recorded/`). They also found that
+  `--bare` signs in by API key only, that without `--safe-mode` a run loads the owner's global
+  CLAUDE.md and plugins, and that the org has paid extra usage switched on, which is why the usage
+  pause exists.
+- **test-guardian PRE:** FAIL on 21 findings, all taken in `324648c` before implementation. The
+  money findings that mattered: the pause was only tested on a follow-up, a run killed for extra
+  usage was never shown to store its report, and nothing tested the startup wiring.
+- **Found during Green:** the five schema-version re-aims above, and three test-side mistakes of
+  this slice's own making, each reviewed by POST: a shell heredoc dropped backslashes in
+  `compose.test.ts` (one became a tab character) and turned `\b` into backspace characters in a
+  `prompt.test.ts` regex, and a no-save assertion
+  also caught the resume-point PUT every lesson makes (narrowed to `/responses/`).
+- **test-guardian POST:** PASS. No test weakened; no gaming. Its low findings (the unanswered turn
+  after a stop, Try again's two steps, the duplicated labels) are taken or listed under "Known".
+- **`/code-review` (medium):** five defects and four nits, all taken in `a448179`, each with a test
+  written and seen failing first (`ae289c6`).
+- **Design review:** ship with nits. Taken: the quiet title and single note, the model picker
+  beside the action, the disabled-button hint, one action row, the learner's own rule, error text
+  in the text colour with a red edge, the always-present hidden status. **Declined:** a confirm step
+  on Start over, because it hides a conversation and the store keeps it; and the model name on the
+  "Claude is replying…" label, because the page learns which model answered only when the reply
+  arrives.
+- **Verified in the real app** (built, port 8399, scratch data directory): a first turn on Lesson 5
+  Practice C streamed 85 pieces in 10 s and coached without revealing the worked answer; the
+  follow-up resumed the session, remembered its first point and showed the worked answer once
+  asked; an ask through the page on Haiku showed text at 3.1 s and finished at 5.5 s, and survived a
+  reload; no horizontal scroll at 375, 768 or 1440. Real replies in the whole slice: two on Opus
+  and one on Sonnet while measuring the format, then two on Sonnet and one on Haiku here, plus one
+  resume of a missing session that sent nothing. All on the owner's Team plan, none in extra usage.

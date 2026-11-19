@@ -51,7 +51,7 @@ function replyingOf(feedback: FeedbackDeps): Set<string> {
 }
 
 /** Whether a turn can start anywhere in the app: Claude Code missing, the usage pause, or ready. */
-export function feedbackAvailability(deps: FeedbackRouteDeps): FeedbackAvailability {
+function feedbackAvailability(deps: FeedbackRouteDeps): FeedbackAvailability {
   const missing = deps.feedback.runner.unavailableReason;
   if (missing) return { state: 'unavailable', reason: missing };
   const pause = usagePause(loadUsage(deps.db), deps.feedback.now());

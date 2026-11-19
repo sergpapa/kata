@@ -7,7 +7,7 @@ import { MODEL_ALIASES, type ModelAlias, type SentField } from './types.js';
  */
 
 /** The same ceiling a saved answer has, for one box and for one message. */
-export const MAX_FEEDBACK_TEXT = 100_000;
+const MAX_FEEDBACK_TEXT = 100_000;
 
 export type FeedbackRequest =
   | {

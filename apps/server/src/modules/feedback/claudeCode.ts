@@ -18,7 +18,7 @@ export { StreamInterpreter };
  * is killed before a word of its reply is used.
  */
 
-export const NOT_FOUND =
+const NOT_FOUND =
   'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.';
 
 /** Compared upper-cased: Windows honours a variable in whatever case it was set. */

@@ -12,10 +12,10 @@ export type UsagePause =
   | { readonly paused: false }
   | { readonly paused: true; readonly resumesAt: string; readonly reason: string };
 
-export const PAUSE_THRESHOLD = 0.9;
+const PAUSE_THRESHOLD = 0.9;
 const FALLBACK_PAUSE_MS = 60 * 60 * 1000;
 
-export const PAUSE_REASON =
+const PAUSE_REASON =
   'Feedback is paused to keep your plan out of paid extra usage: the last reply showed your Claude plan close to its limit.';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
