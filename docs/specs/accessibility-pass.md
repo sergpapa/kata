@@ -105,3 +105,50 @@ acceptance run (the next Milestone 3 item).
 `npm run screenshots` runs axe-core, the 44px check, the Tab walks and the dashboard alignment check
 on every route and passes, and on the owner's 1440 dashboard "Continue lesson" and "Export" sit on
 the same bottom line.
+
+## Slice record
+
+**2026-11-19.** Built on branch `a11y-pass` in its own worktree
+(`.claude/worktrees/a11y-pass`), because other sessions were editing the main checkout at the same
+time; one of them had just taken ADR number 0021, so this slice's ADR is 0022.
+
+- **Measured first.** axe-core and a Tab walk on the built app before any question was asked; the
+  two rules found and the targets under 44px are at the top of this file.
+- **Stage 0.** Two forks asked; the owner took both recommendations (the 44px floor, axe-core as a
+  gate). The owner's own request (equal-height cards) became AX4.
+- **test-guardian PRE:** FAIL (12 findings), FAIL (6), then PASS. What mattered: numbering inside
+  one Markdown pass would have repeated "Code sample 1" across the body, a prompt and Claude's
+  replies, so names now carry their place; the keyboard walk listed what Tab happened to reach
+  instead of what the page offers; and the ghost check could pass with the ghost deleted. A
+  two-diagram test first failed on a vitest quirk (two simultaneous imports of a mocked module
+  reach the real Mermaid, which cannot load in Node) rather than on its assertion; it now mounts
+  diagrams one after another.
+- **Tests changed after PRE, each approved by the owner:** one AX8 lookup made to wait (`c407abe`);
+  the gate skipping content inside a closed disclosure and the snapshot's `/url:` lines
+  (`5fd62d5`); and the gate waiting for the dashboard's load-in animation and the drawer to settle
+  (`178881c`). A Mermaid mock for the page-wide naming test was tried and reverted: it made that test
+  slower (51 s), not faster.
+- **test-guardian POST:** PASS, nothing weakened beyond the approved fixes, no gaming.
+- **`/code-review` (medium):** six findings. Taken: a drawn diagram's region named by its kind
+  alone (two drawn diagrams shared a name; failing test `9c3ddf2`, now `Diagram <n>: <kind>`); two
+  copies of the "is this Mermaid?" decision (now one helper); the Export card's matched padding
+  leaking into the stacked layout; a fixed 400ms drawer wait; a dead `titleId`. **Declined:**
+  splitting `tools/screenshots.mjs` (589 lines, 579 before this slice): it was over the limit
+  before, and the slice's own gate code moved out to `a11y-checks.mjs` / `a11y-journeys.mjs`.
+- **Design review:** ship with nits. Checked at 375 with close-ups: summaries, Copy buttons and the
+  lab-kit link read cleanly at 44px. **Kept:** the breadcrumb now puts the course link on its own
+  44px row above a long lesson title; it reads cleanly, and truncating the title would hide where
+  the reader is. **Declined:** pinning the title block with `margin-bottom: auto`; with the button
+  already pinned the extra space sits in the same place.
+- **Hygiene:** no billable automation, no secrets, no raw control bytes; `a11y-checks.mjs` (382
+  lines) split in two.
+- **Verified:** `npm run screenshots` passes in full: axe-core finds nothing on 22 routes in both
+  schemes at 375 and 1440; every control is 44px at 375, the open drawer too; three Tab walks reach
+  every control in order with a visible focus; the cards line up at 1440 and 901 and stack at 900,
+  768 and 375; the ghost renders and is said once. Scratch self-tests (outside the repo) show the
+  walk failing a skipped control, an `outline: none` focus, an out-of-order control and an empty
+  page, and the ghost check failing a deleted or spoken ghost.
+- **Known:** `realActivityPlacement.test.tsx` and the page-wide naming test in
+  `lessonRegionNames.test.tsx` can time out in a full run while other work loads the machine; both
+  passed 10 of 10 alone and in a quiet full run. No screen reader was run; a listening pass with
+  NVDA or Narrator is the owner's to do.

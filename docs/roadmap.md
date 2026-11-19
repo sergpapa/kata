@@ -2,46 +2,46 @@
 
 ## Current state
 
-Last updated 2026-11-19. **The owner can export their work.** ADR 0020: the course dashboard's
-Export card downloads one Markdown file for a chosen lesson range (From/To, default the whole
-course), named like `EduCode_FSSE_Lessons_06-08_2026-11-19.md`. The file names the course, release
-and app version, then gives each lesson, activity and field with the current answer, its earlier
-versions, and the content version and release each one answered; work the release no longer shows
-closes the file. Claude's feedback conversations go only when "Include AI feedback conversations"
-is ticked, labelled as AI feedback; hidden ones never go. Every text is fenced verbatim. Criteria
-and slice record: `docs/specs/export.md`.
+Last updated 2026-11-19. **The accessibility and responsiveness pass is built, on branch
+`a11y-pass`, not yet merged.** It lives in the worktree `.claude/worktrees/a11y-pass` because other
+sessions were editing the main checkout at the same time. ADR 0022: `npm run screenshots` now runs
+axe-core on every route, a 44px target check at 375, three keyboard walks and the dashboard
+alignment, and fails on any finding. Every table, code sample and diagram has its own region name
+across the whole lesson page; each diagram is described by the author's "In words:" paragraph; the
+continue card and the Export card line up at the bottom. Criteria and slice record:
+`docs/specs/accessibility-pass.md`.
+
+**Merge is pending and will conflict.** The "earlier conversations" slice in the main checkout
+rewrites the Export card's conversation control (a radio group) and touches `FeedbackArea.tsx`;
+this branch changes both files' surroundings (`export-card.css`, the feedback area's name). After
+merging, run `npm run screenshots`: the radio group must pass the 44px and keyboard gates, which
+already count a radio group as one Tab stop. This section will also conflict with that slice's
+own roadmap update; keep both.
 
 **Money.** The owner's org has paid extra usage switched on. New feedback turns pause while the last
-usage report showed any window at 90% or more, or extra usage in use, until it resets; at most one
-reply can start inside extra usage before the pause stops the next. This development session draws
-on the same plan allowance. Export starts no Claude run.
+usage report showed any window at 90% or more, or extra usage in use, until it resets. Nothing in
+this slice starts a Claude run.
 
 **The owner's real store may not be on schema 7 yet.** Their `npm run dev` server applies migration
-7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export
-adds no migration. Both were verified on scratch stores only.
+7 (practice feedback) the next time it restarts; it is additive. This slice adds no migration.
 
-`npm test` (1442 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
-format:check` and `npm run screenshots` (22 routes × 3 widths × 2 schemes) pass under nvm's Node
-24.12.
+On the branch: `npm test` (1463 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm
+run format:check` and `npm run screenshots` pass under nvm's Node 24.12.
 
-**Known and not fixed.** `README.md` describes neither practice feedback nor Export: the owner has
-an uncommitted rewrite of its "How to run it" section in progress, and neither slice touched that
-file. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts` and
-`apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines. Try again hides the failed
-conversation before its second step, so a refused second step leaves the area empty (nothing is
-lost from the store). `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" can hit its
-5 s timeout in a full run when another process is loading the machine; it passed 10 of 10 alone.
-Everything under the previous state that these slices did not touch still stands (see "Superseded
-state notes").
+**Known and not fixed.** `README.md` describes neither practice feedback nor Export: the owner has an
+uncommitted rewrite in progress. The field labels are written twice (server and web).
+`LessonPage.tsx` is 366 lines and `tools/screenshots.mjs` 589, both over the size rule before this
+slice. Try again hides the failed conversation before its second step. Two tests can time out in a
+full run while other work loads the machine (`realActivityPlacement.test.tsx`, and the page-wide
+test in `lessonRegionNames.test.tsx`); both pass 10 of 10 alone. No screen reader has been run.
 
 Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
 yet; the owner will judge Lessons 6+ first and decide then.
 
-Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and exports
-Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13, 14–15 with theirs). They
-continue reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
-`docs/courses/qa-automation/`. The next QA content is the BookingLab practice-application spec. The
-app's next slice is Milestone 3's accessibility and responsiveness pass.
+Next action: the owner merges `a11y-pass` once the earlier-conversations slice has landed, then
+reruns `npm run screenshots`; optionally listens to one lesson with NVDA or Narrator. They continue
+exporting work for the owner reviews and reading QA Lesson 1 and Lessons 5–8. The app's next slice
+is Milestone 3's acceptance run.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -167,8 +167,12 @@ app's next slice is Milestone 3's accessibility and responsiveness pass.
       defects and four nits, all taken), design review (ship-with-nits; taken but one, declined with
       a reason), `/hygiene` clean after one fix. Verified in Chromium against the built app. Record
       in `docs/specs/export.md`.
-- [ ] **Accessibility and responsiveness pass.** Keyboard operation of navigation, notes, downloads,
-      help and export; 375 / 768 / 1440 with no horizontal page scroll; diagram meaning as text.
+- [x] **Accessibility and responsiveness pass.** Done 2026-11-19 on branch `a11y-pass` (ADR
+      0022), merge pending. axe-core, 44px targets, keyboard walks and card alignment gated in
+      `npm run screenshots`; unique region names and "In words:" diagram descriptions.
+      test-guardian PRE (FAIL twice, then PASS) and POST (pass), `/code-review` at medium (six
+      findings: five taken, one declined with a reason), design review (ship-with-nits), `/hygiene`
+      clean after one split. Record in `docs/specs/accessibility-pass.md`.
 - [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
       the 6–8 handoff's "App acceptance checks", the seven in the 9–13 handoff's "Acceptance in
       your app" and the seven in the 14–15 handoff's "Acceptance" (several depend on Milestone 2/3
@@ -525,6 +529,49 @@ need an approved data policy and a named reviewer before they mean anything.
 ## Superseded state notes
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-11-19, before the accessibility pass.**
+
+  Last updated 2026-11-19. **The owner can export their work.** ADR 0020: the course dashboard's
+  Export card downloads one Markdown file for a chosen lesson range (From/To, default the whole
+  course), named like `EduCode_FSSE_Lessons_06-08_2026-11-19.md`. The file names the course, release
+  and app version, then gives each lesson, activity and field with the current answer, its earlier
+  versions, and the content version and release each one answered; work the release no longer shows
+  closes the file. Claude's feedback conversations go only when "Include AI feedback conversations"
+  is ticked, labelled as AI feedback; hidden ones never go. Every text is fenced verbatim. Criteria
+  and slice record: `docs/specs/export.md`.
+
+  **Money.** The owner's org has paid extra usage switched on. New feedback turns pause while the last
+  usage report showed any window at 90% or more, or extra usage in use, until it resets; at most one
+  reply can start inside extra usage before the pause stops the next. This development session draws
+  on the same plan allowance. Export starts no Claude run.
+
+  **The owner's real store may not be on schema 7 yet.** Their `npm run dev` server applies migration
+  7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export
+  adds no migration. Both were verified on scratch stores only.
+
+  `npm test` (1442 tests), `npm run lint`, `npm run typecheck`, `npm run build`, `npm run
+format:check` and `npm run screenshots` (22 routes × 3 widths × 2 schemes) pass under nvm's Node
+  24.12.
+
+  **Known and not fixed.** `README.md` describes neither practice feedback nor Export: the owner has
+  an uncommitted rewrite of its "How to run it" section in progress, and neither slice touched that
+  file. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts` and
+  `apps/web/src/activities/fieldLabels.ts`). `LessonPage.tsx` is 362 lines. Try again hides the failed
+  conversation before its second step, so a refused second step leaves the area empty (nothing is
+  lost from the store). `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" can hit its
+  5 s timeout in a full run when another process is loading the machine; it passed 10 of 10 alone.
+  Everything under the previous state that these slices did not touch still stands (see "Superseded
+  state notes").
+
+  Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
+  yet; the owner will judge Lessons 6+ first and decide then.
+
+  Next action: the owner restarts their dev server, tries feedback on a Lesson 5 activity, and exports
+  Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13, 14–15 with theirs). They
+  continue reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
+  `docs/courses/qa-automation/`. The next QA content is the BookingLab practice-application spec. The
+  app's next slice is Milestone 3's accessibility and responsiveness pass.
 
 - **2026-11-19, before Export.**
 
