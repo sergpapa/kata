@@ -78,6 +78,23 @@ export async function checkTargets(page) {
 }
 
 /**
+ * AX1 and AX2 for one captured route: axe at the two ends of the width range, and the target sizes
+ * at 375 once (`firstScheme`), because they do not depend on the colour scheme.
+ */
+export async function checkRouteA11y(page, routeName, scheme, width, firstScheme) {
+  const failures = [];
+  if (width !== 768) {
+    for (const found of await checkAxe(page)) {
+      failures.push(`${routeName} (${scheme}) at ${width}px: ${found}`);
+    }
+  }
+  if (width === 375 && firstScheme) {
+    for (const found of await checkTargets(page)) failures.push(`${routeName} at 375px: ${found}`);
+  }
+  return failures;
+}
+
+/**
  * AX3: list the page's visible focusable elements first, then press Tab from the top. Every listed
  * element must be focused, exactly in document order, and the walk must have at least one stop. At
  * each stop the element must have a box and a focus style that differs from its resting style and
@@ -182,6 +199,9 @@ export async function tabWalk(page, mustContain) {
  * card starts below the continue card.
  */
 export async function checkCardAlignment(page, twoColumn) {
+  // The continue card's contents rise into place on load; the criterion is about where they rest.
+  // Measured mid-animation the button sat up to 2px low on a loaded machine.
+  await page.evaluate(() => Promise.all(document.getAnimations().map((one) => one.finished)));
   return page.evaluate((sideBySide) => {
     const cont = document.querySelector('[data-testid="current-lesson"]');
     const exp = document.querySelector('.export-card');
@@ -338,7 +358,21 @@ export async function runA11yJourneys(browser, baseUrl) {
     const page = await context.newPage();
     await page.goto(`${baseUrl}/courses/FSSE/lessons/LS-M020-01`, { waitUntil: 'networkidle' });
     await page.locator('.sidebar-trigger').click();
-    await page.waitForTimeout(400);
+    // Measured once the drawer has finished arriving, not after a guessed delay: open, visible,
+    // fully on screen, and in the same place on two readings 100ms apart (code review).
+    await page.waitForFunction(
+      () => {
+        const drawer = document.querySelector('.sidebar[data-open="true"]');
+        if (!drawer || getComputedStyle(drawer).visibility === 'hidden') return false;
+        const box = drawer.getBoundingClientRect();
+        const reading = `${box.left},${box.top},${box.width},${box.height}`;
+        const settled = window.__drawerReading === reading && box.left >= 0;
+        window.__drawerReading = reading;
+        return settled;
+      },
+      null,
+      { polling: 100, timeout: 10_000 },
+    );
     for (const failure of await checkTargets(page)) {
       failures.push(`Lesson 1 at 375px with the drawer open: ${failure}`);
     }
