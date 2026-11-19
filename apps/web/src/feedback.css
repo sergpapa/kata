@@ -16,19 +16,14 @@
   margin-top: 0.55rem;
 }
 
-.feedback-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-}
-
+/* Quiet until asked: set like the panel's own eyebrow, so it does not compete with the box labels
+   above it on every activity of every lesson. */
 .feedback-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--foreground);
+  color: var(--eyebrow);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
 }
 
 .feedback-model {
@@ -51,16 +46,21 @@
 
 .feedback-note,
 .feedback-status,
-.feedback-held {
+.feedback-held,
+.feedback-hint {
   margin: 0;
   color: var(--muted-foreground);
   font-size: 0.9rem;
 }
 
+/* --state-failed measures 2.47:1 on a light surface, too low for a sentence (lesson.css records
+   it), so the words keep the text colour and the red is the edge beside them. */
 .feedback-notice,
 .feedback-stopped {
   margin: 0;
-  color: var(--state-failed);
+  padding-left: 0.7rem;
+  color: var(--foreground);
+  border-left: 3px solid var(--state-failed);
 }
 
 .feedback-turns {
@@ -86,6 +86,13 @@
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Three layers, three marks: the lesson has none, the learner a neutral rule, Claude the quote
+   rule the earlier versions use for text that is not the lesson's. */
+.feedback-turn-learner {
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--border);
 }
 
 .feedback-turn-claude .feedback-reply,
@@ -157,14 +164,30 @@
 .feedback-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
 }
 
-.feedback-composer {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-start;
+.feedback-composer > * + * {
+  margin-top: 0.5rem;
+}
+
+/* Secondary and quiet: Start over hides the conversation (it stays in the store), so it reads as
+   a link-weight action beside the primary one rather than as a second primary. */
+.feedback-text-button {
+  min-height: 44px;
+  padding: 0 0.25rem;
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.feedback-text-button:hover {
+  color: var(--foreground);
 }
 
 /* A pressed run is not a control the reader can press again, and it looks it. */
@@ -173,7 +196,8 @@
   cursor: default;
   background: var(--card);
   color: var(--muted-foreground);
-  border-color: var(--input);
+  border-color: var(--border);
+  border-style: dashed;
 }
 
 .feedback-area button:focus-visible {

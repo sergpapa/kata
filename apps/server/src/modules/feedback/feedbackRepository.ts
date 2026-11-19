@@ -183,7 +183,59 @@ export function loadUsage(
 ): { readonly info: RateLimitInfo; readonly observedAt: Date } | null {
   const row = db.prepare('SELECT info_json, observed_at FROM feedback_usage WHERE id = 1').get() as
     { info_json: string; observed_at: string } | undefined;
-  return row
-    ? { info: JSON.parse(row.info_json) as RateLimitInfo, observedAt: new Date(row.observed_at) }
-    : null;
+  if (!row) return null;
+  // Claude Code's format, stored as received: a row that does not read as an object is no report,
+  // and the next run's report replaces it.
+  let info: unknown;
+  try {
+    info = JSON.parse(row.info_json);
+  } catch {
+    return null;
+  }
+  if (typeof info !== 'object' || info === null || Array.isArray(info)) return null;
+  return { info: info as RateLimitInfo, observedAt: new Date(row.observed_at) };
+}
+
+export const INTERRUPTED = 'The app was stopped before Claude replied. Try again, or start over.';
+
+/**
+ * Closes every current conversation whose last turn is the learner's (PF16).
+ *
+ * Called once as the app starts, when no run can be going: a learner turn with nothing after it
+ * then means the server stopped mid-reply, and left open it would offer a follow-up to a session
+ * Claude Code may never have written. The closing turn is stamped like the turn it answers.
+ */
+export function closeInterruptedTurns(db: Db, at: string): number {
+  const open = db
+    .prepare(
+      `SELECT t.conversation_id, t.candidate_lesson_id, t.content_version, t.release_id
+         FROM feedback_turn t
+         JOIN feedback_conversation c ON c.id = t.conversation_id
+        WHERE c.cleared_at IS NULL
+          AND t.role = 'learner'
+          AND t.turn_number = (SELECT MAX(turn_number) FROM feedback_turn
+                                WHERE conversation_id = t.conversation_id)`,
+    )
+    .all() as {
+    conversation_id: number;
+    candidate_lesson_id: string;
+    content_version: string;
+    release_id: string;
+  }[];
+  for (const row of open) {
+    appendTurn(db, row.conversation_id, {
+      role: 'claude',
+      text: '',
+      model: null,
+      outcome: 'failed',
+      failure: INTERRUPTED,
+      provenance: {
+        candidateLessonId: row.candidate_lesson_id,
+        contentVersion: row.content_version,
+        releaseId: row.release_id,
+      },
+      at,
+    });
+  }
+  return open.length;
 }

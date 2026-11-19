@@ -11,7 +11,7 @@ import {
   appendTurn,
 } from './feedbackRepository.js';
 import { readFeedbackRequest } from './feedbackRequest.js';
-import { openStream, streamTurn } from './feedbackRun.js';
+import { endWithError, openStream, streamTurn } from './feedbackRun.js';
 import { FEEDBACK_SYSTEM_PROMPT, firstTurnPrompt } from './prompt.js';
 import { usagePause } from './usageGuard.js';
 import type { FeedbackAvailability, FeedbackDeps, FeedbackForPage } from './types.js';
@@ -50,6 +50,7 @@ function replyingOf(feedback: FeedbackDeps): Set<string> {
   return replying;
 }
 
+/** Whether a turn can start anywhere in the app: Claude Code missing, the usage pause, or ready. */
 export function feedbackAvailability(deps: FeedbackRouteDeps): FeedbackAvailability {
   const missing = deps.feedback.runner.unavailableReason;
   if (missing) return { state: 'unavailable', reason: missing };
@@ -68,6 +69,7 @@ function areaOf(deps: FeedbackRouteDeps, activity: LessonActivity): FeedbackForP
   };
 }
 
+/** The feedback the lesson answer carries for its activities, in the activities' order (PF8). */
 export function lessonFeedback(
   deps: FeedbackRouteDeps,
   activities: readonly LessonActivity[],
@@ -110,6 +112,10 @@ async function guard(request: FastifyRequest, reply: FastifyReply): Promise<void
   }
 }
 
+/**
+ * Registers the feedback routes in their own scope, so the Host, Origin and content-type guard
+ * (PF21) applies to them and to nothing else under the course.
+ */
 export function registerFeedbackRoutes(app: FastifyInstance, deps: FeedbackRouteDeps): void {
   void app.register(async (scope) => {
     scope.addHook('onRequest', guard);
@@ -256,16 +262,25 @@ export function registerFeedbackRoutes(app: FastifyInstance, deps: FeedbackRoute
           }
 
           reply.hijack();
-          openStream(reply.raw);
-          await streamTurn({
-            raw: reply.raw,
-            db: deps.db,
-            feedback: deps.feedback,
-            conversationId,
-            learnerTurn,
-            provenance,
-            request: runRequest,
-          });
+          try {
+            openStream(reply.raw);
+            await streamTurn({
+              raw: reply.raw,
+              db: deps.db,
+              feedback: deps.feedback,
+              conversationId,
+              learnerTurn,
+              provenance,
+              request: runRequest,
+            });
+          } catch (error) {
+            // Fastify cannot answer a hijacked reply, so this is the only way the page learns the
+            // run is over. Without it the page waits on an open stream for good.
+            endWithError(
+              reply.raw,
+              `Claude’s reply could not be stored: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
         } finally {
           replying.delete(activity.activityId);
         }

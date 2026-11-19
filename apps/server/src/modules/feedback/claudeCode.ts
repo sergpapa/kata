@@ -32,6 +32,11 @@ const BILLING_VARIABLES = new Set([
   'CLAUDE_CODE_USE_FOUNDRY',
 ]);
 
+/**
+ * The arguments one turn starts with. Never `--bare`, which signs in by API key only; always
+ * `--safe-mode`, no tools and no MCP servers. A first turn names its session (`--session-id`) so
+ * the store knows it before the run; a follow-up resumes it.
+ */
 export function claudeArgs(request: {
   readonly sessionId: string;
   readonly resume: boolean;
@@ -56,6 +61,10 @@ export function claudeArgs(request: {
   ];
 }
 
+/**
+ * The server's environment without any variable that would bill an API key or a cloud provider,
+ * matched without regard to case because Windows honours a variable in any case. Returns a copy.
+ */
 export function childEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const kept: NodeJS.ProcessEnv = {};
   for (const [name, value] of Object.entries(env)) {
@@ -64,6 +73,12 @@ export function childEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return kept;
 }
 
+/**
+ * Where the learner's Claude Code is, or null. `EDUCODE_CLAUDE_PATH` wins and is never second-
+ * guessed: if it names nothing, the answer is null rather than some other `claude` on PATH. On
+ * Windows an npm `claude.cmd` shim is followed to the `claude.exe` beside it, since a shim needs a
+ * shell and the runner never uses one.
+ */
 export function resolveClaudeExecutable(
   env: NodeJS.ProcessEnv,
   platform: NodeJS.Platform,
@@ -72,7 +87,10 @@ export function resolveClaudeExecutable(
   const chosen = env.EDUCODE_CLAUDE_PATH;
   // A named path that is not there is an answer, not a hint: silently starting a different
   // executable would run something the learner did not choose.
-  if (chosen) return exists(chosen) ? chosen : null;
+  if (chosen) {
+    const absolute = path.resolve(chosen);
+    return exists(absolute) ? absolute : null;
+  }
 
   const windows = platform === 'win32';
   const paths = windows ? path.win32 : path.posix;
@@ -109,6 +127,11 @@ export function resolveClaudeExecutable(
 /** How much stderr is kept for the failure line; enough for any first line Claude Code prints. */
 const STDERR_LIMIT = 64 * 1024;
 
+/**
+ * The real runner: one child process per turn, killed at the time limit or the moment its stream
+ * reports billing, tools or extra usage. With no command it reports Claude Code as missing and
+ * fails every run with that sentence instead of throwing.
+ */
 export function createClaudeCodeRunner(options: {
   readonly command: { readonly file: string; readonly leadingArgs: readonly string[] } | null;
   readonly workDir: string;

@@ -1,28 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { courseApi, useCourseId } from '../course.js';
 import { FeedbackTurns } from './FeedbackTurns.js';
-import { postFeedback } from './feedbackStream.js';
+import { useFeedbackConversation } from './useFeedbackConversation.js';
 import {
   FEEDBACK_MODEL_STORAGE_KEY,
   FEEDBACK_MODELS,
   type FeedbackArea as Area,
   type FeedbackAvailability,
-  type FeedbackConversation,
   type FeedbackModel,
-  type FeedbackTurn,
-  type SentField,
 } from './feedbackTypes.js';
 
 /**
  * Claude's feedback on one activity (docs/specs/practice-feedback.md, ADR 0019).
  *
  * Optional by construction: nothing here is read by navigation, progress or the boxes, and the
- * boxes are never written from here. The conversation shown is always one the server stored or
- * streamed; on any refusal that names the current conversation, the page redraws from it.
+ * boxes are never written from here. It sits quiet until asked — a small title, one note, one
+ * button — because it repeats on every activity of every lesson. The conversation logic lives in
+ * `useFeedbackConversation`; this file draws it.
  */
-
-/** How often a page opened mid-reply asks whether the reply has arrived (PF15). */
-const POLL_MS = 3_000;
 
 const NOTE = 'Claude can be wrong. This is feedback on your reasoning, not a grade.';
 const NO_WORKED_ANSWER =
@@ -31,8 +26,7 @@ const NO_WORKED_ANSWER =
 function rememberedModel(): FeedbackModel {
   try {
     const stored = window.localStorage.getItem(FEEDBACK_MODEL_STORAGE_KEY);
-    const known = FEEDBACK_MODELS.find((model) => model.value === stored);
-    return known ? known.value : 'sonnet';
+    return FEEDBACK_MODELS.find((model) => model.value === stored)?.value ?? 'sonnet';
   } catch {
     return 'sonnet';
   }
@@ -54,6 +48,27 @@ export function resumesAtWords(iso: string): string {
   return `${time} on ${day}`;
 }
 
+function ModelPicker({
+  model,
+  onChange,
+}: {
+  readonly model: FeedbackModel;
+  readonly onChange: (model: FeedbackModel) => void;
+}) {
+  return (
+    <label className="feedback-model">
+      Model
+      <select value={model} onChange={(event) => onChange(event.target.value as FeedbackModel)}>
+        {FEEDBACK_MODELS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function FeedbackArea({
   activityId,
   fieldNames,
@@ -70,287 +85,132 @@ export function FeedbackArea({
   readonly availability: FeedbackAvailability;
 }) {
   const url = `${courseApi(useCourseId())}/activities/${encodeURIComponent(activityId)}/feedback`;
-  const [conversation, setConversation] = useState<FeedbackConversation | null>(area.conversation);
-  const [availability, setAvailability] = useState(loadedAvailability);
-  /** A run this page did not start, or lost the stream of: the page asks until it ends. */
-  const [replyingElsewhere, setReplyingElsewhere] = useState(area.replying);
-  /** Claude's text so far on a run this page is streaming; null when none is. */
-  const [writing, setWriting] = useState<string | null>(null);
-  /** What this page is waiting on: a start, a follow-up or a Start over. */
-  const [pending, setPending] = useState<'start' | 'follow_up' | 'clear' | null>(null);
-  /** Moves on every poll answer that says "still replying", so the next poll is scheduled. */
-  const [polls, setPolls] = useState(0);
-  const [notice, setNotice] = useState<string | null>(null);
+  const talk = useFeedbackConversation(url, area, loadedAvailability);
+  const { conversation, availability, busy, writing, replyingElsewhere, pending } = talk;
   const [message, setMessage] = useState('');
   const [model, setModel] = useState<FeedbackModel>(rememberedModel);
-
-  useEffect(() => {
-    if (!replyingElsewhere || pending) return;
-    const timer = window.setTimeout(async () => {
-      try {
-        const response = await fetch(url);
-        const body = (await response.json()) as Area & { availability: FeedbackAvailability };
-        setConversation(body.conversation);
-        setAvailability(body.availability);
-        setReplyingElsewhere(body.replying);
-      } catch {
-        // Asked again on the next tick: the reply is stored at the server either way.
-      }
-      setPolls((count) => count + 1);
-    }, POLL_MS);
-    return () => window.clearTimeout(timer);
-  }, [replyingElsewhere, pending, url, polls]);
-
-  const busy = pending !== null || replyingElsewhere;
-
-  function onEvent(event: string, data: unknown) {
-    const payload = data as { conversationId?: number; turn?: FeedbackTurn; text?: string };
-    if (event === 'delta' && typeof payload.text === 'string') {
-      const piece = payload.text;
-      setWriting((sofar) => (sofar ?? '') + piece);
-      return;
-    }
-    if (
-      (event === 'learner' || event === 'reply') &&
-      payload.turn &&
-      typeof payload.conversationId === 'number'
-    ) {
-      const { conversationId, turn } = payload as { conversationId: number; turn: FeedbackTurn };
-      setConversation((shown) =>
-        shown && shown.conversationId === conversationId
-          ? {
-              conversationId,
-              turns: [...shown.turns.filter((one) => one.turn !== turn.turn), turn],
-            }
-          : { conversationId, turns: [turn] },
-      );
-      if (event === 'learner') setWriting('');
-      if (event === 'reply') setWriting(null);
-    }
-  }
-
-  function onRefusal(status: number, body: Record<string, unknown>): void {
-    if (body.error === 'feedback_conversation_changed') {
-      setConversation((body.conversation as FeedbackConversation | null) ?? null);
-    } else if (body.error === 'feedback_usage_paused' && typeof body.resumesAt === 'string') {
-      setAvailability({
-        state: 'paused',
-        reason: String(body.message ?? ''),
-        resumesAt: body.resumesAt,
-      });
-    } else if (body.error === 'feedback_unavailable') {
-      setAvailability({ state: 'unavailable', reason: String(body.message ?? '') });
-    } else {
-      setNotice(
-        typeof body.message === 'string' ? body.message : `The app answered with status ${status}.`,
-      );
-    }
-  }
-
-  async function run(
-    body: { readonly action: 'start' | 'follow_up'; readonly [key: string]: unknown },
-    after?: () => void,
-  ): Promise<void> {
-    setPending(body.action);
-    setNotice(null);
-    let replied = false;
-    const outcome = await postFeedback(url, body, (event, data) => {
-      if (event === 'reply') replied = true;
-      onEvent(event, data);
-    });
-    setPending(null);
-    if (outcome.kind === 'unreachable') {
-      setWriting(null);
-      if (replied) return;
-      setNotice(`The local app did not answer: ${outcome.reason}`);
-      return;
-    }
-    if (outcome.kind === 'answered') {
-      onRefusal(outcome.status, outcome.body);
-      return;
-    }
-    if (!replied) {
-      // The stream closed early; the run goes on at the server, so ask for it there.
-      setWriting(null);
-      setReplyingElsewhere(true);
-      return;
-    }
-    after?.();
-  }
-
-  const ask = (fields: readonly SentField[]) =>
-    run({
-      action: 'start',
-      model,
-      fields: Object.fromEntries(fields.map((field) => [field.fieldName, field.text])),
-    });
-
-  async function startOver(): Promise<boolean> {
-    if (!conversation) return true;
-    setPending('clear');
-    setNotice(null);
-    const outcome = await postFeedback(
-      `${url}/clear`,
-      { conversationId: conversation.conversationId },
-      () => {},
-    );
-    setPending(null);
-    if (outcome.kind === 'answered' && outcome.status === 200) {
-      setConversation(null);
-      return true;
-    }
-    if (outcome.kind === 'answered') onRefusal(outcome.status, outcome.body);
-    else if (outcome.kind === 'unreachable')
-      setNotice(`The local app did not answer: ${outcome.reason}`);
-    return false;
-  }
-
-  /** Starts over, then resends what the failed first turn sent (PF17). */
-  async function tryAgain(sent: readonly SentField[]): Promise<void> {
-    if (await startOver()) await ask(sent);
-  }
+  const choose = (chosen: FeedbackModel) => {
+    setModel(chosen);
+    remember(chosen);
+  };
 
   const turns = conversation?.turns ?? [];
-  const firstReply = turns[1];
-  const firstFailed =
-    turns.length === 2 && firstReply?.role === 'claude' && firstReply.outcome === 'failed';
-  const sentFirst = turns[0]?.sentFields;
   const typed = fieldNames.map((fieldName) => ({ fieldName, text: drafts[fieldName] ?? '' }));
   const nothingTyped = typed.every((field) => field.text.trim() === '');
+  // The first question went unanswered: its reply failed, or never came. Try again resends it.
+  const firstUnanswered =
+    (turns.length === 1 && turns[0]?.role === 'learner') ||
+    (turns.length === 2 && turns[1]?.outcome === 'failed');
+  const sentFirst = turns[0]?.sentFields;
+  const titleId = `feedback-title-${activityId}`;
+
+  const startOverButton = !busy && (
+    <button type="button" className="feedback-text-button" onClick={() => void talk.startOver()}>
+      Start over
+    </button>
+  );
+
+  let controls: ReactNode;
+  if (availability.state === 'unavailable') {
+    controls = <p className="feedback-held">{availability.reason}</p>;
+  } else if (availability.state === 'paused') {
+    controls = (
+      <p className="feedback-held">
+        {availability.reason} It starts again at {resumesAtWords(availability.resumesAt)}.
+      </p>
+    );
+  } else if (conversation === null || pending === 'start') {
+    // Kept on screen through the first reply, disabled, so it cannot be pressed twice.
+    controls = !replyingElsewhere && (
+      <>
+        <div className="feedback-actions">
+          <button
+            type="button"
+            className="response-save"
+            disabled={busy || nothingTyped}
+            onClick={() => void talk.ask(model, typed)}
+          >
+            Get feedback
+          </button>
+          <ModelPicker model={model} onChange={choose} />
+        </div>
+        {nothingTyped && !busy && (
+          <p className="feedback-hint">Write in at least one box above first.</p>
+        )}
+      </>
+    );
+  } else if (firstUnanswered && sentFirst) {
+    controls = !busy && (
+      <div className="feedback-actions">
+        <button
+          type="button"
+          className="response-save"
+          onClick={() => void talk.tryAgain(model, sentFirst)}
+        >
+          Try again
+        </button>
+        <ModelPicker model={model} onChange={choose} />
+        {startOverButton}
+      </div>
+    );
+  } else {
+    // One composer for the whole conversation, so the box and its text survive a send.
+    controls = (
+      <div className="feedback-composer">
+        <textarea
+          className="response-box feedback-message"
+          aria-label="Message to Claude"
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          rows={2}
+        />
+        <div className="feedback-actions">
+          <button
+            type="button"
+            className="response-save"
+            disabled={busy || message.trim() === ''}
+            onClick={() => void talk.send(model, message, () => setMessage(''))}
+          >
+            Send
+          </button>
+          <ModelPicker model={model} onChange={choose} />
+          {startOverButton}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <section className="feedback-area" aria-label="Feedback from Claude">
-      <div className="feedback-head">
-        <p className="feedback-title">Feedback from Claude</p>
-        <label className="feedback-model">
-          Model
-          <select
-            value={model}
-            onChange={(event) => {
-              const chosen = event.target.value as FeedbackModel;
-              setModel(chosen);
-              remember(chosen);
-            }}
-          >
-            {FEEDBACK_MODELS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <p className="feedback-note">{NOTE}</p>
-      {!area.hasWorkedAnswer && <p className="feedback-note">{NO_WORKED_ANSWER}</p>}
+    <section className="feedback-area" aria-labelledby={titleId}>
+      <p id={titleId} className="feedback-title">
+        Feedback from Claude
+      </p>
+      <p className="feedback-note">
+        <span>{NOTE}</span>
+        {!area.hasWorkedAnswer && (
+          <>
+            {' '}
+            <span>{NO_WORKED_ANSWER}</span>
+          </>
+        )}
+      </p>
 
       {(turns.length > 0 || writing !== null) && <FeedbackTurns turns={turns} writing={writing} />}
       {replyingElsewhere && writing === null && (
-        <p className="feedback-status" role="status">
-          Claude is still replying…
-        </p>
+        <p className="feedback-status">Claude is still replying…</p>
       )}
-      {notice && (
+      {/* Always present, so a change of text is announced: a live region inserted already filled
+          is often not read at all, and the streamed text itself would re-read on every piece. */}
+      <p className="visually-hidden" role="status">
+        {writing !== null || replyingElsewhere ? 'Claude is writing a reply.' : ''}
+      </p>
+      {talk.notice && (
         <p className="feedback-notice" role="alert">
-          {notice}
+          {talk.notice}
         </p>
       )}
 
-      {availability.state === 'unavailable' ? (
-        <p className="feedback-held">{availability.reason}</p>
-      ) : availability.state === 'paused' ? (
-        <p className="feedback-held">
-          {availability.reason} It starts again at {resumesAtWords(availability.resumesAt)}.
-        </p>
-      ) : conversation === null || pending === 'start' ? (
-        // Kept on screen through the first reply, disabled, so it cannot be pressed twice.
-        !replyingElsewhere && (
-          <div className="feedback-actions">
-            <button
-              type="button"
-              className="response-save"
-              disabled={busy || nothingTyped}
-              onClick={() => void ask(typed)}
-            >
-              Get feedback
-            </button>
-          </div>
-        )
-      ) : firstFailed && sentFirst ? (
-        !busy && (
-          <div className="feedback-actions">
-            <button
-              type="button"
-              className="response-save"
-              onClick={() => void tryAgain(sentFirst)}
-            >
-              Try again
-            </button>
-            <button type="button" className="response-secondary" onClick={() => void startOver()}>
-              Start over
-            </button>
-          </div>
-        )
-      ) : (
-        // One composer for the whole conversation, so the box and its text survive a send.
-        <>
-          <Composer
-            message={message}
-            setMessage={setMessage}
-            disabled={busy}
-            onSend={() =>
-              void run(
-                {
-                  action: 'follow_up',
-                  model,
-                  conversationId: conversation.conversationId,
-                  expectedTurns: turns.length,
-                  message,
-                },
-                () => setMessage(''),
-              )
-            }
-          />
-          {!busy && (
-            <div className="feedback-actions">
-              <button type="button" className="response-secondary" onClick={() => void startOver()}>
-                Start over
-              </button>
-            </div>
-          )}
-        </>
-      )}
+      {controls}
     </section>
-  );
-}
-
-function Composer({
-  message,
-  setMessage,
-  disabled,
-  onSend,
-}: {
-  readonly message: string;
-  readonly setMessage: (text: string) => void;
-  readonly disabled: boolean;
-  readonly onSend: () => void;
-}) {
-  return (
-    <div className="feedback-composer">
-      <textarea
-        className="response-box feedback-message"
-        aria-label="Message to Claude"
-        value={message}
-        onChange={(event) => setMessage(event.target.value)}
-        rows={2}
-      />
-      <button
-        type="button"
-        className="response-save"
-        disabled={disabled || message.trim() === ''}
-        onClick={onSend}
-      >
-        Send
-      </button>
-    </div>
   );
 }

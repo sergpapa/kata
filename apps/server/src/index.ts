@@ -27,7 +27,14 @@ const feedbackRunner = createClaudeCodeRunner(
     dataDir: config.dataDir,
     env: process.env,
     platform: process.platform,
-    exists: (candidate) => fs.existsSync(candidate),
+    // A file, not merely a path: a directory called `claude` on PATH cannot be started.
+    exists: (candidate) => {
+      try {
+        return fs.statSync(candidate).isFile();
+      } catch {
+        return false;
+      }
+    },
   }),
 );
 const app = buildApp({

@@ -18,6 +18,10 @@ const FALLBACK_PAUSE_MS = 60 * 60 * 1000;
 export const PAUSE_REASON =
   'Feedback is paused to keep your plan out of paid extra usage: the last reply showed your Claude plan close to its limit.';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function usagePause(
   observed: { readonly info: RateLimitInfo; readonly observedAt: Date } | null,
   now: Date,
@@ -29,10 +33,14 @@ export function usagePause(
   const tripped: (number | undefined)[] = [];
   if (typeof info.status === 'string' && info.status !== 'allowed') tripped.push(info.resetsAt);
   if (info.isUsingOverage === true) tripped.push(info.resetsAt);
-  for (const window of Object.values(info.unifiedWindows ?? {})) {
+  const windows = isRecord(info.unifiedWindows) ? Object.values(info.unifiedWindows) : [];
+  for (const window of windows) {
+    if (!isRecord(window)) continue;
     const high = typeof window.utilization === 'number' && window.utilization >= PAUSE_THRESHOLD;
     const notAllowed = typeof window.status === 'string' && window.status !== 'allowed';
-    if (high || notAllowed) tripped.push(window.resetsAt);
+    if (high || notAllowed) {
+      tripped.push(typeof window.resetsAt === 'number' ? window.resetsAt : undefined);
+    }
   }
   if (tripped.length === 0) return { paused: false };
 

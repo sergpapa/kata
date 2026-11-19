@@ -7,6 +7,7 @@ import { loadReleaseSummary } from './modules/content/repository.js';
 import { registerCourseRoutes } from './modules/content/courseRoutes.js';
 import type { CourseState } from './modules/content/types.js';
 import type { FeedbackDeps } from './modules/feedback/types.js';
+import { closeInterruptedTurns } from './modules/feedback/feedbackRepository.js';
 
 export interface AppDeps {
   readonly db: Db;
@@ -40,6 +41,9 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     // is set well clear of the limit it exists to let through to the handler.
     bodyLimit: 4 * 1024 * 1024,
   });
+
+  // No run can be going yet, so a learner turn with nothing after it was cut off by a stop.
+  closeInterruptedTurns(deps.db, deps.feedback.now().toISOString());
 
   app.get('/api/health', async () => ({
     status: 'ok',

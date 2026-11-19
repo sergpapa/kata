@@ -18,6 +18,7 @@ function send(raw: ServerResponse, event: string, data: unknown): void {
   raw.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
+/** Starts a server-sent event stream, unbuffered, and ignores errors from a page that has gone. */
 export function openStream(raw: ServerResponse): void {
   raw.on('error', () => {});
   raw.writeHead(200, {
@@ -26,6 +27,13 @@ export function openStream(raw: ServerResponse): void {
     connection: 'keep-alive',
     'x-accel-buffering': 'no',
   });
+}
+
+/** Ends a stream that cannot finish normally with one `error` event the page shows as written. */
+export function endWithError(raw: ServerResponse, message: string): void {
+  if (!raw.headersSent) openStream(raw);
+  send(raw, 'error', { message });
+  if (!raw.destroyed && !raw.writableEnded) raw.end();
 }
 
 export async function streamTurn(input: {

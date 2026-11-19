@@ -88,13 +88,23 @@ export class StreamInterpreter {
   }): RunEvent | null {
     if (this.ended) return null;
     this.ended = true;
+    const result = this.result;
+    const succeeded =
+      result !== null &&
+      !result.isError &&
+      result.subtype === 'success' &&
+      typeof result.text === 'string';
+    // A reply that finished just before the limit is a reply, even if the process was then stopped
+    // on its way out: the result line is Claude Code's own word that the turn completed.
+    if (succeeded && this.vetted && exit.timedOut) {
+      return { type: 'done', text: result.text as string };
+    }
     if (exit.timedOut) {
       return {
         type: 'failed',
         reason: `Claude did not finish within ${durationWords(this.timeoutMs)}.`,
       };
     }
-    const result = this.result;
     if (
       exit.code === 0 &&
       result &&

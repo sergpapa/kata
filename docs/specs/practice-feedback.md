@@ -130,7 +130,15 @@ and Claude Code 2.1.293 on the owner's machine, commit `3b51ab9`:
     answer at all shows "The local app did not answer:" and the reason (for example
     `Failed to fetch`). Either way the button can
     be pressed again.
-- **PF17.** When the first reply of a conversation failed, the area offers **Try again**, which
+  - The server stopped mid-reply: at the next start, every current conversation whose last turn
+    is the learner's gets a failed turn: "The app was stopped before Claude replied. Try again, or
+    start over."
+  - Storing the reply failed after the stream began: the stream ends with an `error` event,
+    "Claude’s reply could not be stored:" and the reason, which the page shows.
+  - A stream that breaks after the question was stored is not a failure: the page asks for the
+    reply every 3 seconds, as in PF15. A reply that finished just before the time limit stopped its
+    process is kept as a reply. A usage report the guard cannot read is no report.
+- **PF17.** When the first reply of a conversation failed or never came, the area offers **Try again**, which
   starts the conversation over with the same box texts that were sent the first time.
 
 ### Billing guards (ADR 0019)

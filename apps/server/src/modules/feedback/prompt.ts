@@ -31,10 +31,15 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   help_used: 'Whether you used help',
 };
 
+/** A box's name as the page shows it; a field the app has no words for keeps its own name. */
 export function fieldLabel(fieldName: string): string {
   return FIELD_LABELS[fieldName] ?? fieldName;
 }
 
+/**
+ * The first message of a conversation: the activity, the worked answer or a plain statement that
+ * there is none, and every declared box in order, an empty one marked as left empty.
+ */
 export function firstTurnPrompt(input: {
   readonly title: string;
   readonly promptMarkdown: string;

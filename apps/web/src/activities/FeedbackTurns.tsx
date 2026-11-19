@@ -82,7 +82,7 @@ export function FeedbackTurns({
   readonly writing: string | null;
 }) {
   return (
-    <ol className="feedback-turns">
+    <ol className="feedback-turns" aria-label="Conversation" aria-busy={writing !== null}>
       {turns.map((turn) =>
         turn.role === 'learner' ? (
           <LearnerTurn key={turn.turn} turn={turn} />
@@ -91,7 +91,7 @@ export function FeedbackTurns({
         ),
       )}
       {writing !== null && (
-        <li className="feedback-turn feedback-turn-claude" aria-live="polite">
+        <li className="feedback-turn feedback-turn-claude">
           <p className="feedback-turn-label">Claude is replying…</p>
           {writing !== '' && <p className="feedback-writing">{writing}</p>}
         </li>
