@@ -73,7 +73,9 @@ differ. Names are the same on every render, including a re-render and React's St
   contributes its text only).
 - **AX7.** Each code block's scroll region is named `Code sample <n>`, followed by `, <language>`
   when the fence names one (the first word of the info string, as written). Mermaid fences are
-  diagrams and are not counted; a diagram's own source block is named `Source of diagram <n>`.
+  diagrams and are not counted; a diagram's own source block is named `Source of diagram <n>`, and
+  once drawn, the picture's region is named `Diagram <n>: <the kind Mermaid reports>` (added after
+  `/code-review`: the picture was named by its kind alone, so two drawn diagrams shared a name).
 - **AX8.** Each feedback area is named `Feedback from Claude on <activity title>`; its visible title
   stays "Feedback from Claude".
 - **AX9.** A drawn diagram is described (`aria-describedby`) by the paragraph that immediately
