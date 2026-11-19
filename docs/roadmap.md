@@ -29,6 +29,9 @@ Milestone 2", which has shipped. `release:build` cannot build a course's first r
 package was assembled once by script. `LessonPage.tsx` is 359 lines. Everything listed under the
 previous state that this slice did not touch still stands (see "Superseded state notes").
 
+Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
+yet; the owner will judge Lessons 6+ first and decide then.
+
 Next action: the owner reads QA Lesson 1 and Lessons 5–8 of the full-stack course in the app, and
 reviews the QA course plans in `docs/courses/qa-automation/`. The next QA content is the BookingLab
 practice-application spec, which the course's Playwright stage depends on. The app's next slice

@@ -1,7 +1,7 @@
 # 0017. AI review runs in the learner's own Claude Code over MCP
 
 Date: 2026-11-03
-Status: Accepted
+Status: Accepted. Amended by ADR 0019 for practice-activity feedback, which now runs in the app.
 
 ## Context
 

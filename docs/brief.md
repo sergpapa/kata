@@ -55,6 +55,11 @@ Submissions and attempt snapshots, reviewer queue, findings and responses, appea
 extensions, MCP integrations, model-generated review or tutoring. These stay on the roadmap behind
 the checkpoint; the specifications remain the target, and nothing here may make them harder to add.
 
+**Lifted 2026-11-19 for practice activities only** (ADR 0019, `docs/specs/practice-feedback.md`):
+the owner can ask Claude for feedback on an activity's boxes and continue the conversation. The
+reply comes from the learner's own Claude Code, is labelled AI feedback, and is never a grade.
+Model-generated review of anything else stays out of scope.
+
 ## Hard constraints — violating any of these is a defect, not a tradeoff
 
 - **No execution of learner or lesson code.** Buttons download or copy; they never run anything.
