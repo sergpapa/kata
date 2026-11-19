@@ -15,6 +15,7 @@ import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
+import { checkEarlierConversations, seedEarlierConversation } from './feedback-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -140,6 +141,8 @@ const child = spawn(process.execPath, [serverEntry], {
 let browser;
 /** The field V24 seeds, named out here so the run's own summary can report it. */
 let seededHistory;
+/** The earlier feedback conversation EC9 seeds on the same activity. */
+let seededEarlier;
 const seededLesson = 'lesson-01';
 try {
   await waitForHealth();
@@ -155,6 +158,19 @@ try {
   // lesson 1 show it by design (docs/specs/prediction-history.md, "Existing tests this slice
   // re-aims").
   seededHistory = await seedHistory(baseUrl, 'FSSE', 'LS-M020-01');
+
+  // Criterion EC9 (docs/specs/earlier-conversations.md): one started-over conversation on the same
+  // activity, written into the store because the feedback route would start Claude Code.
+  const lessonOne = await (await fetch(`${baseUrl}/api/courses/FSSE/lessons/LS-M020-01`)).json();
+  seededEarlier = seedEarlierConversation(
+    path.join(repoRoot, 'data', 'screenshots', 'educode.sqlite'),
+    {
+      activityId: seededHistory.activityId,
+      lessonId: 'LS-M020-01',
+      contentVersion: lessonOne.lesson?.contentVersion ?? 'unknown',
+      releaseId: lessonOne.release?.releaseId ?? 'unknown',
+    },
+  );
 
   for (const route of routes) {
     // How many activities this lesson actually has, asked of the app rather than written down
@@ -328,6 +344,21 @@ try {
               )
               .screenshot({ path: historyFile });
             console.log(`  ${path.relative(repoRoot, historyFile)}`);
+          }
+          const earlier = await checkEarlierConversations(page, seededEarlier);
+          if (earlier !== 'ok') {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${earlier}`);
+          } else {
+            const earlierFile = path.join(
+              outDir,
+              `${route.name}-${size.name}-${scheme}-earlier.png`,
+            );
+            await page
+              .locator(
+                `.activity-panel[data-activity-id="${seededEarlier.activityId}"] .feedback-area`,
+              )
+              .screenshot({ path: earlierFile });
+            console.log(`  ${path.relative(repoRoot, earlierFile)}`);
           }
         }
         await context.close();
@@ -576,4 +607,5 @@ const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
 Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
 ${drawn} diagram(s) were opened and read inside their frames at every width and scheme.
-${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.`);
+${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.
+${seededEarlier.activityId} had one started-over feedback conversation: it was opened and measured at every width and scheme.`);
