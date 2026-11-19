@@ -56,6 +56,7 @@
   padding-left: 0.6rem;
   border-left: 3px solid var(--state-failed);
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .export-check {
@@ -81,21 +82,26 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .export-button {
-  min-height: 44px;
-  padding: 0.4rem 1.1rem;
+  /* The same shape and type as the lime primary action beside it (continue-card.css), in the
+     quieter --primary, so the page keeps one loudest button. */
+  min-height: 2.75rem;
+  padding: 0.55rem 1rem;
   background: var(--primary);
   color: var(--primary-foreground);
   border: 1px solid var(--primary);
   border-radius: var(--radius-control);
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 650;
+  line-height: 1.4;
+  transition: background var(--dur-quick) var(--ease-out);
 }
 
 .export-button:hover {
-  border-color: var(--foreground);
+  background: color-mix(in srgb, var(--primary) 85%, var(--foreground));
 }
 
 .export-button:disabled,

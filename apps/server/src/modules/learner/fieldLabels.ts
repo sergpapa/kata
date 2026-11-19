@@ -12,6 +12,7 @@ const FIELD_LABELS: Readonly<Record<string, string>> = {
   help_used: 'Whether you used help',
 };
 
+/** A field's label as the page shows it, or its own name when the app has no words for it. */
 export function fieldLabel(fieldName: string): string {
   return FIELD_LABELS[fieldName] ?? fieldName;
 }

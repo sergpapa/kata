@@ -40,6 +40,7 @@ async function refusalMessage(response: Response): Promise<string> {
   }
 }
 
+/** The Export card for one course; `lessons` must be in release order, as the From/To lists show. */
 export function ExportCard({
   courseId,
   lessons,
@@ -67,8 +68,20 @@ export function ExportCard({
   const backwards = position(fromId) > position(toId);
   const preparing = outcome.state === 'preparing';
 
+  /**
+   * A changed choice makes an earlier "Downloaded" about a different file, so it goes. A failure
+   * stays: it is still the reason the last press got nothing.
+   */
+  function choiceChanged(): void {
+    if (outcome.state !== 'downloaded') return;
+    if (settle.current !== null) clearTimeout(settle.current);
+    setOutcome({ state: 'idle' });
+  }
+
   async function exportWork(): Promise<void> {
-    if (backwards || preparing) return;
+    // The ref, not `preparing`: two presses handled before React re-renders both see the same
+    // render's `preparing`, and the second would start a second download.
+    if (backwards || inFlight.current !== null) return;
     if (settle.current !== null) clearTimeout(settle.current);
     const controller = new AbortController();
     inFlight.current = controller;
@@ -76,6 +89,7 @@ export function ExportCard({
 
     const finish = (next: Outcome) => {
       if (controller.signal.aborted) return;
+      inFlight.current = null;
       setOutcome(next);
       if (next.state === 'downloaded') {
         settle.current = setTimeout(() => setOutcome({ state: 'idle' }), DOWNLOAD_SETTLE_MS);
@@ -111,7 +125,11 @@ export function ExportCard({
   }
 
   const option = (lesson: LessonSummary) => (
-    <option key={lesson.candidateLessonId} value={lesson.candidateLessonId}>
+    <option
+      key={lesson.candidateLessonId}
+      value={lesson.candidateLessonId}
+      title={lesson.displayTitle}
+    >
       {twoDigits(lesson.order)} · {lesson.displayTitle}
     </option>
   );
@@ -121,8 +139,7 @@ export function ExportCard({
     <section className="card export-card" aria-labelledby={`${ids}-heading`}>
       <h2 id={`${ids}-heading`}>Export your work</h2>
       <p className="export-lede">
-        One Markdown file of your saved answers, with the lesson and content version each one
-        answered, to send with your owner review.
+        One Markdown file of your saved answers, to send with your owner review.
       </p>
 
       <div className="export-range">
@@ -131,7 +148,10 @@ export function ExportCard({
           <select
             id={`${ids}-from`}
             value={fromId}
-            onChange={(event) => setFromId(event.target.value)}
+            onChange={(event) => {
+              setFromId(event.target.value);
+              choiceChanged();
+            }}
             aria-describedby={backwards ? rangeError : undefined}
             aria-invalid={backwards || undefined}
           >
@@ -143,7 +163,10 @@ export function ExportCard({
           <select
             id={`${ids}-to`}
             value={toId}
-            onChange={(event) => setToId(event.target.value)}
+            onChange={(event) => {
+              setToId(event.target.value);
+              choiceChanged();
+            }}
             aria-describedby={backwards ? rangeError : undefined}
             aria-invalid={backwards || undefined}
           >
@@ -153,7 +176,7 @@ export function ExportCard({
       </div>
       {backwards && (
         <p id={rangeError} className="export-range-error">
-          From must be at or before To.
+          From must be at or before To. Change one of them to export.
         </p>
       )}
 
@@ -161,7 +184,10 @@ export function ExportCard({
         <input
           type="checkbox"
           checked={conversations}
-          onChange={(event) => setConversations(event.target.checked)}
+          onChange={(event) => {
+            setConversations(event.target.checked);
+            choiceChanged();
+          }}
         />
         <span>Include AI feedback conversations</span>
       </label>
