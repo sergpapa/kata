@@ -103,8 +103,10 @@ describe('the disclosure (EC4)', () => {
   it('shows the turns as the current conversation does: labels, what was sent, Markdown', async () => {
     const failedFollowUp = {
       ...OLDER,
+      // The reply carries Markdown, so the last assertion proves it is rendered rather than shown raw.
       turns: [
-        ...OLDER.turns,
+        learnerTurn(1),
+        claudeTurn(2, { text: 'The older **earlier** reply.' }),
         learnerTurn(3, { text: 'A follow-up.' }),
         claudeTurn(4, {
           text: 'Cut off mid',
@@ -129,7 +131,8 @@ describe('the disclosure (EC4)', () => {
     expect(within(details).getByText('Claude did not finish within 3 minutes.')).toBeTruthy();
     expect(within(details).getByText(/unfinished/i)).toBeTruthy();
     expect(details.textContent).toContain('Cut off mid');
-    expect(details.querySelector('strong')?.textContent).toBe('What');
+    expect(details.querySelector('strong')?.textContent).toBe('earlier');
+    expect(details.textContent).not.toContain('**earlier**');
   });
 });
 
