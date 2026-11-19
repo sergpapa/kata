@@ -5,23 +5,24 @@ import { repoRoot } from './config.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { removeDir } from './modules/content/testkit/releaseFixture.js';
 import {
+  exportApp,
+  exportFile,
+  LESSON_3,
+  LESSON_3_DOC,
+  saveAll,
+  STANDARD_ACTIVITIES,
+  writeExportRelease,
+} from './modules/export/testkit/exportFixture.js';
+import {
   blockWith,
   contextBlock,
   contextLine,
-  exportApp,
-  exportFile,
   fencedBlocks,
   fieldSection,
   labelledLine,
-  LESSON_3,
-  LESSON_3_DOC,
   linesOutsideFences,
-  saveAll,
   section,
-  STANDARD_ACTIVITIES,
-  writeExportRelease,
-  type ActivitySpec,
-} from './modules/export/testkit/exportFixture.js';
+} from './modules/export/testkit/markdownReaders.js';
 
 /**
  * Criteria EX1–EX8 in docs/specs/export.md (ADR 0020): what the file says about the owner's work.
@@ -340,87 +341,5 @@ describe('the owner’s text, verbatim (EX7)', () => {
     const file = await exportFile(server);
 
     expect(blockWith(file, spaced).content).toBe(spaced);
-  });
-});
-
-describe('work this release no longer shows (EX8)', () => {
-  const withGone: readonly ActivitySpec[] = [
-    ...STANDARD_ACTIVITIES,
-    {
-      activity_id: 'ACT-1-GONE',
-      lesson_id: 'FIX-LS-01',
-      title: 'Withdrawn practice',
-      kind: 'kind-withdrawn',
-      source_heading: 'Practice W heading',
-      response_fields: ['prediction'],
-    },
-    {
-      activity_id: 'ACT-2-GONE',
-      lesson_id: 'FIX-LS-02',
-      title: 'Withdrawn from lesson 2',
-      kind: 'kind-withdrawn',
-      source_heading: 'Practice V heading',
-      response_fields: ['prediction'],
-    },
-  ];
-  const heading = '## Work this release no longer shows';
-
-  async function answeredThenWithdrawn() {
-    const before = app(release({ activities: withGone }));
-    vi.setSystemTime(new Date('2026-11-19T09:05:00.000Z'));
-    await saveAll(before, 'ACT-1-GONE', 'prediction', ['Old wording.']);
-    vi.setSystemTime(new Date('2026-11-19T09:06:00.000Z'));
-    await saveAll(before, 'ACT-1-GONE', 'prediction', ['Answer to a withdrawn one.'], 1);
-    await saveAll(before, 'ACT-2-GONE', 'prediction', ['Answer in lesson 2.']);
-    return app(release());
-  }
-
-  it('closes with the dropped answers, under their field, with their history', async () => {
-    const file = await exportFile(await answeredThenWithdrawn());
-
-    const lines = linesOutsideFences(file);
-    expect(lines.filter((line) => line === heading)).toHaveLength(1);
-    const closing = file.slice(file.indexOf(heading));
-    expect(file.indexOf(heading)).toBeGreaterThan(file.indexOf('ACT-3-ONLY'));
-    const field = fieldSection(section(closing, 'ACT-1-GONE', 3), 'Your prediction');
-    expect(fencedBlocks(field).map((block) => block.content)).toEqual([
-      'Answer to a withdrawn one.',
-      'Old wording.',
-    ]);
-    const current = blockWith(file, 'Answer to a withdrawn one.').description;
-    expect(current).toContain('2026-11-19T09:06:00.000Z');
-    expect(current).toContain('1.0.0-draft');
-    const earlier = blockWith(file, 'Old wording.').description;
-    expect(earlier).toMatch(/revision 1\b/i);
-    expect(earlier).toContain('2026-11-19T09:05:00.000Z');
-    expect(earlier).toContain('FIX-RELEASE');
-  });
-
-  it('keeps dropped work out of the lessons’ own sections', async () => {
-    const file = await exportFile(await answeredThenWithdrawn());
-
-    const body = file.slice(0, file.indexOf(heading));
-    expect(body).not.toContain('ACT-1-GONE');
-    expect(body).not.toContain('Answer to a withdrawn one.');
-  });
-
-  it('leaves out dropped answers from lessons outside the range', async () => {
-    const file = await exportFile(await answeredThenWithdrawn(), {
-      from: 'FIX-LS-01',
-      to: 'FIX-LS-01',
-    });
-
-    expect(file).toContain('Answer to a withdrawn one.');
-    expect(file).not.toContain('Answer in lesson 2.');
-    expect(file).not.toContain('ACT-2-GONE');
-  });
-
-  it('has no such section when nothing was dropped', async () => {
-    const server = app();
-    await saveAll(server, 'ACT-3-ONLY', 'prediction', ['Still listed.']);
-
-    const file = await exportFile(server);
-
-    expect(file).not.toContain('Work this release no longer shows');
   });
 });

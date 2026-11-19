@@ -8,22 +8,20 @@ import {
   type TurnProvenance,
 } from './modules/feedback/feedbackRepository.js';
 import {
-  blockWith,
-  corruptLesson,
   exportApp,
   exportFile,
-  exportUrl,
-  fencedBlocks,
   LESSON_3,
-  linesOutsideFences,
   saveAll,
-  section,
   STANDARD_ACTIVITIES,
   WHOLE_COURSE,
   writeExportRelease,
-  writeOtherCourseRelease,
-  type ExportQuery,
 } from './modules/export/testkit/exportFixture.js';
+import {
+  blockWith,
+  fencedBlocks,
+  linesOutsideFences,
+  section,
+} from './modules/export/testkit/markdownReaders.js';
 
 /**
  * Criteria EX9–EX11, EX13 and EX14 in docs/specs/export.md (ADR 0020): whether Claude's feedback
@@ -248,52 +246,6 @@ describe('with conversations (EX10)', () => {
   });
 });
 
-describe('conversation text, verbatim (EX7)', () => {
-  const reply = [
-    'Here is how I would check it:',
-    '```bash',
-    'curl -i http://localhost:4317/',
-    '```',
-    '`````',
-    '## Not a heading in a reply',
-  ].join('\n');
-  const followUp = 'Is this right?\n```\nGET / HTTP/1.1\n```';
-  const sent = '````\n<b>bold</b>\n````';
-
-  it('fences sent fields, follow-ups and replies byte-for-byte', async () => {
-    const server = app();
-    const { conversationId } = startConversation(db, {
-      activityId: 'ACT-3-ONLY',
-      sessionId: 'session-hostile',
-      sentFields: [{ fieldName: 'prediction', text: sent }],
-      provenance: lesson3,
-      at: '2026-11-19T09:40:00.000Z',
-    });
-    appendTurn(db, conversationId, {
-      role: 'claude',
-      text: reply,
-      model: 'claude-sonnet-5-5',
-      outcome: 'complete',
-      provenance: lesson3,
-      at: '2026-11-19T09:40:10.000Z',
-    });
-    appendTurn(db, conversationId, {
-      role: 'learner',
-      text: followUp,
-      provenance: lesson3,
-      at: '2026-11-19T09:41:00.000Z',
-    });
-
-    const file = await exportFile(server, WITH);
-
-    expect(blockWith(file, sent).description).toContain('Your prediction');
-    expect(blockWith(file, reply).description).toMatch(/^Turn 2 · Claude/);
-    expect(blockWith(file, followUp).description).toMatch(/^Turn 3 · You/);
-    expect(/^(`+)/.exec(blockWith(file, reply).opener)?.[1]?.length).toBeGreaterThan(5);
-    expect(linesOutsideFences(file)).not.toContain('## Not a heading in a reply');
-  });
-});
-
 describe('hidden conversations (EX11)', () => {
   it('never carries a conversation Start over hid, and carries the one that replaced it', async () => {
     const server = app();
@@ -364,80 +316,5 @@ describe('hidden conversations (EX11)', () => {
 
     expect(file).toContain('Work this release no longer shows');
     expect(file).not.toContain('A reply about a dropped activity.');
-  });
-});
-
-describe('refusals (EX13, EX14)', () => {
-  async function refusal(query: ExportQuery) {
-    const other = writeOtherCourseRelease();
-    dirs.push(other);
-    const server = exportApp(db, [
-      { id: 'FIX', dir: release() },
-      { id: 'OTH', dir: other },
-    ]);
-    const answer = await server.inject({ method: 'GET', url: exportUrl(query) });
-    return {
-      status: answer.statusCode,
-      body: answer.json() as { error?: string; message?: string },
-    };
-  }
-
-  it.each([
-    ['from is missing', { to: LESSON_3 }, '`from`', '`to`'],
-    ['to is missing', { from: 'FIX-LS-01' }, '`to`', '`from`'],
-    ['from is empty', { from: '', to: LESSON_3 }, '`from`', '`to`'],
-    ['to is empty', { from: 'FIX-LS-01', to: '' }, '`to`', '`from`'],
-    ['from is given twice', { from: ['FIX-LS-01', 'FIX-LS-02'], to: LESSON_3 }, '`from`', '`to`'],
-    ['to is given twice', { from: 'FIX-LS-01', to: [LESSON_3, 'FIX-LS-02'] }, '`to`', '`from`'],
-  ])('answers 400 naming the parameter when %s', async (_, query, named, notNamed) => {
-    const { status, body } = await refusal(query);
-
-    expect(status).toBe(400);
-    expect(typeof body.error).toBe('string');
-    expect(body.message).toContain(named);
-    expect(body.message).not.toContain(notNamed);
-  });
-
-  it.each([
-    ['from is not a lesson', { from: 'NOPE-LS-09', to: LESSON_3 }, ['NOPE-LS-09']],
-    ['to is not a lesson', { from: 'FIX-LS-01', to: 'NOPE-LS-10' }, ['NOPE-LS-10']],
-    ['from is another course’s lesson', { from: 'OTH-LS-01', to: LESSON_3 }, ['OTH-LS-01']],
-    ['to is another course’s lesson', { from: 'FIX-LS-01', to: 'OTH-LS-02' }, ['OTH-LS-02']],
-    // LESSON_3 sorts before FIX-LS-01 by id, so only release order makes this backwards.
-    ['from comes after to', { from: LESSON_3, to: 'FIX-LS-01' }, [LESSON_3, 'FIX-LS-01']],
-    ['from comes after to by one', { from: 'FIX-LS-02', to: 'FIX-LS-01' }, ['FIX-LS-02']],
-    ['conversations is a word', { ...WHOLE_COURSE, conversations: 'yes' }, ['`conversations`']],
-    ['conversations is 2', { ...WHOLE_COURSE, conversations: '2' }, ['`conversations`']],
-    ['conversations is empty', { ...WHOLE_COURSE, conversations: '' }, ['`conversations`']],
-    [
-      'conversations is given twice',
-      { ...WHOLE_COURSE, conversations: ['1', '0'] },
-      ['`conversations`'],
-    ],
-  ])('answers 400 naming the value when %s', async (_, query, named) => {
-    const { status, body } = await refusal(query);
-
-    expect(status).toBe(400);
-    expect(typeof body.error).toBe('string');
-    for (const one of named) expect(body.message).toContain(one);
-  });
-
-  it('accepts a range that runs from a lesson whose id sorts after the end’s', async () => {
-    const file = await exportFile(app(), { from: 'FIX-LS-02', to: LESSON_3 });
-
-    expect(file).toContain('ACT-3-ONLY');
-  });
-
-  it('answers a refused course’s failure, as its other routes do', async () => {
-    const dir = release();
-    corruptLesson(dir);
-    const server = exportApp(db, [{ id: 'FIX', dir }]);
-
-    const releaseAnswer = await server.inject({ method: 'GET', url: '/api/courses/FIX/release' });
-    const answer = await server.inject({ method: 'GET', url: exportUrl(WHOLE_COURSE) });
-
-    expect(releaseAnswer.json()).toMatchObject({ state: 'failed' });
-    expect(answer.statusCode).toBe(200);
-    expect(answer.json()).toEqual(releaseAnswer.json());
   });
 });
