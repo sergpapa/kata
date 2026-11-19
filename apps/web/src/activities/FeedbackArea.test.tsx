@@ -101,11 +101,19 @@ describe('the reply (PF5, PF10, PF12)', () => {
     expect(await within(feedback).findByText(/good start\./i)).toBeTruthy();
     expect(within(feedback).queryByText(/would you check/i)).toBeNull();
 
+    // No second press while this one is running.
+    expect(within(feedback).getByRole('button', { name: /get feedback/i })).toHaveProperty(
+      'disabled',
+      true,
+    );
+
     stream.send('delta', { text: '**What** would you check first?' });
     stream.send('reply', { conversationId: 7, turn: claudeTurn(2) });
     stream.end();
 
     expect(await within(feedback).findByText(/ai feedback · claude-sonnet-5-5/i)).toBeTruthy();
+    // The finished reply replaces the streamed text rather than appearing under it.
+    expect(feedback.textContent?.split('Good start.').length).toBe(2);
     // Rendered as Markdown, not shown as asterisks.
     const strong = feedback.querySelector('strong');
     expect(strong?.textContent).toBe('What');
@@ -135,6 +143,31 @@ describe('the reply (PF5, PF10, PF12)', () => {
     await within(feedback).findByText(/ai feedback/i);
     expect(feedback.querySelector('img')).toBeNull();
     expect(feedback.querySelector('script')).toBeNull();
+  });
+
+  it('keeps a script link and code from a reply inert', async () => {
+    serve({
+      areaNow: () => ({
+        activityId: 'ACT-A',
+        hasWorkedAnswer: true,
+        replying: false,
+        conversation: conversation([
+          learnerTurn(1),
+          claudeTurn(2, {
+            text: '[click me](javascript:alert(1))\n\n```html\n<button onclick="alert(2)">Run</button>\n```',
+          }),
+        ]),
+      }),
+    });
+    const feedback = await openLesson();
+    await within(feedback).findByText(/ai feedback/i);
+
+    for (const link of feedback.querySelectorAll('a')) {
+      expect(link.getAttribute('href') ?? '').not.toMatch(/^\s*javascript:/i);
+    }
+    // The fenced HTML is shown as text, not built into a button.
+    expect(within(feedback).queryByRole('button', { name: 'Run' })).toBeNull();
+    expect(feedback.textContent).toContain('<button onclick="alert(2)">Run</button>');
   });
 
   it('never calls the learner’s work graded, scored, marked, passed or failed', async () => {
@@ -181,7 +214,15 @@ describe('a conversation already stored (PF8)', () => {
       .closest('details');
     expect(sentBox).not.toBeNull();
     expect(sentBox?.hasAttribute('open')).toBe(false);
-    expect(sentBox?.textContent).toContain(sent[0]?.text);
+    for (const field of sent) expect(sentBox?.textContent).toContain(field.text);
+    for (const label of [
+      'Your prediction',
+      'What you observed',
+      'Your explanation',
+      'Whether you used help',
+    ]) {
+      expect(sentBox?.textContent).toContain(label);
+    }
     expect(within(feedback).queryByRole('button', { name: /get feedback/i })).toBeNull();
   });
 });
@@ -203,13 +244,15 @@ describe('continuing (PF6)', () => {
     const send = within(feedback).getByRole('button', { name: /^send$/i });
 
     expect(send).toHaveProperty('disabled', true);
+    fireEvent.change(within(feedback).getByLabelText(/model/i), { target: { value: 'haiku' } });
     fireEvent.change(message, { target: { value: 'Can you show me the author’s answer?' } });
     fireEvent.click(send);
 
     await waitFor(() => expect(posts(seen)).toHaveLength(1));
+    expect(send).toHaveProperty('disabled', true);
     expect(posts(seen)[0]?.body).toEqual({
       action: 'follow_up',
-      model: 'sonnet',
+      model: 'haiku',
       conversationId: 7,
       expectedTurns: 2,
       message: 'Can you show me the author’s answer?',

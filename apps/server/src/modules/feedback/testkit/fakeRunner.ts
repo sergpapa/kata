@@ -46,6 +46,8 @@ export function fakeRunner(
     readonly replies?: readonly (readonly RunEvent[])[];
     readonly holdAt?: readonly (Gate | undefined)[];
     readonly unavailableReason?: string | null;
+    /** Thrown by run i once its events are played: a runner that breaks instead of failing. */
+    readonly throwAt?: readonly (Error | undefined)[];
   } = {},
 ): FakeRunner {
   const requests: RunRequest[] = [];
@@ -60,6 +62,7 @@ export function fakeRunner(
       requests.push(request);
       const events = replies[Math.min(index, replies.length - 1)] ?? [];
       const hold = options.holdAt?.[index];
+      const broken = options.throwAt?.[index];
       return (async function* () {
         for (const [position, event] of events.entries()) {
           yield event;
@@ -68,6 +71,7 @@ export function fakeRunner(
             if (hold) await hold.opened;
           }
         }
+        if (broken) throw broken;
       })();
     },
   };

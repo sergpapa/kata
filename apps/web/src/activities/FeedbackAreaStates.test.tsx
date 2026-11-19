@@ -14,6 +14,14 @@ import {
 } from '../testkit/feedbackFixture.js';
 import { FEEDBACK_MODEL_STORAGE_KEY } from './feedbackTypes.js';
 
+/** How the page names a reset time: local time, then the day (docs/specs/practice-feedback.md PF20). */
+function resumesAtWords(iso: string): string {
+  const when = new Date(iso);
+  const time = when.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const day = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+  return `${time} on ${day}`;
+}
+
 /**
  * PF3, PF11, PF13–PF16 and PF20 in docs/specs/practice-feedback.md: the states the area can be in
  * besides "ready", and the model picker.
@@ -87,7 +95,9 @@ describe('when feedback cannot start (PF16, PF20)', () => {
     expect(
       within(feedback).getByText(/paused to keep your plan out of paid extra usage/i),
     ).toBeTruthy();
-    expect(within(feedback).getByText(/starts again at/i)).toBeTruthy();
+    expect(feedback.textContent).toContain(
+      `It starts again at ${resumesAtWords('2026-11-19T15:00:00.000Z')}`,
+    );
     expect(within(feedback).queryByRole('button', { name: /get feedback/i })).toBeNull();
   });
 
@@ -109,6 +119,8 @@ describe('when feedback cannot start (PF16, PF20)', () => {
     fireEvent.click(within(feedback).getByRole('button', { name: /get feedback/i }));
 
     expect(await within(feedback).findByText(/starts again at/i)).toBeTruthy();
+    expect(feedback.textContent).toContain(resumesAtWords('2026-11-19T15:00:00.000Z'));
+    expect(within(feedback).queryByRole('button', { name: /get feedback/i })).toBeNull();
     expect((screen.getByLabelText(/your prediction/i) as HTMLTextAreaElement).value).toBe('Typed.');
   });
 
@@ -147,6 +159,7 @@ describe('when feedback cannot start (PF16, PF20)', () => {
     fireEvent.click(within(feedback).getByRole('button', { name: /get feedback/i }));
 
     expect(await within(feedback).findByText(/the local app did not answer/i)).toBeTruthy();
+    expect(feedback.textContent).toContain('Failed to fetch');
     expect(within(feedback).getByRole('button', { name: /get feedback/i })).toHaveProperty(
       'disabled',
       false,
@@ -155,9 +168,9 @@ describe('when feedback cannot start (PF16, PF20)', () => {
 });
 
 describe('a reply still being written when the page opens (PF15)', () => {
-  it('says so, and shows the reply once the server has it', async () => {
+  it('says so, asks again after 3 seconds, shows the reply, then stops asking', async () => {
     let calls = 0;
-    serve({
+    const seen = serve({
       areaNow: () => area({ replying: true, conversation: conversation([learnerTurn(1)]) }),
       gets: [
         () => {
@@ -180,15 +193,77 @@ describe('a reply still being written when the page opens (PF15)', () => {
         },
       ],
     });
+    const opened = Date.now();
     const feedback = await openLesson();
+    const asked: number[] = [];
+    const feedbackGets = () =>
+      seen.filter((one) => one.method === 'GET' && one.url.startsWith(FEEDBACK_URL));
+    const note = () => {
+      while (asked.length < feedbackGets().length) asked.push(Date.now() - opened);
+    };
 
     expect(within(feedback).getByText(/claude is still replying/i)).toBeTruthy();
     expect(within(feedback).queryByRole('button', { name: /start over/i })).toBeNull();
-    expect(
-      await within(feedback).findByText('Finished while you were away.', {}, { timeout: 8_000 }),
-    ).toBeTruthy();
+    expect(within(feedback).queryByRole('button', { name: /get feedback/i })).toBeNull();
+    await waitFor(
+      () => {
+        note();
+        expect(within(feedback).getByText('Finished while you were away.')).toBeTruthy();
+      },
+      { timeout: 9_000, interval: 50 },
+    );
     expect(within(feedback).queryByText(/claude is still replying/i)).toBeNull();
-  }, 12_000);
+
+    // About every 3 seconds: not a tight loop, and not slower than the spec says.
+    expect(asked).toHaveLength(2);
+    expect(asked[0]).toBeGreaterThanOrEqual(2_500);
+    expect((asked[1] as number) - (asked[0] as number)).toBeGreaterThanOrEqual(2_500);
+    expect(asked[1]).toBeLessThan(7_500);
+
+    // And it stops once the run is over.
+    await new Promise((resolve) => setTimeout(resolve, 3_500));
+    expect(feedbackGets()).toHaveLength(2);
+  }, 20_000);
+});
+
+describe('words the area never uses (PF10)', () => {
+  const states = {
+    ready: () => serve({}),
+    paused: () =>
+      serve({
+        availability: {
+          state: 'paused',
+          reason: 'Feedback is paused to keep your plan out of paid extra usage.',
+          resumesAt: '2026-11-19T15:00:00.000Z',
+        },
+      }),
+    unavailable: () =>
+      serve({
+        availability: {
+          state: 'unavailable',
+          reason:
+            'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.',
+        },
+      }),
+    replying: () =>
+      serve({
+        areaNow: () => area({ replying: true, conversation: conversation([learnerTurn(1)]) }),
+      }),
+    'no worked answer': () => serve({ areaNow: () => area({ hasWorkedAnswer: false }) }),
+  };
+
+  for (const [name, start] of Object.entries(states)) {
+    it(`calls nothing graded, scored, marked, passed or failed when ${name}`, async () => {
+      start();
+      const feedback = await openLesson();
+
+      const words = (feedback.textContent ?? '').replace(
+        'Claude can be wrong. This is feedback on your reasoning, not a grade.',
+        '',
+      );
+      expect(words).not.toMatch(/\b(grade|graded|score|scored|mark|marked|passed|failed)\b/i);
+    });
+  }
 });
 
 describe('the model picker (PF13)', () => {

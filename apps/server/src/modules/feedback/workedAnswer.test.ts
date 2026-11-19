@@ -144,6 +144,79 @@ describe('the worked-answer section', () => {
   });
 });
 
+describe('the worked-answer section, at the edges of Markdown', () => {
+  it('treats ~~~ fences and longer backtick fences as fences', () => {
+    const fenced = [
+      '# Lesson',
+      '',
+      '## Practice explanations',
+      '',
+      '~~~text',
+      '## inside a tilde fence',
+      '~~~',
+      '',
+      '````md',
+      '```',
+      '## inside a four-backtick fence',
+      '```',
+      '````',
+      '',
+      'After both fences.',
+      '',
+      '## Next',
+    ].join('\n');
+
+    const section = workedAnswerSection(fenced, 'Practice explanations') ?? '';
+    expect(section).toContain('## inside a tilde fence');
+    expect(section).toContain('## inside a four-backtick fence');
+    expect(section).toContain('After both fences.');
+  });
+
+  it('finds the real heading when a fence earlier in the lesson shows the same text', () => {
+    const shown = [
+      '# Lesson',
+      '',
+      '```md',
+      '## Practice explanations',
+      '```',
+      '',
+      '## Practice explanations',
+      '',
+      'The real answer.',
+    ].join('\n');
+
+    expect(workedAnswerSection(shown, 'Practice explanations')?.trim()).toBe('The real answer.');
+  });
+
+  it('reads a heading written with closing hashes', () => {
+    const closed = [
+      '# Lesson',
+      '',
+      '## Practice explanations ##',
+      '',
+      'Answer.',
+      '',
+      '## Next',
+    ].join('\n');
+
+    expect(workedAnswerSection(closed, 'Practice explanations')?.trim()).toBe('Answer.');
+  });
+
+  it('answers null when the same name is a heading at two levels', () => {
+    const twoLevels = [
+      '# Lesson',
+      '',
+      '## Practice explanations',
+      '',
+      '### Practice explanations',
+      '',
+      'Which one?',
+    ].join('\n');
+
+    expect(workedAnswerSection(twoLevels, 'Practice explanations')).toBeNull();
+  });
+});
+
 describe('the worked answers in the released lessons', () => {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
   const releases = [

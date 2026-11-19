@@ -39,6 +39,9 @@ const lessonBody = [
   'Review prose that is not an answer.',
 ].join('\n');
 
+/** Lesson 2's own worked answer: it must never reach an activity of lesson 1. */
+export const OTHER_LESSON_ANSWER = 'Lesson two’s answer, not this activity’s.';
+
 export function activityRecord(over: Record<string, unknown> = {}) {
   return {
     activity_id: 'ACT-FIX-01',
@@ -89,6 +92,25 @@ export function feedbackApp(runner: FeedbackRunner, options: { db?: Db; dir?: st
           'candidate_lesson_id: FIX-LS-01',
         ].join('\n'),
         lessonBody,
+      ),
+    );
+    replaceLessonFile(
+      fixture,
+      'lessons/lesson-02.md',
+      lessonSource(
+        [
+          'document_id: FIX-DOC-02',
+          'version: "1.0.0-draft"',
+          'module: M020',
+          'candidate_lesson_id: FIX-LS-02',
+        ].join('\n'),
+        [
+          '# Lesson 2: the authored title',
+          '',
+          '## Practice explanations',
+          '',
+          OTHER_LESSON_ANSWER,
+        ].join('\n'),
       ),
     );
     replaceActivitySet(fixture, `${JSON.stringify({ activities: twoActivities }, null, 2)}\n`);

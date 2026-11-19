@@ -107,19 +107,20 @@ describe('the coaching rules', () => {
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/what .*(right|correct)/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/missing/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/(do not|don't|never) (reveal|quote|paraphrase)/i);
-    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/unless .*ask/i);
+    // Holding the answer back and the exception belong to one rule, so they sit in one sentence.
+    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/(reveal|quote|paraphrase)[^.]*unless[^.]*ask/i);
   });
 
   it('forbids a grade, score or pass/fail', () => {
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/grade/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/score/i);
-    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/pass/i);
+    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/pass(\/fail| or fail)/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/(no|never|not|don't|do not)[^.]*grade/i);
   });
 
   it('keeps Claude inside the lesson, in plain language, and short', () => {
-    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/lesson/i);
-    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/plain/i);
+    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/(inside|within|to) the lesson/i);
+    expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/plain (language|words|English)/i);
     expect(FEEDBACK_SYSTEM_PROMPT).toMatch(/short|brief/i);
   });
 });

@@ -68,6 +68,7 @@ describe('the arguments a turn starts with', () => {
     expect(args[args.indexOf('--system-prompt-file') + 1]).toBe(base.systemPromptFile);
     expect(args[args.indexOf('--model') + 1]).toBe('sonnet');
     expect(args).not.toContain('--mcp-config');
+    expect(args).not.toContain('--dangerously-skip-permissions');
   });
 
   it('starts a first turn under its own session id, and resumes a follow-up', () => {
@@ -96,19 +97,27 @@ describe("the child's environment", () => {
     ANTHROPIC_BASE_URL: 'https://proxy.example',
     CLAUDE_CODE_USE_BEDROCK: '1',
     CLAUDE_CODE_USE_VERTEX: '1',
+    CLAUDE_CODE_USE_FOUNDRY: '1',
+    ANTHROPIC_FOUNDRY_API_KEY: 'foundry',
+    // Windows keeps a variable in whatever case it was set in, and still honours it.
+    Anthropic_Api_Key: 'sk-ant-mixed-case',
+    claude_code_use_bedrock: '1',
   };
 
   it('drops every variable that would move billing off the plan', () => {
     const env = childEnvironment(server);
 
+    const names = Object.keys(env).map((name) => name.toUpperCase());
     for (const name of [
       'ANTHROPIC_API_KEY',
       'ANTHROPIC_AUTH_TOKEN',
       'ANTHROPIC_BASE_URL',
+      'ANTHROPIC_FOUNDRY_API_KEY',
       'CLAUDE_CODE_USE_BEDROCK',
       'CLAUDE_CODE_USE_VERTEX',
+      'CLAUDE_CODE_USE_FOUNDRY',
     ]) {
-      expect(env).not.toHaveProperty(name);
+      expect(names).not.toContain(name);
     }
   });
 
@@ -305,6 +314,30 @@ describe('stopping a run before it can bill or act (PF19, PF20)', () => {
     const missing = JSON.parse(init({})) as Record<string, unknown>;
     delete missing.apiKeySource;
     expect(play([JSON.stringify(missing), delta]).stoppedAt).toBe(0);
+  });
+
+  for (const field of ['tools', 'mcp_servers'] as const) {
+    it(`stops when an init event leaves out ${field}, or sends something that is not a list`, () => {
+      const missing = JSON.parse(init({})) as Record<string, unknown>;
+      delete missing[field];
+      for (const line of [
+        JSON.stringify(missing),
+        init({ [field]: null }),
+        init({ [field]: 'Bash' }),
+        init({ [field]: { Bash: true } }),
+      ]) {
+        const { events, stoppedAt } = play([line, delta]);
+        expect(stoppedAt, line).toBe(0);
+        expect(events).toEqual([{ type: 'failed', reason: billed }]);
+      }
+    });
+  }
+
+  it('stops when reply text arrives before any init event, and uses none of it', () => {
+    const { events, stoppedAt } = play([delta, init({})]);
+
+    expect(stoppedAt).toBe(0);
+    expect(events).toEqual([{ type: 'failed', reason: billed }]);
   });
 
   it('stops at once when a usage report shows extra usage in use', () => {

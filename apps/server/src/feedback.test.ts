@@ -3,6 +3,7 @@ import { FEEDBACK_SYSTEM_PROMPT } from './modules/feedback/prompt.js';
 import { fakeRunner, sonnetReply } from './modules/feedback/testkit/fakeRunner.js';
 import {
   FEEDBACK_URL,
+  OTHER_LESSON_ANSWER,
   WORKED_ANSWER,
   cleanUpFeedbackApps,
   feedbackApp,
@@ -92,6 +93,27 @@ describe('asking for feedback (PF1, PF2, PF5)', () => {
     expect(request?.prompt).toContain(WORKED_ANSWER);
     expect(request?.prompt).toContain(someBoxes.prediction);
     expect(request?.prompt).not.toContain('Review prose that is not an answer.');
+    // Lesson 2 has a section with the same name; the worked answer is the activity's own lesson's.
+    expect(request?.prompt).not.toContain(OTHER_LESSON_ANSWER);
+  });
+
+  it('stores and sends the finished result, not the pieces streamed before it', async () => {
+    const runner = fakeRunner({
+      replies: [
+        [
+          { type: 'started', model: 'claude-sonnet-5-5', sessionId: 's' },
+          { type: 'text', text: 'A draft that ' },
+          { type: 'text', text: 'Claude Code revised.' },
+          { type: 'done', text: 'The final reply.' },
+        ],
+      ],
+    });
+    const { app } = feedbackApp(runner);
+
+    const events = streamOf(await post(app, startBody()));
+    expect(events.at(-1)?.data.turn.text).toBe('The final reply.');
+    const stored = (await lessonFeedbackOf(app)).area.conversation.turns[1];
+    expect(stored.text).toBe('The final reply.');
   });
 
   it('refuses a request whose boxes are all empty or blank, and runs nothing', async () => {
@@ -270,12 +292,42 @@ describe('what the lesson answer carries (PF8, PF9)', () => {
     ]);
   });
 
-  it('leaves the resume point alone (PF11)', async () => {
-    const { app } = feedbackApp(fakeRunner());
-    expect(streamOf(await post(app, startBody())).at(-1)?.event).toBe('reply');
+  it('ignores provenance a request body claims, and stamps the server’s own', async () => {
+    const { app, db } = feedbackApp(fakeRunner());
+    await post(
+      app,
+      startBody({ releaseId: 'FORGED', contentVersion: '9.9.9', candidateLessonId: 'FIX-LS-02' }),
+    );
 
-    const resume = await app.inject({ method: 'GET', url: '/api/courses/FIX/resume-point' });
-    expect(resume.json()).toEqual({ state: 'none' });
+    const rows = db
+      .prepare(
+        'SELECT DISTINCT candidate_lesson_id, content_version, release_id FROM feedback_turn',
+      )
+      .all();
+    expect(rows).toEqual([
+      {
+        candidate_lesson_id: 'FIX-LS-01',
+        content_version: '1.0.0-draft',
+        release_id: 'FIX-RELEASE',
+      },
+    ]);
+  });
+
+  it('changes nothing the course list, release, lessons or resume point answer (PF11)', async () => {
+    const { app } = feedbackApp(fakeRunner());
+    const read = async () =>
+      Promise.all(
+        [
+          '/api/courses',
+          '/api/courses/FIX/release',
+          '/api/courses/FIX/resume-point',
+          '/api/courses/FIX/lessons/FIX-LS-02',
+        ].map(async (url) => (await app.inject({ method: 'GET', url })).payload),
+      );
+    const before = await read();
+
+    expect(streamOf(await post(app, startBody())).at(-1)?.event).toBe('reply');
+    expect(await read()).toEqual(before);
   });
 });
 
@@ -330,5 +382,29 @@ describe('starting over (PF7)', () => {
         .prepare("UPDATE feedback_conversation SET claude_session_id = 'other' WHERE id = ?")
         .run(conversationId),
     ).toThrow();
+  });
+
+  it('lets the store refuse a change to a live conversation other than clearing it', async () => {
+    const { app, db } = feedbackApp(fakeRunner());
+    const conversationId = streamOf(await post(app, startBody()))[0]?.data.conversationId;
+
+    expect(() =>
+      db
+        .prepare("UPDATE feedback_conversation SET claude_session_id = 'other' WHERE id = ?")
+        .run(conversationId),
+    ).toThrow();
+    expect(() =>
+      db
+        .prepare(
+          "UPDATE feedback_conversation SET cleared_at = '2030-01-01T00:00:00.000Z', claude_session_id = 'other' WHERE id = ?",
+        )
+        .run(conversationId),
+    ).toThrow();
+    expect(() =>
+      db
+        .prepare("UPDATE feedback_conversation SET activity_id = 'ACT-OTHER' WHERE id = ?")
+        .run(conversationId),
+    ).toThrow();
+    expect((await lessonFeedbackOf(app)).area.conversation.conversationId).toBe(conversationId);
   });
 });

@@ -19,7 +19,7 @@ process.stdin.on('end', () => {
   const stdin = Buffer.concat(chunks).toString('utf8');
   // A run stopped at its init event never reports its session (here: its pid), so this mode leaves
   // the pid where the test can find it, before saying anything.
-  if (mode === 'apikey') fs.writeFileSync('standin.pid', String(process.pid));
+  if (mode === 'apikey' || mode === 'hang') fs.writeFileSync('standin.pid', String(process.pid));
   emit({
     type: 'system',
     subtype: 'init',
@@ -52,7 +52,11 @@ process.stdin.on('end', () => {
     cwd: process.cwd(),
     cwdEntries: fs.readdirSync(process.cwd()),
     systemPrompt: promptFileAt >= 0 ? fs.readFileSync(args[promptFileAt + 1], 'utf8') : null,
-    sawApiKey: 'ANTHROPIC_API_KEY' in process.env,
+    billingVariables: Object.keys(process.env).filter((name) =>
+      /^(ANTHROPIC_(API_KEY|AUTH_TOKEN|BASE_URL|FOUNDRY_API_KEY)|CLAUDE_CODE_USE_(BEDROCK|VERTEX|FOUNDRY))$/i.test(
+        name,
+      ),
+    ),
   });
   emit({
     type: 'stream_event',

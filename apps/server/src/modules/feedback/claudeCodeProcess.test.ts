@@ -42,7 +42,13 @@ function runner(mode: string, options: { timeoutMs?: number } = {}) {
     runner: createClaudeCodeRunner({
       command: { file: process.execPath, leadingArgs: [standIn] },
       workDir,
-      env: { ...process.env, STANDIN_MODE: mode, ANTHROPIC_API_KEY: 'sk-ant-must-not-arrive' },
+      env: {
+        ...process.env,
+        STANDIN_MODE: mode,
+        ANTHROPIC_API_KEY: 'sk-ant-must-not-arrive',
+        Anthropic_Auth_Token: 'mixed-case-must-not-arrive',
+        CLAUDE_CODE_USE_FOUNDRY: '1',
+      },
       timeoutMs: options.timeoutMs ?? 20_000,
     }),
   };
@@ -60,6 +66,16 @@ async function collect(events: AsyncIterable<RunEvent>): Promise<RunEvent[]> {
   const all: RunEvent[] = [];
   for await (const event of events) all.push(event);
   return all;
+}
+
+/** Whether the process is gone within two seconds: Windows can report a kill a moment late. */
+async function goneSoon(pid: number): Promise<boolean> {
+  const until = Date.now() + 2_000;
+  while (alive(pid)) {
+    if (Date.now() > until) return false;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return true;
 }
 
 function alive(pid: number): boolean {
@@ -95,7 +111,12 @@ describe('a turn run as a real process', () => {
     const report = JSON.parse((events.at(-1) as { text: string }).text);
 
     expect(report.args).toContain('--safe-mode');
+    expect(report.args).toContain('--strict-mcp-config');
     expect(report.args).not.toContain('--bare');
+    expect(report.args).not.toContain('--mcp-config');
+    expect(report.args).not.toContain('--dangerously-skip-permissions');
+    // An empty argument lost on the way would let `--tools` swallow the next flag and enable tools.
+    expect(report.args[report.args.indexOf('--tools') + 1]).toBe('');
     const file = report.args[report.args.indexOf('--system-prompt-file') + 1] as string;
     expect(file).toContain('educode feedback & co-');
     expect(fs.existsSync(file)).toBe(true);
@@ -110,24 +131,25 @@ describe('a turn run as a real process', () => {
     expect(report.cwdEntries).toEqual([]);
   });
 
-  it('does not hand the server’s API key to the child', async () => {
+  it('hands the child no billing variable, whatever case it was set in', async () => {
     const { runner: run } = runner('report');
     const events = await collect(run.run(request));
     const report = JSON.parse((events.at(-1) as { text: string }).text);
 
-    expect(report.sawApiKey).toBe(false);
+    expect(report.billingVariables).toEqual([]);
   });
 
   it('kills a run that does not finish in time, and says so', async () => {
-    const { runner: run } = runner('hang', { timeoutMs: 1_500 });
+    // Long enough that a loaded machine still boots the stand-in before the limit.
+    const { runner: run, workDir } = runner('hang', { timeoutMs: 4_000 });
     const events = await collect(run.run(request));
 
     const last = events.at(-1);
     expect(last?.type).toBe('failed');
     expect(last?.type === 'failed' && last.reason).toMatch(/did not finish within/i);
-    const pid = await pidOf(events);
-    expect(alive(pid)).toBe(false);
-  }, 15_000);
+    const pid = Number(fs.readFileSync(path.join(workDir, 'standin.pid'), 'utf8'));
+    expect(await goneSoon(pid)).toBe(true);
+  }, 20_000);
 
   it('kills a run at once when it reports extra usage in use', async () => {
     const { runner: run } = runner('overage', { timeoutMs: 10_000 });
@@ -136,7 +158,7 @@ describe('a turn run as a real process', () => {
 
     expect(Date.now() - began).toBeLessThan(8_000);
     expect(events.at(-1)?.type).toBe('failed');
-    expect(alive(await pidOf(events))).toBe(false);
+    expect(await goneSoon(await pidOf(events))).toBe(true);
   }, 15_000);
 
   it('kills a run whose credentials come from an API key, before any reply', async () => {
@@ -147,7 +169,7 @@ describe('a turn run as a real process', () => {
     expect(events.map((event) => event.type)).toEqual(['failed']);
     expect(Date.now() - began).toBeLessThan(8_000);
     const pid = Number(fs.readFileSync(path.join(workDir, 'standin.pid'), 'utf8'));
-    expect(alive(pid)).toBe(false);
+    expect(await goneSoon(pid)).toBe(true);
   }, 15_000);
 });
 
