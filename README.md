@@ -24,24 +24,92 @@ executed by the application. It does not grade you, review your work, or claim a
 you have mastered. "Studied", "practice recorded" and "feedback received" are the only states it
 will ever show.
 
-## Requirements
+## How to run it
 
-Node.js 22.13 or newer, on the machine you want to learn on. Nothing else — no database server, no
-hosting account.
+### 1. What you need
 
-## Running it
+- **Node.js 22.13 or newer.** Node 24 LTS is what it is tested on. Check with `node -v`.
+- **Git**, to clone the repository.
+- Nothing else: no database server, no account, no hosting. The courses ship inside the repository
+  under `content/releases/`, so a clone has every lesson and lab kit.
+
+Install Node from <https://nodejs.org>, or through a version manager (nvm, nvm-windows, fnm). If you
+have more than one Node on your machine — Anaconda ships its own, for example — make sure
+`node -v` in the terminal you run the app from shows the one you meant.
+
+### 2. Get the code and install
 
 ```sh
+git clone <repository-url> EduCode
+cd EduCode
 npm install
+```
+
+`npm install` downloads a prebuilt `better-sqlite3` (the SQLite driver) for your Node version. If
+you later switch Node versions, run `npm rebuild better-sqlite3`, or the server will fail to load it.
+
+### 3. Start it
+
+```sh
 npm run dev
 ```
 
-`npm run dev` starts the server on <http://127.0.0.1:8317> and the client dev server on
-<http://127.0.0.1:5317>. Open the second one.
+This starts two things: the server on <http://127.0.0.1:8317> and the page on
+<http://127.0.0.1:5317>. **Open <http://127.0.0.1:5317>.** The server terminal should print one
+`learning release imported` line per course (`FSSE` and `QAAE`). Stop both with Ctrl+C.
 
-The app deliberately stays off ports 4315–4323: the lessons' downloadable lab kits run their own
-local servers there — lessons 6–8 tell you to start one on 4317 while you read, and the lessons
-14–15 investigation kit uses 4321 and 4323.
+`npm run dev` restarts the server whenever a source file changes. To run the app without that,
+build it once and start the built version, which serves everything from one address:
+
+```sh
+npm run build
+npm start        # open http://127.0.0.1:8317
+```
+
+### 4. Where your work goes
+
+Everything you type and save is in `data/educode.sqlite` inside the clone. It never leaves your
+machine and is never committed (`.gitignore` excludes `data/`). Delete the `data/` directory to
+start clean. Pulling a newer version of the repository keeps it: the app migrates the store on start.
+
+### Settings
+
+All optional, set as environment variables before `npm run dev` or `npm start`:
+
+| Variable                   | Default                                              | What it changes                         |
+| -------------------------- | ---------------------------------------------------- | --------------------------------------- |
+| `EDUCODE_PORT`             | `8317`                                               | The server's port (the page follows it) |
+| `EDUCODE_DATA_DIR`         | `data/`                                              | Where your work is stored               |
+| `EDUCODE_RELEASE_DIR_FSSE` | `content/releases/http-first-fifteen-v1_0_1/content` | The full-stack course's release         |
+| `EDUCODE_RELEASE_DIR_QAAE` | `content/releases/qaae-q01-v1/content`               | The QA course's release                 |
+
+The page always runs on 5317 in dev mode. The app deliberately stays off ports 4315–4323: the
+lessons' lab kits run their own local servers there — lessons 6–8 tell you to start one on 4317
+while you read, and the lessons 14–15 investigation kit uses 4321 and 4323.
+
+### When it does not start
+
+- **`Port 5317 is already in use`, or `EADDRINUSE` on 8317.** Another copy of the app is running.
+  Stop it, or set `EDUCODE_PORT` for the server.
+- **The page loads but every request fails, and the terminal shows `ECONNREFUSED 127.0.0.1:8317`.**
+  The server crashed on start; scroll up in the terminal for the reason. The usual one is a Node
+  older than 22.13, or a different Node from the one `npm install` ran under (see step 2).
+- **A course page says its release was refused.** The app re-checks every lesson file against the
+  SHA-256 its release publishes, and refuses the course if one differs. The page names the file.
+  The usual cause is a tool that rewrote line endings in `content/releases/`; restore it with
+  `git checkout -- content/releases`.
+
+### Practice feedback from Claude (in progress, not usable yet)
+
+A feedback slice is being built: under each practice activity, **Get feedback** will send your
+answers to Claude and show the reply. It runs **your own** Claude Code, on your own subscription
+login, as a child process on your machine — the app holds no key and calls no API itself
+([docs/adr/0019](docs/adr/0019-practice-feedback-runs-the-learners-own-claude-code-as-a-child-process.md)).
+When it ships, you will need [Claude Code](https://claude.com/claude-code) installed and signed in
+with a Claude subscription. The app refuses to run it if Claude Code is set up to bill an API key,
+and pauses new requests before your usage would reach extra (paid) usage. If the app cannot find
+`claude`, set `EDUCODE_CLAUDE_PATH` to the executable. Criteria:
+[docs/specs/practice-feedback.md](docs/specs/practice-feedback.md).
 
 ## The content release
 
@@ -124,13 +192,6 @@ needs no kit and says so. The bytes are re-hashed against the release every time
 if the archive on disk has changed since the app started, you get a named refusal and both hashes
 rather than a file the release does not describe. The 14–15 kit ships deliberately broken starter
 code — that is the lesson, and the app never repairs, runs or rewrites it.
-
-For the built application:
-
-```sh
-npm run build
-npm start        # serves the built client and the API from http://127.0.0.1:8317
-```
 
 ## Checking it
 
