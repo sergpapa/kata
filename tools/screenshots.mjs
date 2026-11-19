@@ -15,6 +15,7 @@ import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
+import { checkAxe, checkTargets, runA11yJourneys } from './a11y-checks.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -292,6 +293,20 @@ try {
         await page.screenshot({ path: file, fullPage: true });
         console.log(`  ${path.relative(repoRoot, file)}`);
 
+        // Accessibility gates (docs/specs/accessibility-pass.md AX1, AX2), after the capture so the
+        // injected checker is never in a screenshot. axe at the two ends of the width range; target
+        // sizes at 375 only, and once, because they do not depend on the colour scheme.
+        if (size.width !== 768) {
+          for (const found of await checkAxe(page)) {
+            failures.push(`${route.name} (${scheme}) at ${size.width}px: ${found}`);
+          }
+        }
+        if (size.width === 375 && scheme === schemes[0]) {
+          for (const found of await checkTargets(page)) {
+            failures.push(`${route.name} at 375px: ${found}`);
+          }
+        }
+
         // The drawing on its own, as well as inside the page. A blank frame is invisible in a
         // 12,000px full-page PNG — the review that found this one had to crop it out to see it.
         //
@@ -561,6 +576,9 @@ try {
     console.log(`  ${path.relative(repoRoot, path.join(outDir, 'resume-home-1440.png'))}`);
     await context.close();
   }
+
+  // AX3 and AX4: the keyboard walks and the dashboard's two cards.
+  failures.push(...(await runA11yJourneys(browser, baseUrl)));
 } finally {
   await browser?.close();
   child.kill();
