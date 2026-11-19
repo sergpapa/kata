@@ -143,7 +143,8 @@ describe('the feedback area’s name (AX8)', () => {
     render(<LessonPage courseId="FSSE" candidateLessonId="LS-M020-01" />);
 
     const a = await screen.findByRole('region', { name: 'Feedback from Claude on Practice A' });
-    const b = screen.getByRole('region', { name: 'Feedback from Claude on Practice B' });
+    // Practice B's section is missing, so its panel is placed after the first render: wait for it.
+    const b = await screen.findByRole('region', { name: 'Feedback from Claude on Practice B' });
 
     for (const area of [a, b]) {
       expect(area.querySelector('.feedback-title')?.textContent).toBe('Feedback from Claude');
