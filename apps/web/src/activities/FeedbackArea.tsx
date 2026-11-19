@@ -105,7 +105,6 @@ export function FeedbackArea({
     (turns.length === 1 && turns[0]?.role === 'learner') ||
     (turns.length === 2 && turns[1]?.outcome === 'failed');
   const sentFirst = turns[0]?.sentFields;
-  const titleId = `feedback-title-${activityId}`;
 
   const startOverButton = !busy && (
     <button type="button" className="feedback-text-button" onClick={() => void talk.startOver()}>
@@ -185,9 +184,7 @@ export function FeedbackArea({
 
   return (
     <section className="feedback-area" aria-label={`Feedback from Claude on ${activityTitle}`}>
-      <p id={titleId} className="feedback-title">
-        Feedback from Claude
-      </p>
+      <p className="feedback-title">Feedback from Claude</p>
       <p className="feedback-note">
         <span>{NOTE}</span>
         {!area.hasWorkedAnswer && (

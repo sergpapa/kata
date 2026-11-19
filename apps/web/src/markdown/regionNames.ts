@@ -20,6 +20,10 @@ import { visit } from 'unist-util-visit';
 export const REGION_NAME = 'dataRegionName';
 /** The property a diagram's `pre` carries: the id of the paragraph that describes it, if any. */
 export const DESCRIBED_BY = 'dataDescribedBy';
+/** A diagram's `pre`: "Diagram <n>", which the drawn picture's region name starts with. */
+export const DIAGRAM_NUMBER = 'dataDiagramNumber';
+/** A diagram's `pre`: " in <place>", or empty in the lesson body; the drawn name ends with it. */
+export const DIAGRAM_PLACE = 'dataDiagramPlace';
 
 const IN_WORDS = 'In words:';
 
@@ -32,7 +36,12 @@ function textOf(node: Element): string {
 }
 
 /** The fence's language: what mdast put after `language-` on the inner `code`, as written. */
-function languageOf(pre: Element): string | undefined {
+/**
+ * The one place that reads a fence's language, so the renderer's "is this a diagram?" and this
+ * plugin's counting can never disagree.
+ */
+export function languageOf(pre: Element | undefined): string | undefined {
+  if (!pre) return undefined;
   const code = pre.children.find((child): child is Element => child.type === 'element');
   const names = code?.properties?.className;
   for (const name of Array.isArray(names) ? names : []) {
@@ -95,6 +104,8 @@ export function rehypeRegionNames(place: string | undefined, idPrefix: string) {
       }
       diagrams += 1;
       node.properties[REGION_NAME] = `Source of diagram ${diagrams}${where}`;
+      node.properties[DIAGRAM_NUMBER] = `Diagram ${diagrams}`;
+      node.properties[DIAGRAM_PLACE] = where;
       // Described only by a paragraph that comes straight after and begins exactly "In words:":
       // the authors' own convention. Anything looser would let the app attach a description the
       // author did not write as one.

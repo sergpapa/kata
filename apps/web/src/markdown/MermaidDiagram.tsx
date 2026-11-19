@@ -90,11 +90,19 @@ const NO_DIMENSIONS =
 export function MermaidDiagram({
   source,
   describedBy,
+  number,
+  place,
   children,
 }: {
   readonly source: string;
   /** The id of the author's "In words:" paragraph after this diagram, when there is one (AX9). */
   readonly describedBy?: string | undefined;
+  /**
+   * "Diagram <n>" and " in <place>" (empty in the lesson body): the drawn picture's region is named
+   * "<number>: <kind> <place>", so two drawn diagrams on one page never share a name (AX7).
+   */
+  readonly number: string;
+  readonly place: string;
   readonly children: ReactNode;
 }) {
   const [drawing, setDrawing] = useState<Drawing>({ state: 'pending' });
@@ -273,7 +281,7 @@ export function MermaidDiagram({
           className="diagram-scroll"
           tabIndex={0}
           role="region"
-          aria-label={drawing.title}
+          aria-label={`${number}: ${drawing.title}${place}`}
           aria-describedby={describedBy}
           ref={scroller}
         >

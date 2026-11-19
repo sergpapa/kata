@@ -7,7 +7,14 @@ import type { Element, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 import { MermaidDiagram } from './MermaidDiagram.js';
-import { DESCRIBED_BY, REGION_NAME, rehypeRegionNames } from './regionNames.js';
+import {
+  DESCRIBED_BY,
+  DIAGRAM_NUMBER,
+  DIAGRAM_PLACE,
+  languageOf,
+  REGION_NAME,
+  rehypeRegionNames,
+} from './regionNames.js';
 import { CopyBlock } from './CopyBlock.js';
 import { ActivityPanel } from '../activities/ActivityPanel.js';
 import {
@@ -64,20 +71,6 @@ function rehypeCollectOutline(box: { entries: OutlineEntry[] }) {
   };
 }
 
-/** The fence's info string, read off the `language-*` class mdast puts on the `code` element. */
-function fenceLanguage(node: Element | undefined): string | undefined {
-  const code = node?.children.find((child) => child.type === 'element');
-  const className = code && code.type === 'element' ? code.properties?.className : undefined;
-  const names = Array.isArray(className) ? className : [];
-
-  for (const name of names) {
-    if (typeof name === 'string' && name.startsWith('language-')) {
-      return name.slice('language-'.length);
-    }
-  }
-  return undefined;
-}
-
 /**
  * The characters between the fences, taken from the tree rather than from the React children.
  *
@@ -132,7 +125,7 @@ const components: Components = {
    * character is the lesson.
    */
   pre({ node, children }) {
-    const language = fenceLanguage(node);
+    const language = languageOf(node);
     const name = regionName(node, language ? `${language} sample` : 'Code sample');
     const block = (
       <div className="code-block">
@@ -154,10 +147,14 @@ const components: Components = {
     // to is the same markup every other fence gets — including its character-for-character text.
     if (language !== 'mermaid') return block;
     const describedBy = node?.properties?.[DESCRIBED_BY];
+    const number = node?.properties?.[DIAGRAM_NUMBER];
+    const place = node?.properties?.[DIAGRAM_PLACE];
     return (
       <MermaidDiagram
         source={fenceText(node)}
         describedBy={typeof describedBy === 'string' ? describedBy : undefined}
+        number={typeof number === 'string' ? number : 'Diagram'}
+        place={typeof place === 'string' ? place : ''}
       >
         {block}
       </MermaidDiagram>

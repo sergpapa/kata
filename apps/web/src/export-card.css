@@ -96,7 +96,14 @@
 .export-card {
   display: flex;
   flex-direction: column;
-  padding-bottom: calc(var(--overview-card-bottom, 2rem) - 1px);
+}
+
+/* Only beside the continue card: stacked below 901px, the card keeps the even padding every other
+   card has (code review: a later rule of equal specificity otherwise won at phone width too). */
+@media (min-width: 901px) {
+  .export-card {
+    padding-bottom: calc(var(--overview-card-bottom, 2rem) - 1px);
+  }
 }
 
 .export-actions {
