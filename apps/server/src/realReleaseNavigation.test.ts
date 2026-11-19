@@ -6,6 +6,7 @@ import { buildApp } from './app.js';
 import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criterion P4 in docs/specs/reader-navigation-and-resume.md, against the author's own release: a
@@ -48,6 +49,7 @@ describe('the neighbour chain across the real fifteen-lesson release', () => {
   it('names every neighbour in manifest order, carrying that lesson’s own served title', async () => {
     db = openDatabase(':memory:');
     const app = buildApp({
+      feedback: inertFeedback(),
       db,
       courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))],
     });

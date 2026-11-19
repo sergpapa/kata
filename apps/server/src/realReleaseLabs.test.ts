@@ -8,6 +8,7 @@ import { buildApp } from './app.js';
 import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria K3, K4 and D7 in docs/specs/lab-downloads.md, against the author's own release.
@@ -65,7 +66,11 @@ let app: FastifyInstance;
 
 beforeAll(() => {
   db = openDatabase(':memory:');
-  app = buildApp({ db, courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))] });
+  app = buildApp({
+    feedback: inertFeedback(),
+    db,
+    courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))],
+  });
 });
 
 afterAll(() => {

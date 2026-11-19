@@ -6,6 +6,7 @@ import { readSchemaVersion } from './modules/lifecycle/database.js';
 import { loadReleaseSummary } from './modules/content/repository.js';
 import { registerCourseRoutes } from './modules/content/courseRoutes.js';
 import type { CourseState } from './modules/content/types.js';
+import type { FeedbackDeps } from './modules/feedback/types.js';
 
 export interface AppDeps {
   readonly db: Db;
@@ -15,6 +16,12 @@ export interface AppDeps {
    * unwired composition start and answer "no courses" instead of failing where somebody is reading.
    */
   readonly courses: readonly CourseState[];
+  /**
+   * What produces Claude's practice feedback, and the clock and session ids it is stamped with
+   * (ADR 0019). Required: an unwired runner would answer every request as if Claude Code were
+   * missing, which is a claim about the learner's machine and not a missing wire.
+   */
+  readonly feedback: FeedbackDeps;
   /** Built client directory. Omitted in tests and in development, where Vite serves the client. */
   readonly webDistDir?: string;
 }
@@ -67,7 +74,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   for (const course of deps.courses) {
     void app.register(
       async (scoped) => {
-        registerCourseRoutes(scoped, deps.db, course);
+        registerCourseRoutes(scoped, deps.db, course, deps.feedback);
       },
       { prefix: `/api/courses/${course.courseId}` },
     );

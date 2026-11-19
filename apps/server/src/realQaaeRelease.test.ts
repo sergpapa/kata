@@ -5,6 +5,7 @@ import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { importCourses } from './modules/content/courses.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria C15–C16 in docs/specs/multi-course.md, against the QA course's own first release and the
@@ -101,7 +102,11 @@ describe('the QA course’s first release', () => {
 
   it('serves the lesson and its activities through the QA course', async () => {
     db = openDatabase(':memory:');
-    const app = buildApp({ db, courses: importCourses(db, loadConfig({}).courses) });
+    const app = buildApp({
+      feedback: inertFeedback(),
+      db,
+      courses: importCourses(db, loadConfig({}).courses),
+    });
 
     const response = await app.inject({
       method: 'GET',

@@ -11,6 +11,7 @@ import {
   replaceActivitySet,
   writeFixture,
 } from './modules/content/testkit/releaseFixture.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria A1–A11 and C7 in docs/specs/acknowledged-saves.md.
@@ -70,7 +71,7 @@ function appWith(activities: FixtureActivity[]) {
   db = openDatabase(':memory:');
   const dir = releaseWith(activities);
   const release: ReleaseState = importRelease(db, dir);
-  return buildApp({ db, courses: [testCourse('FIX', dir, release)] });
+  return buildApp({ feedback: inertFeedback(), db, courses: [testCourse('FIX', dir, release)] });
 }
 
 const oneActivity = [activityRecord()];
@@ -376,7 +377,11 @@ describe('a save the server will not make', () => {
     const fixture = makeFixture();
     fixture.manifest.lessons[0]!.sha256 = 'a'.repeat(64);
     const release: ReleaseState = importRelease(db, writeFixture(dir, fixture));
-    const app = buildApp({ db, courses: [testCourse('FIX', dir, release)] });
+    const app = buildApp({
+      feedback: inertFeedback(),
+      db,
+      courses: [testCourse('FIX', dir, release)],
+    });
 
     const response = await put(app, 'ACT-FIX-01', 'prediction', {
       text: 'work',

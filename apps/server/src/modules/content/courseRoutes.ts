@@ -15,6 +15,7 @@ import { loadResumePoint, saveResumePoint } from '../learner/resumeRepository.js
 import { loadEarlierRevisions, loadResponsesForActivities } from '../learner/responseRepository.js';
 import { registerResponseRoutes, responseWithHistory } from '../learner/responseRoutes.js';
 import type { CourseState } from './types.js';
+import type { FeedbackDeps } from '../feedback/types.js';
 
 /**
  * Everything one course serves, under `/api/courses/<courseId>/` (ADR 0018).
@@ -24,7 +25,13 @@ import type { CourseState } from './types.js';
  * course's lessons, kits or resume point. A refused release is each endpoint's answer, not its
  * failure — the same shape the one-course app used.
  */
-export function registerCourseRoutes(app: FastifyInstance, db: Db, course: CourseState): void {
+export function registerCourseRoutes(
+  app: FastifyInstance,
+  db: Db,
+  course: CourseState,
+  feedback: FeedbackDeps,
+): void {
+  void feedback;
   const { release } = course;
 
   /**

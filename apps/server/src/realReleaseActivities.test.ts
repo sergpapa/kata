@@ -6,6 +6,7 @@ import { buildApp } from './app.js';
 import { testCourse } from './modules/content/testkit/courseFixture.js';
 import { openDatabase, type Db } from './modules/lifecycle/database.js';
 import { importRelease } from './modules/content/service.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criterion I6 in docs/specs/activity-placement.md, against the author's own release. A fixture
@@ -56,6 +57,7 @@ afterEach(() => {
 async function servedActivities(candidateLessonId: string) {
   db = openDatabase(':memory:');
   const app = buildApp({
+    feedback: inertFeedback(),
     db,
     courses: [testCourse('FSSE', releaseDir, importRelease(db, releaseDir))],
   });

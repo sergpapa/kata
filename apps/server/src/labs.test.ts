@@ -12,6 +12,7 @@ import {
   removeDir,
   writeFixture,
 } from './modules/content/testkit/releaseFixture.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria K1, K2 and D1–D6, D8 in docs/specs/lab-downloads.md.
@@ -42,7 +43,11 @@ function releaseDir(mutate: (fixture: ReturnType<typeof makeFixture>) => void = 
 /** The fixture release, imported and served, with the directory the download reads from. */
 function appOver(dir: string) {
   db = openDatabase(':memory:');
-  return buildApp({ db, courses: [testCourse('FIX', dir, importRelease(db, dir))] });
+  return buildApp({
+    feedback: inertFeedback(),
+    db,
+    courses: [testCourse('FIX', dir, importRelease(db, dir))],
+  });
 }
 
 function sha256Of(bytes: Buffer): string {
@@ -234,7 +239,11 @@ describe('downloading a kit', () => {
     }
     tempDirs.push(link);
     db = openDatabase(':memory:');
-    const app = buildApp({ db, courses: [testCourse('FIX', link, importRelease(db, link))] });
+    const app = buildApp({
+      feedback: inertFeedback(),
+      db,
+      courses: [testCourse('FIX', link, importRelease(db, link))],
+    });
 
     const response = await app.inject({
       method: 'GET',

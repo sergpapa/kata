@@ -13,6 +13,7 @@ import {
   replaceLessonFile,
   writeFixture,
 } from './modules/content/testkit/releaseFixture.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria A10–A14 and S8 in docs/specs/prediction-history.md (ADR 0012).
@@ -77,7 +78,11 @@ function releaseDir(corrected = false): string {
 
 function appOn(dir: string) {
   const release: ReleaseState = importRelease(db as Db, dir);
-  return buildApp({ db: db as Db, courses: [testCourse('FIX', dir, release)] });
+  return buildApp({
+    feedback: inertFeedback(),
+    db: db as Db,
+    courses: [testCourse('FIX', dir, release)],
+  });
 }
 
 function freshApp(corrected = false) {

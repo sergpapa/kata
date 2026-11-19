@@ -10,6 +10,7 @@ import {
 import { migrations } from './modules/lifecycle/migrations.js';
 import { migrate, openDatabase, type Db } from './modules/lifecycle/database.js';
 import { loadResumePoint } from './modules/learner/resumeRepository.js';
+import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 
 /**
  * Criteria C5–C9 in docs/specs/multi-course.md: the course-scoped API, the course list, shared work
@@ -45,7 +46,7 @@ function twoCourseApp(second: CourseReleaseSpec = sharingQax) {
     },
     { courseId: 'QAX', title: 'Second course', releaseDir: release(second) },
   ]);
-  return buildApp({ db, courses });
+  return buildApp({ feedback: inertFeedback(), db, courses });
 }
 
 /** QAX carries FIX-LS-01 at a later version than FIX does, so provenance shows whose it is. */
@@ -103,7 +104,7 @@ describe('GET /api/courses (C7)', () => {
       { courseId: 'FIX', title: 'Fixture course', releaseDir: `${nowhere}/fix` },
       { courseId: 'QAX', title: 'Second course', releaseDir: `${nowhere}/qax` },
     ]);
-    const app = buildApp({ db, courses });
+    const app = buildApp({ feedback: inertFeedback(), db, courses });
 
     const response = await app.inject({ method: 'GET', url: '/api/courses' });
     const body = response.json() as { courses: { courseId: string; state: string }[] };

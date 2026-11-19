@@ -42,7 +42,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['tools/**/*.mjs', 'apps/server/src/index.ts'],
+    files: ['tools/**/*.mjs', 'apps/server/src/index.ts', 'apps/server/src/**/testkit/*.mjs'],
     languageOptions: { globals: globals.node },
     rules: { 'no-console': 'off' },
   },
