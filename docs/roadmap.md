@@ -68,8 +68,8 @@ transcript by 17:10. The `content/drafts/` ignore lines in `eslint.config.js`, `
 
 After the merge, under nvm's Node 24.12: `npm run typecheck`, `npm run lint`, `npm run build` and
 `npm run screenshots` (26 routes × 3 widths × 2 schemes, axe clean, 10 diagrams read) pass. `npm
-test` passed 1568 of 1568 on its last full run. `npm run format:check` fails only
-on files inside `.claude/worktrees/a11y-pass`, which can now be removed. Run filtered vitest from
+test` passed 1568 of 1568 on its last full run. `npm run format:check` passes now that the
+`a11y-pass` worktree is removed (2026-11-20; its branch, fully merged, is deleted too). Run filtered vitest from
 `C:/…`, not `c:\…` (see memory).
 
 **Known and not fixed.** `README.md` describes neither practice feedback, Export nor earlier
