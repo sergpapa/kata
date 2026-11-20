@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-04
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner who can run a program with arguments from the right folder and change files safely in a terminal; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-04
@@ -27,7 +27,7 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; this lesson creates report and message files in the kit folder, which may be deleted afterwards"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7"
 assessment_scope: "Guided observation, prediction and explanation; it does not establish skill at writing scripts or automated checks"
 deferred:
   - "Typing input into a running program, and reading a file with <: outside this module"
@@ -35,7 +35,7 @@ deferred:
   - "What PowerShell passes between its own built-in commands, which is richer than text: outside this module"
   - "Text encodings: the module on values and text in the programming stage"
 examples: "The courier, the colleagues' scripts and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # Output, messages and the exit code
@@ -49,6 +49,8 @@ The lesson answers one question:
 > "A program printed some lines and stopped. How does anyone, a person or another program, know whether it worked?"
 
 You need the kit from the lesson *Where the terminal is standing*, and a terminal standing in the `terminal-practice-kit` folder. Confirm with `pwd`.
+
+If you already redirect output and read exit codes, go to Section 8 and try Practices B and D. Read "The status is a claim" in Section 6 either way.
 
 ## 1. Start with a familiar situation: a delivery
 
@@ -78,7 +80,28 @@ Because the parcel does not always come to you. When it is redirected, the remar
 
 ## 2. Two streams that look like one
 
-Run the order checker on October's file. You have not used this file before.
+This lesson uses October's order file, which you have not opened before. Print it first:
+
+```sh
+cat data/orders-2026-10.csv
+```
+
+```text
+order,date,item,quantity,unit_price,total
+1001,2026-10-01,Notebook A5,6,3.50,21.00
+1002,2026-10-03,Desk lamp,2,42.00,84.00
+1003,2026-10-08,Pen box,0,2.75,0.00
+1004,2026-10-12,Printer paper,5,4.20,21.00
+1005,2026-10-15,Standing desk,2,320.00,640.00
+1006,2026-10-19,Whiteboard,1,65.00,65.00
+1007,2026-10-23,Stapler,3,10.50,31.00
+1008,2026-10-27,Office chair,1,180.00,180.00
+1009,2026-10-30,Desk mat,2,18.00
+```
+
+Line 1 is a heading that names six values. Every line after it is one order, with its six values separated by commas. Each value on a line is called a **field**. So line 2 is order 1001, and the file holds nine orders, on lines 2 to 10. Look at line 10: it has only five fields. Its total is missing.
+
+Now run the order checker on the file. It tests the three things you met in *Where the terminal is standing*: the quantity is not 0, the quantity times the unit price gives the total, and the total is not above the limit.
 
 ```sh
 node check-orders.mjs data/orders-2026-10.csv
@@ -97,7 +120,7 @@ Result: 8 orders checked, 5 in order, 3 with a problem.
 
 Six lines of text, all in the same place, all looking alike. But read them as a delivery. Five of them are the report: the thing you ran the program for. One of them, the first, is different in kind. It is not a finding about an order. It is the program remarking on its own work: one line of the file was unreadable, and it was left out. That is a card through the door.
 
-The program did not send those six lines the same way. Every program is given two separate channels for text when it starts.
+The program did not send those six lines the same way. Every program is given two separate channels for the text it sends out.
 
 - **Standard output**, often shortened to **stdout**. This is for the result: the thing the program exists to produce. It is the parcel.
 - **Standard error**, often shortened to **stderr**. This is for messages about the work: warnings, failures, progress notes. It is the card. The name is narrower than the use. A warning is not an error, and it goes there all the same.
@@ -148,11 +171,11 @@ Three practical details about `>`.
 
 - **It replaces without asking.** If `report.txt` exists, its old content is destroyed. This is the trap from *Change files without regret*, in a new form: redirecting to a file is a write. Two greater-than signs, `>>`, **add** to the end of the file and leave what is there.
 - **The file appears in the current folder**, because `report.txt` is a relative path. The lesson *Where the terminal is standing* applies to output as much as to input.
-- **On Windows PowerShell 5.1** the file is saved in a text encoding called UTF-16. VS Code and `cat` read it correctly. Some other programs expect a different encoding and show gaps between the letters or odd characters at the start. The file is not damaged if that happens. Text encodings are taught in the programming stage.
+- **Windows PowerShell 5.1 saves the file in a text encoding called UTF-16.** VS Code and `cat` read it correctly. Some other programs show gaps between the letters, and the file is not damaged when they do. PowerShell 7 is documented to save the more common UTF-8. Text encodings are taught in the programming stage.
 
 ## 3. Catching the messages as well
 
-Standard error can be redirected too. The two streams are numbered: standard output is 1 and standard error is 2. So `2>` means "write stream 2 into this file":
+Standard error can be redirected too. The two streams are numbered: standard output is 1 and standard error is 2. So `2>` means "write stream 2 into this file". [PowerShell: redirection](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_redirection)
 
 ```sh
 node check-orders.mjs data/orders-2026-10.csv 2> messages.txt
@@ -174,7 +197,7 @@ At line:1 char:1
     + FullyQualifiedErrorId : NativeCommandError
 ```
 
-bash and zsh wrote the program's line as it was. Windows PowerShell 5.1 wrapped it in its own error report: it put `node :` in front and added five lines of its own. Read it with the method from *When something goes wrong*. Who is speaking? Two voices. The first line, after `node :`, is the program's own message. The lines beginning `At line` and `+` are PowerShell describing where the message came from. The words `NativeCommandError` and `RemoteException` sound alarming and mean only "a program outside PowerShell wrote to standard error". Nothing failed: it was a warning. [PowerShell: redirection](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_redirection)
+bash and zsh wrote the program's line as it was. Windows PowerShell 5.1 wrapped it in its own error report: it put `node :` in front and added five lines of its own. Read it with the method from *When something goes wrong*. Who is speaking? Two voices. The first line, after `node :`, is the program's own message. The lines beginning `At line` and `+` are PowerShell describing where the message came from. The words `NativeCommandError` and `RemoteException` sound alarming and mean only "a program outside PowerShell wrote to standard error". Nothing failed: it was a warning. If you use PowerShell 7 and your file holds only the program's one line, you have the same result without the wrapping.
 
 Both streams can go to two files in one command, and that is the usual way to keep a full record of a run:
 
@@ -188,9 +211,13 @@ One more form you will meet in other people's instructions sends the messages no
 
 ## 4. Passing the parcel on: the pipe
 
-A file is one place to send standard output. Another program is the other. The character `|`, called a **pipe**, connects the standard output of the program on its left to the input of the program on its right.
+A file is one place to send standard output. Another program is the other. For that you need a third channel, which no program in this module has used so far.
 
-The kit has a small program for the right-hand side. `keep-lines.mjs` reads lines and passes on only those containing a word you name:
+Besides its two channels for text going out, every program is given one for text coming **in**. It is called **standard input**, shortened to **stdin**, and its number is 0. Normally it is connected to your keyboard. A program that never asks you to type anything, like the checker, simply leaves it alone.
+
+The character `|`, called a **pipe**, connects the standard output of the program on its left to the standard input of the program on its right. What the first program would have printed, the second program reads.
+
+The kit has a small program for the right-hand side. `keep-lines.mjs` names no file to read. It reads lines from its standard input, and passes on only those containing a word you name:
 
 ```sh
 node check-orders.mjs data/orders-2026-10.csv | node keep-lines.mjs PROBLEM
@@ -230,6 +257,10 @@ In words: a program that runs and ends leaves three things. Its standard output,
 
 That third box is the tracking status.
 
+### A good place to pause
+
+You have the first half of the lesson: a program sends its result and its remarks on two separate streams, and each can be sent to a file or, for the result, on to another program. The second half is about the third thing a program leaves, which is not text at all.
+
 ## 5. The exit code
 
 When a program ends, it hands one whole number back to whatever started it. The number is its **exit code**, also called its **exit status**. It is not printed. The shell stores it, and you have to ask to see it. How you ask is one of the real differences between the shells.
@@ -238,6 +269,8 @@ When a program ends, it hands one whole number back to whatever started it. The 
 | --- | --- |
 | PowerShell | `$LASTEXITCODE` |
 | bash or zsh | `echo $?` |
+
+Both are variables that the shell fills in, as it filled in `$HOME` in *What a program receives*. In PowerShell, typing a variable's name alone prints its value. In bash and zsh you need a command to do the printing, and `echo` is that command: it prints its arguments back. So `echo $?` hands the number to `echo`. [PowerShell: automatic variables](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_automatic_variables) [Bash manual: exit status](https://www.gnu.org/software/bash/manual/bash.html#Exit-Status)
 
 Run the checker on three files, and ask after each one. September first:
 
@@ -262,7 +295,7 @@ The author's results:
 
 There is one rule that nearly every program follows: **0 means success, and any other number means something else happened.** It is the opposite of what you might guess, and the reason is practical. There is one way for a job to go right and many ways for it to go wrong, so the one number that stands apart is given to success, and the others are left for the different kinds of trouble.
 
-What each non-zero number means is **decided by each program**. There is no general table. You find out where you found the options: in the program's own help. Look again at the end of `node check-orders.mjs --help`:
+What each non-zero number means is **decided by each program**. There is no general table. [Node.js: process.exitCode](https://nodejs.org/api/process.html#processexitcode-1) You find out where you found the options: in the program's own help. Look again at the end of `node check-orders.mjs --help`:
 
 ```text
 Exit codes:
@@ -283,15 +316,15 @@ Two more cases where the number is not what you might expect.
 
 **When the shell cannot find the program at all**, no program ran, so no program left a code. The shells handle that differently. In the author's runs, after `nod --version`, bash and zsh reported `127`, a number they use themselves for "command not found". PowerShell's `$LASTEXITCODE` still showed `2`, left over from the program before. So in PowerShell, a number is only meaningful if a program actually ran just before you asked.
 
-You may also meet `$?` in PowerShell. There it is not a number: it answers `True` or `False`. For the exit code of a program, use `$LASTEXITCODE`. [PowerShell: automatic variables](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_automatic_variables) [Bash manual: exit status](https://www.gnu.org/software/bash/manual/bash.html#Exit-Status) [Node.js: process.exitCode](https://nodejs.org/api/process.html#processexitcode_1)
+On Ubuntu, including Ubuntu inside Windows, the shell's "command not found" message looks different from the author's `bash: nod: command not found`. A helper adds suggestions, such as a list of similar names, and the line may not begin with `bash:`. It is still the shell speaking, and `echo $?` still prints 127.
 
 ## 6. Who reads it
 
 You can read a report. So why does the number exist?
 
-Because most programs, most of the time, are not started by a person watching a screen. They are started by other programs: a script that runs five steps in a row, a tool that runs a check every time a file changes, a system that checks a team's work overnight. None of them can read English. Each of them needs to decide one thing: carry on, or stop. They decide it on the exit code and on nothing else.
+Because most programs, most of the time, are not started by a person watching a screen. They are started by other programs: a script, which is a file of commands that a shell runs one after another, a tool that runs a check every time a file changes, a system that checks a team's work overnight. None of them can read English. Each of them needs to decide one thing: carry on, or stop. They decide it on the exit code and on nothing else.
 
-You can see that decision being made. In bash and zsh, two ampersands between two commands mean: **run the second only if the first ended with 0**.
+You can see that decision being made. In bash and zsh, two ampersands between two commands mean: **run the second only if the first ended with 0**. These two lines are for bash, zsh and PowerShell 7. If you use Windows PowerShell 5.1, read the result and then the paragraph after it.
 
 ```sh
 node check-orders.mjs data/orders-2026-09.csv -q && echo "all in order"
@@ -315,7 +348,7 @@ You will see `&&` in installation instructions everywhere, usually in the form "
 The token '&&' is not a valid statement separator in this version.
 ```
 
-Who is speaking? PowerShell, and it refused the whole line before running any of it. Newer versions of PowerShell do accept `&&`. In Windows PowerShell 5.1, run the two commands one after the other and look at `$LASTEXITCODE` in between, or write the decision out:
+Who is speaking? PowerShell, and it refused the whole line before running any of it. PowerShell 7 does accept `&&`. In Windows PowerShell 5.1, run the two commands one after the other and look at `$LASTEXITCODE` in between, or write the decision out. The `;` in this line ends one command and begins the next:
 
 ```powershell
 node check-orders.mjs data/orders-2026-09.csv -q; if ($LASTEXITCODE -eq 0) { echo "all in order" }

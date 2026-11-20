@@ -1,0 +1,58 @@
+node reset-sandbox.mjs
+cd sandbox
+ls
+ls inbox
+ls keep
+mkdir archive/2026-12
+ls archive
+cp inbox/orders-week-1.csv archive/2026-12
+ls archive/2026-12
+cp inbox/notes.txt inbox/notes-copy.txt
+cat inbox/notes-copy.txt
+cp keep/price-list.txt inbox/notes-copy.txt
+cat inbox/notes-copy.txt
+mv inbox/notes-copy.txt inbox/price-list-copy.txt
+mv inbox/orders-week-2.csv archive/2026-12
+ls inbox
+ls archive/2026-12
+rm inbox/price-list-copy.txt
+ls inbox
+rm inbox/price-list-copy.txt
+ls *.tmp
+ls inbox/*.tmp
+rm inbox/*.tmp
+ls inbox
+cd keep
+ls *.tmp
+cat scratch.tmp
+cd ..
+cd sandbox
+rm archive/2026-12
+ls archive/2026-12
+rm -r archive/2026-12
+ls archive
+cd ..
+node reset-sandbox.mjs
+ls sandbox/inbox
+cd sandbox
+mv inbox/old.tmp inbox/draft.tmp
+ls inbox
+cat inbox/draft.tmp
+cd ..
+node reset-sandbox.mjs
+cd sandbox
+mkdir archive/week-1
+cp inbox/orders-week-1.csv archive/week-1
+mv inbox/orders-week-1.csv archive/week-1
+mv inbox/notes.txt keep
+cp keep/price-list.txt keep/notes.txt
+rm inbox/*.tmp
+ls inbox keep archive archive/week-1
+cd ..
+node reset-sandbox.mjs
+cd sandbox
+ls
+node ../reset-sandbox.mjs
+ls
+pwd
+cd ..

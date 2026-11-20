@@ -1,0 +1,40 @@
+node check-orders.mjs data/orders-2026-10.csv
+node check-orders.mjs data/orders-2026-10.csv > report.txt
+cat report.txt
+Format-Hex report.txt | Select-Object -First 2
+node check-orders.mjs data/orders-2026-10.csv 2> messages.txt
+cat messages.txt
+node check-orders.mjs data/orders-2026-10.csv > report.txt 2> messages.txt
+node check-orders.mjs data/orders-2026-10.csv 2> $null
+node check-orders.mjs data/orders-2026-10.csv | node keep-lines.mjs PROBLEM
+$LASTEXITCODE
+node check-orders.mjs data/orders-2026-10.csv | Select-String PROBLEM -CaseSensitive
+node check-orders.mjs data/orders-2026-10.csv | Select-String PROBLEM
+node check-orders.mjs data/orders-2026-09.csv -q
+$LASTEXITCODE
+node check-orders.mjs data/orders-2026-10.csv -q
+$LASTEXITCODE
+node check-orders.mjs data/orders-2026-13.csv
+$LASTEXITCODE
+nod --version
+$LASTEXITCODE
+$?
+node check-orders.mjs data/orders-2026-09.csv -q && echo "all in order"
+node check-orders.mjs data/orders-2026-09.csv -q; if ($LASTEXITCODE -eq 0) { echo "all in order" }
+node check-orders.mjs data/orders-2026-10.csv -q; if ($LASTEXITCODE -eq 0) { echo "all in order" }
+node check-orders.mjs data/orders-2026-11.csv > november.txt
+$LASTEXITCODE
+cat november.txt
+node check-orders.mjs data/orders-2026-11.csv --limt 100 > november.txt
+$LASTEXITCODE
+cat november.txt
+(Get-Item november.txt).Length
+node check-orders.mjs data/orders-2026-09.csv --quiet 2> messages.txt
+$LASTEXITCODE
+(Get-Item messages.txt).Length
+node check-orders.mjs data/orders-2026-10.csv --limit 100 > october-report.txt 2> october-messages.txt
+$LASTEXITCODE
+cat october-report.txt
+cat october-messages.txt
+ls *.txt | Select-Object -ExpandProperty Name
+rm *.txt

@@ -1,0 +1,23 @@
+cd C:\Users\dana\work\terminal-practice-kit
+ordercheck orders-2026-11.csv
+echo $?
+node check-orders.mjs orders-2026-11.csv
+echo $?
+node check-orders.mjs data\archive\orders 2025.csv
+echo $?
+node check-orders.mjs data\orders-2026-11.csv > report.txt
+echo $?
+wc -c report.txt
+node check-orders.mjs data/orders-2026-11.csv > report.txt
+echo $?
+cat report.txt
+rm report.txt
+cd ~/jobs/terminal-practice-kit/data
+cd data
+export ORDERS_LIMIT=300
+oc --settings
+node ../check-orders.mjs --settings
+node ../check-orders.mjs archive/orders\ 2025.csv
+echo $?
+unset ORDERS_LIMIT
+cd ..

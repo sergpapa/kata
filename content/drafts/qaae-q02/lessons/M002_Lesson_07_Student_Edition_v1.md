@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-07
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner who has completed the first six lessons of the terminal module; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-07
@@ -28,14 +28,14 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted, with ORDERS_LIMIT and ORDERS_DIR not set; this lesson creates report.txt in the kit folder and a command log outside it"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7"
 assessment_scope: "A guided investigation followed by a second one with less help; practice, not a demonstration of independent skill, because full explanations are open throughout"
 deferred:
   - "Keeping instructions next to the code they belong to, and reviewing changes to them: the Git module"
   - "Scripts, which let a computer follow the instructions: the programming stage"
   - "Describing a whole environment so that it can be rebuilt exactly: the lessons on containers"
-examples: "Dana, Tomás, their notes and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
-references_reviewed: "2026-11-19"
+examples: "Dana, Tomas, their notes and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
+references_reviewed: "2026-11-20"
 ---
 
 # It worked on their computer
@@ -83,10 +83,10 @@ Instructions for a terminal leave out the same kinds of thing as the heating not
 | What the writer did not have to think about | In the heating note | In a terminal | Where you learned it |
 | --- | --- | --- | --- |
 | Where they were standing | "The door" | The current folder, and paths that exist only on their computer | *Where the terminal is standing* |
-| How their words get cut up and passed on | | Their shell: quotation marks, slashes, wildcards, the way a variable is set | *What a program receives* |
+| How their words get cut up and passed on | Nothing: a person read the note | Their shell: quotation marks, slashes, wildcards, the way a variable is set | *What a program receives* |
 | What they had to hand | The key in their pocket | Commands that exist only on their computer | *The settings a program is handed* |
 | What was already set | "The usual setting" | Environment variables they set long ago | *The settings a program is handed* |
-| What had been left behind earlier | | Files, markers and processes from previous work | *Change files without regret*, *Programs that keep running* |
+| What had been left behind earlier | Nothing in this note | Files, markers and processes from previous work | *Change files without regret*, *Programs that keep running* |
 | How they knew it had worked | The hum of the boiler | What they looked at: the screen, a file, the exit code | *Output, messages and the exit code* |
 
 When a step fails, the cause is almost always in one of these six rows. That gives you a short list of questions to put to any failure, in place of a general feeling that "something is different on my machine".
@@ -97,14 +97,16 @@ When one thing fails and you fix it, memory is enough. When five things fail one
 
 The tool for this is a **command log**: a plain record, one row per command, written as you go. The kit has a template, `Command_Log_Template.md`. Open it in VS Code, choose **File → Save As**, and save a copy named `command-log.md` in your `course-work` folder, outside the kit, for the reason your recovery note lives there.
 
-Each row answers six questions.
+Each row answers six questions, and the template has one column for each.
 
 1. **Current folder.** Half of every relative path.
 2. **The command, exactly as typed.** Copied, not retyped from memory.
 3. **What I expected.** Written before you look. A wrong expectation is useful. A missing one teaches nothing.
-4. **What happened.** Who spoke, the exact message, and the exit code.
+4. **What happened.** Who spoke, the first line of the message, and the exit code.
 5. **What I conclude.** Marked as a conclusion. This is the inference column.
 6. **What I change next.** One thing.
+
+A cell of a table holds one line. When a message is longer than that, as PowerShell's usually are, put its first line in the cell and paste the whole output under the table, in the section named "Full output", with the row's number in front.
 
 Four rules keep it honest.
 
@@ -127,11 +129,11 @@ It has four steps. Read all four before you run anything, as you would with any 
 
 ### Run the first two steps, and log them
 
-Do steps 1 and 2 of Dana's note exactly as she wrote them, in your own terminal. For each command: fill in the first three columns of a row, run it, ask for the exit code where a program ran, and fill in the fourth column. Leave the last two columns empty for now.
+Do steps 1 and 2 of Dana's note exactly as she wrote them, in your own terminal. For each command: fill in the current folder, the command and what you expected. Run it. Ask for the exit code where a program ran, and fill in what happened. Leave the last two columns, the conclusion and the next change, empty for now.
 
 Do not repair anything yet. You are reproducing.
 
-When you have two rows, read on and compare them with the author's.
+When you have two rows, read on and compare them with the author's. The author's log goes one row further, to show where the first repair leads.
 
 ### The first three rows
 
@@ -167,7 +169,7 @@ zsh, on Linux:
 zsh: command not found: ordercheck
 ```
 
-Who spoke? The shell again. No program ran, so there is no exit code from a program. In bash and zsh the shell's own number is 127. In PowerShell, `$LASTEXITCODE` shows whatever was there before, which is why the log records "the shell spoke" and does not trust the number.
+Who spoke? The shell again. On Ubuntu the line may lack the `bash:` at the front, as you saw in *Output, messages and the exit code*, and it is the shell all the same. No program ran, so there is no exit code from a program. In bash and zsh the shell's own number is 127. In PowerShell, `$LASTEXITCODE` shows whatever was there before, which is why the log records "the shell spoke" and does not trust the number.
 
 From *The settings a program is handed* you know what this message means and what it does not. No folder on your PATH list holds a program called `ordercheck`. That is the observation. Two explanations fit it:
 
@@ -177,6 +179,12 @@ From *The settings a program is handed* you know what this message means and wha
 Do not choose by feel. Look for a check whose result would differ. The kit's `README.md` lists every program in the kit, and there is no `ordercheck` in it. Dana's own step 3 runs `node check-orders.mjs`, with an order file as its argument, the same shape as step 2. And the lessons never installed anything of that name. All three point to (b). It remains an inference, because you cannot see Dana's computer, and the log should say so.
 
 Conclusion: `ordercheck` is probably Dana's own short name for `node check-orders.mjs`. This is the third row of the table: a command that exists only on her computer. Change one thing: replace `ordercheck` with `node check-orders.mjs` and leave the rest of the command alone.
+
+Written as a row of the log, on the author's Linux system, that is:
+
+| # | Current folder | Command, exactly as typed | What I expected | What happened | What I conclude | What I change next |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | `/home/maria/course-work/terminal-practice-kit` | `ordercheck orders-2026-11.csv` | A report on November's orders | The shell spoke: `bash: ordercheck: command not found`. No program ran | Probably Dana's own short name for `node check-orders.mjs`. An inference: I cannot see her computer | Replace `ordercheck` with `node check-orders.mjs` |
 
 **Row 3.** Current folder: the kit folder. Command: `node check-orders.mjs orders-2026-11.csv`. Expected: the report.
 
@@ -213,7 +221,7 @@ Before you write, list what every step of a good set of instructions needs. Then
 
 ### Practice C: a second note, with less help
 
-A different colleague, Tomás, left a different note: `handover/year-end-check.md`. Print it, read it through, and then do what you did for Dana's: follow it as written, log every command, repair one thing at a time, and get its step 4 to produce the result Tomás expects.
+A different colleague, Tomas, left a different note: `handover/year-end-check.md`. Print it, read it through, and then do what you did for Dana's: follow it as written, log every command, repair one thing at a time, and get its step 4 to produce the result Tomas expects.
 
 Then answer:
 
@@ -261,9 +269,9 @@ Open only the ones you need.
 
 **A.** The author's log continued like this. Your rows may come in a different order.
 
-*Part 1: the file.* The message's path is the kit folder with `orders-2026-11.csv` joined on. The file is in `data`. Dana typed the bare name and it worked for her, and her step 1 puts her in the kit folder, not in `data`. So her program was looking somewhere other than the current folder. The help text explains how: `ORDERS_DIR` is "a folder to look in when the order file is not a full path". `node check-orders.mjs --settings` on your computer says `orders dir   not set`. The inference: Dana set `ORDERS_DIR` on her computer long ago, to her `data` folder, and forgot that it was there. That is the fourth row of the table.
+*Part 1: the file.* The message's path is the kit folder with `orders-2026-11.csv` joined on. The file is in `data`. Dana typed the bare name and it worked for her, and her step 1 puts her in the kit folder, not in `data`. So her program was looking in a second place as well as the current folder. The help text explains how: `ORDERS_DIR` is "a second folder to look in, when the order file is not found from the current folder". `node check-orders.mjs --settings` on your computer says `orders dir   not set`. The inference: Dana set `ORDERS_DIR` on her computer long ago, to her `data` folder, and forgot that it was there. That is the fourth row of the table. It also fits the rest of her note: her steps 3 and 4 name files with `data` in front, and those are found from the kit folder without any setting.
 
-Two repairs. Either set `ORDERS_DIR` to the full path of your `data` folder for this terminal, which copies Dana's hidden setting. Or name the file with its folder: `node check-orders.mjs data/orders-2026-11.csv`. The second is the better choice for instructions, because everything the command depends on is then visible in the command.
+Two repairs. Either set `ORDERS_DIR` to the full path of your `data` folder for this terminal, which copies Dana's hidden setting. Or name the file with its folder: `node check-orders.mjs data/orders-2026-11.csv`. Both work, and the rest of this explanation holds for either. The second is the better choice for instructions, because everything the command depends on is then visible in the command. If you chose the first, remove the variable when you have finished, or it becomes your own forgotten setting.
 
 ```text
 Checking data/orders-2026-11.csv (limit 500.00)
@@ -312,7 +320,7 @@ node check-orders.mjs "data/archive/orders 2025.csv"
 
 It reports three orders, all in order, with exit code 0. Why might the unquoted command have worked for Dana? A likely story is that she never typed it in full: she typed `data\archive\or`, pressed Tab, and her shell completed and protected the name for her. Then she wrote the note from memory, without the protection. That is an inference too. It is worth recording because it suggests how such errors get into notes: people write down what they believe they type.
 
-*Part 4: the report, and "everything is fine".* With a forward slash, the command runs and the screen stays **completely empty**. By the note's own test, "if no error shows up on the screen, everything is fine". Ask for the exit code: it is 1. Print the file: it holds the report, with the problem in order 1104.
+*Part 4: the report, and "everything is fine".* In PowerShell, Dana's command runs as she wrote it. In bash and zsh it runs once the backslash is a forward slash. Either way the screen stays **completely empty**. By the note's own test, "if no error shows up on the screen, everything is fine". Ask for the exit code: it is 1. Print the file: it holds the report, with the problem in order 1104.
 
 Nothing appeared on the screen because the report went into the file, and November's file produces no warnings for standard error. The screen was the wrong place to look. This is the last row of the table: Dana knew it had worked because she opened the file afterwards, or because she knew what November looked like, and wrote down neither. The step should say what to check: the exit code, and the `Result` line in the file.
 
@@ -383,7 +391,7 @@ Yours will differ, and should. Test it against the list. The open question at th
 2. The `Result` line is printed whenever the check could be done: with exit code 0 and with exit code 1. It is missing only when the check could not be done, exit code 2. So "the Result line was printed" separates "checked" from "not checked", and says nothing about whether the orders are in order. By his own expected result there is an order with a problem, and his step declares the year closed regardless. The step should say what to do for each exit code: for 0, close the year. For 1, look at the listed orders first. For 2, repair the command.
 3. `ORDERS_LIMIT` is still set to 300 in that terminal, and the terminal is standing in `data`. Both are the fifth row of the table: things left behind. If you ran Dana's monthly check next in the same terminal, it would use a limit of 300 without saying why, and its relative paths would lead to the wrong places. Put it back with `Remove-Item Env:ORDERS_LIMIT` or `unset ORDERS_LIMIT`, and `cd ..`. Or close the terminal. A good note ends with that step, or avoids the need for it by passing `--limit 300` in the command, where it is visible and lasts for one run.
 
-If you use bash or zsh, Tomás's note needed three repairs and Dana's needed more. If you use PowerShell, it was the other way round. Neither of them wrote a worse note. Each wrote for their own shell without knowing it.
+Which note gave you more trouble depended on your shell. Two of Tomas's steps work as written in bash and zsh and fail in PowerShell, and Dana's backslashes do the opposite. Neither of them wrote a worse note. Each wrote for their own shell without knowing it.
 
 **D.** There are no single right answers here. Some things to compare yours with.
 
@@ -427,4 +435,4 @@ Add to your recovery note, under "Problems I met and what fixed them", the one f
 
 **Your `Result` lines differ from the author's in a way the explanations do not cover.** Check `node check-orders.mjs --settings` first: a limit left over from an earlier lesson changes every result. Then check that the kit's `data` files are unchanged, by extracting the ZIP into a fresh folder and comparing.
 
-**A step of Tomás's note fails with `Cannot find module`.** The terminal is not in the `data` folder. His note starts there, and both paths in step 4 are written from there.
+**A step of Tomas's note fails with `Cannot find module`.** The terminal is not in the `data` folder. His note starts there, and both paths in step 4 are written from there.

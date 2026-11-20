@@ -1,0 +1,37 @@
+node check-orders.mjs data/orders-2026-10.csv
+node check-orders.mjs data/orders-2026-10.csv > report.txt
+cat report.txt
+node check-orders.mjs data/orders-2026-10.csv 2> messages.txt
+cat messages.txt
+node check-orders.mjs data/orders-2026-10.csv > report.txt 2> messages.txt
+node check-orders.mjs data/orders-2026-10.csv 2> /dev/null
+node check-orders.mjs data/orders-2026-10.csv | node keep-lines.mjs PROBLEM
+echo $?
+node check-orders.mjs data/orders-2026-10.csv | grep PROBLEM
+node check-orders.mjs data/orders-2026-09.csv -q
+echo $?
+echo $?
+node check-orders.mjs data/orders-2026-10.csv -q
+echo $?
+node check-orders.mjs data/orders-2026-13.csv
+echo $?
+nod --version
+echo $?
+node check-orders.mjs data/orders-2026-09.csv -q && echo "all in order"
+node check-orders.mjs data/orders-2026-10.csv -q && echo "all in order"
+node check-orders.mjs data/orders-2026-11.csv > november.txt
+echo $?
+cat november.txt
+node check-orders.mjs data/orders-2026-11.csv --limt 100 > november.txt
+echo $?
+cat november.txt
+wc -c november.txt
+node check-orders.mjs data/orders-2026-09.csv --quiet 2> messages.txt
+echo $?
+wc -c messages.txt
+node check-orders.mjs data/orders-2026-10.csv --limit 100 > october-report.txt 2> october-messages.txt
+echo $?
+cat october-report.txt
+cat october-messages.txt
+ls *.txt
+rm *.txt

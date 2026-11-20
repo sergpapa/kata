@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-01
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner with a working editor and Node.js who has run a few supplied commands; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-01
@@ -25,14 +25,14 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; this lesson changes no kit file"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7; Tab completion needs a keypress and was not run by the author"
 assessment_scope: "Guided navigation, prediction and explanation; it does not establish independent command-line skill, which the module's last lesson practises"
 deferred:
-  - "Names that contain spaces, and what the dashes in a command mean: the next lesson in this module"
-  - "Creating, copying, moving and deleting from the terminal: the third lesson in this module"
+  - "Names that contain spaces, and what the dashes in a command mean: the lesson What a program receives"
+  - "Creating, copying, moving and deleting from the terminal: the lesson Change files without regret"
   - "Why a folder may refuse you (permissions in depth): the lessons on containers and running services"
 examples: "The user maria, her folders and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # Where the terminal is standing
@@ -46,6 +46,10 @@ This first lesson answers one question:
 > "The file is right there. Why does the terminal say it cannot find it?"
 
 You need the working setup from the lesson *Set up a safe workspace*. The steps were run on Windows 11 in PowerShell, and on Linux in bash and zsh. Nothing was run on macOS, where the terminal normally runs zsh.
+
+Windows has two PowerShells. **Windows PowerShell 5.1** comes with Windows, and it is the one these lessons were run in. **PowerShell 7** is a newer one that some people install beside it. If you do not know which you have, type `$PSVersionTable.PSVersion` in the terminal and read the first number. Nearly everything in this module is the same in both. Where the two differ, the lesson says so.
+
+If you already work in a terminal every day, go straight to Section 7 and try the four practices. Read only the sections behind a practice you could not explain.
 
 ## 1. Start with a familiar situation: directions over the phone
 
@@ -78,7 +82,7 @@ Before reading on: your colleague phones back and says, "I did exactly what you 
 
 A terminal is never "nowhere". At every moment it is in exactly one folder, called the **current folder**. You met it in the lesson *When something goes wrong*, where moving the terminal one folder up was enough to break a command. Many documents and tools call it the **working directory**, or the **current working directory**. "Directory" is another word for folder, and these are all the same thing.
 
-Download the kit offered with this lesson, **Terminal_Practice_Kit_v1.zip**, move it into your `course-work` folder, and extract it as you did before. Open the folder named `terminal-practice-kit` in VS Code, the one that directly contains `where.mjs`, and open a new terminal. Before you run any of the kit's programs, apply the habit from *Set up a safe workspace*: the kit came with this lesson, and each program begins with a comment saying what it does. Open one and read its comment.
+Download the kit offered with this lesson, **Terminal_Practice_Kit_v1.zip**, move it into your `course-work` folder, and extract it as you did before. Open the folder named `terminal-practice-kit` in VS Code, the one that directly contains `where.mjs`, and open a new terminal. [VS Code: terminal basics](https://code.visualstudio.com/docs/terminal/basics) Before you run any of the kit's programs, apply the habit from *Set up a safe workspace*: the kit came with this lesson, and each program begins with a comment saying what it does. Open one and read its comment.
 
 A terminal opened this way starts in the folder you opened. Ask it to say so. The command is `pwd`, which stands for *print working directory*:
 
@@ -154,6 +158,17 @@ Look again at the two commands you just typed. `ls data` named a folder with one
 - A **relative path** starts from the current folder. `data` means "the thing called `data`, from where I am standing". It is short, and it depends on where the terminal is. It is "up one floor, turn left, third door".
 
 How do you tell them apart? Look at how the path begins. If it begins from the top, it is full. Anything else is relative.
+
+The rest of the phone call carries over too.
+
+| In the phone call | In the terminal |
+| --- | --- |
+| You, giving the directions | Whoever wrote the command: you, a lesson, a colleague |
+| Your colleague, walking | The program that follows the path |
+| Where your colleague is standing | The current folder |
+| The store cupboard | The wrong place, reached by following the directions correctly |
+
+One thing does not carry over. Your colleague, facing the cupboard, would look around, guess what you meant and try the floor above. A program does not guess. It goes to the one place the path leads to, reports what it finds there, and stops. That makes a program less forgiving than a person. It also makes the result the same every time, which is why it can be explained.
 
 The computer does not treat a relative path as something vague. Every time a relative path is used, it is turned into a full path by one fixed rule: **join it to the end of the current folder**. The kit has a program that shows that rule working. Run it:
 
@@ -239,7 +254,7 @@ Read it with the method you know. **Who is speaking?** Node.js: the last line na
 
 The two relative paths in the command were `where.mjs` and `data/orders-2026-11.csv`. The first one is easy to overlook, because it looks like "the name of the program". To the computer it is a relative path like any other. Node.js joined `where.mjs` to the current folder, looked in `data`, and found no such file there. It never got as far as the second path.
 
-So the rule from Section 3 has no exceptions: **every relative path in a command is joined to the current folder, including the name of the program file itself.**
+So the rule from Section 3 covers more than it seemed to: **every relative path in a command is joined to the current folder, including the name of the program file itself.** The shell and Node.js make no exceptions to it. A program may add a rule of its own for the paths among its arguments, on top of this one, and the lesson *The settings a program is handed* shows `check-orders.mjs` doing that.
 
 You need a way to say "the folder above this one". You know it already: two dots, `..`. A relative path may begin with it. Point Node.js at the program one folder up, and leave the rest of the command unchanged:
 
@@ -318,6 +333,8 @@ pwd
 
 `pwd` shows your home folder: `C:\Users\maria` or `/home/maria` in the author's runs, `/Users/` and your name on macOS.
 
+`~` differs from the other three names in one way. It is the shell that turns `~` into your home folder, before any program sees it, and the shells do not all do that in the same situations. Use it with `cd`, where it works in every shell. The next lesson shows what happens to it elsewhere.
+
 How do you get back? You could type the relative steps one at a time: `cd course-work`, and so on. There is a shorter way, and it is the point of a full path. Take the path you copied in Section 2 and give it to `cd`:
 
 ```sh
@@ -348,9 +365,9 @@ If the command worked for you, go back with `cd ..`. Then treat capitals as if t
 
 ### Let the terminal finish the name
 
-Typing long names exactly is tiresome, and you do not have to. Type `cd da` and press the **Tab** key. The shell looks in the current folder for names that begin with `da`, and completes the word for you. This is called **Tab completion**. If several names begin that way, press Tab again: PowerShell steps through them one by one, and bash and zsh show the choices or complete as far as the names agree.
+Typing long names exactly is tiresome, and you do not have to. Type `cd da` and press the **Tab** key. The shell looks in the current folder for names that begin with `da`, and completes the word for you. This is called **Tab completion**. PowerShell writes the completed name as `.\data`: the same folder, with `.\` in front for "from here". If several names begin that way, press Tab again: PowerShell steps through them one by one, and bash and zsh show the choices or complete as far as the names agree.
 
-Tab completion also works as a check. It can only complete a name that exists. If you press Tab and nothing happens, nothing in that folder starts with those letters, and you have learned that you are in the wrong folder, or have the wrong name, before running anything. The author could not capture Tab completion, because it needs a person at the keyboard. [VS Code: terminal basics](https://code.visualstudio.com/docs/terminal/basics)
+Tab completion also works as a check. It can only complete a name that exists. If you press Tab and nothing happens, nothing in that folder starts with those letters, and you have learned that you are in the wrong folder, or have the wrong name, before running anything.
 
 ## 6. Put it together: a command from the inside
 
@@ -367,7 +384,7 @@ PROBLEM  line 5: order 1104 total 187.00 is not 2 x 89.00
 Result: 7 orders checked, 6 in order, 1 with a problem.
 ```
 
-The report is about the orders, and the next lessons come back to it. For now, look only at the command. It has two relative paths, and both are written from where you stand: the program is one folder up, so `../check-orders.mjs`, and the order file is right here, so `orders-2026-11.csv`.
+The report is about the orders. The checker tests three things on each one: that the quantity is not 0, that the quantity times the price of one item gives the total, and that the total is not above a limit. Order 1104 fails the second test. Later lessons come back to the report. For now, look only at the command. It has two relative paths, and both are written from where you stand: the program is one folder up, so `../check-orders.mjs`, and the order file is right here, so `orders-2026-11.csv`.
 
 From the kit folder, the same job is `node check-orders.mjs data/orders-2026-11.csv`. Both commands are correct. Each is correct **from one place only**. That is why a command copied from a set of instructions must always be read together with the folder those instructions assume.
 
@@ -492,7 +509,7 @@ One question was left open. In `archive` there is a file called `orders 2025.csv
 
 **`node` is not recognised, or "command not found".** The shell did not find Node.js. Go back to "If something does not match" in the lesson *Set up a safe workspace*.
 
-**`pwd` or `ls` shows a folder with `.zip` in its name and no `where.mjs`.** You are one folder too high: on Windows, Extract All puts the kit's folder inside a folder named after the ZIP. Run `ls`, then `cd` into `terminal-practice-kit`.
+**`pwd` ends in `Terminal_Practice_Kit_v1`, and `ls` shows no `where.mjs`.** You are one folder too high: on Windows, Extract All puts the kit's folder inside a folder named after the ZIP. Run `ls`, then `cd` into `terminal-practice-kit`.
 
 **`cd` with your full path fails.** Read the message: the shell is speaking, and it prints the path it could not find. Compare it, step by step, with the path `pwd` printed earlier. A space in the path needs the double quotation marks described in Section 5.
 

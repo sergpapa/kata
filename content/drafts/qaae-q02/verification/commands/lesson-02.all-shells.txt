@@ -1,0 +1,37 @@
+node show-args.mjs hello world
+node show-args.mjs hello      world
+node check-orders.mjs data/archive/orders 2025.csv
+node show-args.mjs data/archive/orders 2025.csv
+node show-args.mjs "data/archive/orders 2025.csv"
+node check-orders.mjs "data/archive/orders 2025.csv"
+node check-orders.mjs data/orders-2026-09.csv
+node check-orders.mjs data/orders-2026-09.csv --quiet
+node check-orders.mjs data/orders-2026-09.csv -q
+node check-orders.mjs data/orders-2026-09.csv --limit 100
+node show-args.mjs data/orders-2026-09.csv --limit 100
+node check-orders.mjs data/orders-2026-09.csv --limt 100
+node check-orders.mjs data/orders-2026-09.csv --limit
+node check-orders.mjs --version
+node check-orders.mjs data/orders-2026-09.csv --limit=100
+node check-orders.mjs --limit 100 data/orders-2026-09.csv -q
+node check-orders.mjs data/orders-2026-09.csv -limit 100
+node show-args.mjs $HOME "$HOME" '$HOME'
+node show-args.mjs data/*.csv
+node show-args.mjs data/*.txt
+node show-args.mjs ~
+node show-args.mjs "data/*.csv" 'data/*.csv'
+ls data/*.csv
+node show-args.mjs data\archive\orders 2025.csv
+node show-args.mjs 'say "hi"'
+node show-args.mjs one two   three
+node show-args.mjs "one two" three
+node show-args.mjs --limit 250 "notes for May.txt"
+node show-args.mjs 'Total: $HOME'
+node show-args.mjs "Total: $HOME"
+node show-args.mjs data/archive/*.csv
+node check-orders.mjs data/archive/orders 2025.csv --quiet
+node check-orders.mjs "data/archive/orders 2025.csv" --quiet
+node check-orders.mjs data/orders-2026-09.csv -quiet
+node check-orders.mjs data/*.csv
+node show-args.mjs a ; node show-args.mjs b
+node show-args.mjs a # b

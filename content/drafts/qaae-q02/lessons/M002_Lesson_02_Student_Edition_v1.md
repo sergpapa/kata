@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-02
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner with a working editor and Node.js who can move around folders in a terminal; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-02
@@ -26,15 +26,15 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; this lesson changes no kit file"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7"
 assessment_scope: "Prediction, guided repair and explanation; it does not establish skill at writing shell scripts, which this module does not teach"
 deferred:
-  - "Wildcards used for copying and deleting: the next lesson in this module"
-  - "Variables in depth, as settings handed to programs: the fifth lesson in this module"
-  - "The characters >, | and &&: the fourth lesson in this module"
+  - "Wildcards used for copying and deleting: the lesson Change files without regret"
+  - "Variables in depth, as settings handed to programs: the lesson The settings a program is handed"
+  - "The characters >, | and &&: the lesson Output, messages and the exit code"
   - "A quotation mark inside an argument, and shell scripts: outside this module"
 examples: "The user maria, the sandwich counter and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # What a program receives
@@ -46,6 +46,8 @@ The lesson answers one question:
 > "I type one line. What does the program actually get?"
 
 You need the kit from the lesson *Where the terminal is standing*, unchanged, and a terminal standing in the `terminal-practice-kit` folder. Confirm with `pwd`.
+
+If you already quote file names without thinking about it, go to Section 7 and try Practices A and D. Read Section 6 if either of them surprises you.
 
 ## 1. Start with a familiar situation: the order slip
 
@@ -283,6 +285,10 @@ The program is speaking, not the shell. The shell was content: it found `node` a
 
 Leave the amount out and the program explains that too:
 
+```sh
+node check-orders.mjs data/orders-2026-09.csv --limit
+```
+
 ```text
 check-orders: the option --limit needs an amount after it, such as --limit 200
 ```
@@ -312,7 +318,7 @@ Options:
 
 Environment variables:
   ORDERS_LIMIT       The limit to use when --limit is not given
-  ORDERS_DIR         A folder to look in when the order file is not a full path
+  ORDERS_DIR         A second folder to look in, when the order file is not found from the current folder
 
 Exit codes:
   0  every order is in order
@@ -353,9 +359,11 @@ You have now seen three different refusals. Put them side by side.
 
 This is the road from the lesson *When something goes wrong*, with one more stop at the end. Each stop can only check its own part. The shell does not read your options, and the program cannot see your spaces.
 
-## 6. What the shell fills in before it cuts
+## 6. What the shell fills in on the way
 
 The till in the story only cut. A real shell does one more thing on the way: it **replaces** certain pieces of what you typed with something else, and the program receives the replacement. The technical word is **expansion**. Two kinds matter now.
+
+The order of the two steps is worth knowing, because it is easy to guess backwards. The shell **cuts first**, at the spaces you typed. **Then it fills in** each piece.
 
 ### Variables
 
@@ -384,7 +392,9 @@ Read each one.
 
 That is the one difference between the two kinds of quotation mark, and it is the same in PowerShell, bash and zsh. Double: keep together, fill in. Single: keep together, leave alone. [PowerShell: quoting rules](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_quoting_rules) [Bash manual: quoting](https://www.gnu.org/software/bash/manual/bash.html#Quoting)
 
-You do not need variables of your own yet. The fifth lesson of this module is about them. What you need today is to recognise a `$` in a command as something the shell will act on before the program starts.
+Arguments 1 and 2 came out the same. So why would anybody write `"$HOME"` with the quotation marks? Because of the order of the two steps. The cutting was finished before the filling in began, so what the shell fills in is normally not cut again: a home folder named `C:\Users\Maria Kowalska` still arrives as one argument in PowerShell and in zsh. bash is the exception. It cuts the value of an unquoted variable a second time, at any space inside the value. In the author's run, a variable holding `a b` arrived as two arguments in bash, and as one in zsh and PowerShell. Inside double quotation marks that second cut never happens in any shell. `"$NAME"` is therefore the spelling that means the same thing everywhere.
+
+You do not need variables of your own yet. The lesson *The settings a program is handed* is about them. What you need today is to recognise a `$` in a command as something the shell will act on before the program starts.
 
 ### Wildcards, and a real difference between shells
 
@@ -408,12 +418,12 @@ I received 1 argument.
 
 In bash and zsh, the **shell** looks in the folder, finds the three matching names, and writes all three on the slip in place of the pattern. The program receives three arguments and cannot tell that you typed a star.
 
-PowerShell does not do that for a program such as `node`. It hands the pattern over as it stands, one argument with a star in it, and leaves the program to deal with it. PowerShell's own built-in commands, such as `ls`, understand patterns themselves, so `ls data/*.csv` lists the three files in every shell. [Bash manual: filename expansion](https://www.gnu.org/software/bash/manual/bash.html#Filename-Expansion) [PowerShell: parsing](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_parsing)
+PowerShell does not do that for a program such as `node`. It hands the pattern over as it stands, one argument with a star in it, and leaves the program to deal with it. PowerShell's own built-in commands, such as `ls`, understand patterns themselves, so `ls data/*.csv` lists the three files in every shell. [Bash manual: filename expansion](https://www.gnu.org/software/bash/manual/bash.html#Filename-Expansion)
 
 Two more differences of the same kind:
 
 - When **nothing** matches the pattern, bash hands the pattern over unchanged, and zsh refuses to run the command at all, with `zsh: no matches found: data/*.txt`.
-- The home-folder sign `~` is filled in by bash and zsh for every program. PowerShell fills it in only for its own commands, such as `cd ~`, and hands a bare `~` to `node` unchanged.
+- The home-folder sign `~` is filled in by bash and zsh for every program. Windows PowerShell 5.1 fills it in only for its own commands, such as `cd ~`, and hands a bare `~` to `node` unchanged. PowerShell's documentation says that version 7.6 fills it in for programs as well, so measure it in yours.
 
 Quotation marks of either kind switch wildcard filling off in every shell: `"data/*.csv"` arrives as one argument with a star in it.
 
@@ -421,18 +431,9 @@ Why does this matter to you? Because the same instruction can mean different thi
 
 ### Other characters the shell acts on
 
-Several more characters mean something to a shell, so it acts on them and does not hand them over. You will learn the important ones in the fourth lesson of this module. For now, recognise them:
+A few more characters mean something to a shell, so it acts on them and does not hand them over: `>`, `<`, `|`, `&` and `;` are the common ones. The lesson *Output, messages and the exit code* teaches the ones you need. For now it is enough to know that they do not reach the program as typed.
 
-| Character | What the shell does with it |
-| --- | --- |
-| `;` | Ends one command and begins another on the same line |
-| `>`, `<`, `\|` | Send output to a file, or pass it between programs: the fourth lesson |
-| `&` | Has a special meaning in bash and zsh. PowerShell refuses it outright |
-| `#` | Begins a comment: the shell ignores the rest of the line |
-| `\` in bash and zsh | Protects the one character after it, and is then removed |
-| `` ` `` in PowerShell | The same job as `\` has in bash and zsh |
-
-The backslash row explains something from the last lesson. In bash and zsh, a Windows-style path loses its separators before the program sees it:
+One of them matters today, because it explains something from the last lesson. In bash and zsh, a backslash, `\`, **protects the one character after it**, and is then removed. So a Windows-style path loses its separators before the program sees it:
 
 ```sh
 node show-args.mjs data\archive\orders 2025.csv
@@ -445,11 +446,11 @@ I received 2 arguments.
   2: [2025.csv]
 ```
 
-Each backslash protected the letter after it and was removed. That is why these lessons write `/`, and why instructions written on Windows with backslashes fail on macOS and Linux.
+Each backslash protected the letter after it and was removed. That is why these lessons write `/`, and why instructions written on Windows with backslashes fail on macOS and Linux. PowerShell uses a different character for the protecting job, the backtick, `` ` ``, and leaves a backslash alone.
 
-A practical rule covers all of this. **If an argument contains anything other than letters, digits, dots, dashes, underscores and forward slashes, put it between single quotation marks, and check it with `show-args.mjs` if you are unsure.**
+A practical rule covers all of this. **If an argument contains anything other than letters, digits, dots, dashes, underscores and forward slashes, put it between single quotation marks, and check it with `show-args.mjs` if you are unsure.** PowerShell needs the quotation marks in one more case: an argument that begins with a dash and has a dot in it, such as `-a.b`, which it otherwise cuts in two at the dot.
 
-One limit, stated plainly. An argument that must itself contain a quotation mark is a harder case, and Windows PowerShell 5.1 handles it in a surprising way: in the author's run, `'say "hi"'` arrived at the program as `[say hi]`, with the inner quotation marks gone, while bash and zsh delivered `[say "hi"]`. This module avoids such arguments. When you meet one, measure it with the instrument before you trust it.
+One case is left out of this module on purpose: an argument that must itself contain a quotation mark. Windows PowerShell 5.1 delivered `'say "hi"'` as `[say hi]` in the author's run, where bash and zsh delivered `[say "hi"]`, and PowerShell's documentation describes a correction from version 7.3 on. When you meet such an argument, measure it with the instrument before you trust it. [PowerShell: parsing](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_parsing)
 
 ## 7. Try it with less help
 
@@ -505,11 +506,11 @@ Two learners follow the same line from a set of instructions:
 node check-orders.mjs data/*.csv
 ```
 
-Dana uses PowerShell on Windows. Tomás uses bash on Linux. Both get an error from `check-orders`, and the two errors are different.
+Dana uses PowerShell on Windows. Tomas uses bash on Linux. Both get an error from `check-orders`, and the two errors are different.
 
 1. What does `check-orders.mjs` receive on each computer?
 2. Using what you have seen of its messages, what is each learner's error about?
-3. Dana says, "It can't find the file, so the star must be wrong." Tomás says, "It found too many files, so the star works." Which parts of those two sentences are observations and which are inferences?
+3. Dana says, "It can't find the file, so the star must be wrong." Tomas says, "It found too many files, so the star works." Which parts of those two sentences are observations and which are inferences?
 4. The instructions were meant to check September's file. Rewrite the line so that it does the same thing on both computers.
 
 ### Practice explanations
@@ -542,9 +543,9 @@ In all three the shell was satisfied, because the program's name was right and t
 
 **D.**
 
-1. Dana's program receives one argument, `[data/*.csv]`: PowerShell hands the pattern over unchanged. Tomás's program receives three arguments, the three file paths: bash filled them in.
-2. Dana's checker looks for a file literally named `*.csv` in `data`, finds none, and reports that it cannot read that file. Tomás's checker receives three arguments where it expects one, and reports that one order file is expected and 3 arguments arrived.
-3. "It can't find the file" and "it found too many files" are close to observations, though each is a report in the learner's words and the pasted message would be better. "So the star must be wrong" and "so the star works" are inferences. Both are partly mistaken. The star did nothing on Dana's computer, and on Tomás's it was the shell, not the checker, that found three files.
+1. Dana's program receives one argument, `[data/*.csv]`: PowerShell hands the pattern over unchanged. Tomas's program receives three arguments, the three file paths: bash filled them in.
+2. Dana's checker looks for a file literally named `*.csv` in `data`, finds none, and reports that it cannot read that file. Tomas's checker receives three arguments where it expects one, and reports that one order file is expected and 3 arguments arrived.
+3. "It can't find the file" and "it found too many files" are close to observations, though each is a report in the learner's words and the pasted message would be better. "So the star must be wrong" and "so the star works" are inferences. Both are partly mistaken. The star did nothing on Dana's computer, and on Tomas's it was the shell, not the checker, that found three files.
 4. `node check-orders.mjs data/orders-2026-09.csv`. Naming the one file removes the wildcard, and with it the difference between the shells. Instructions meant for more than one kind of computer are safest when they contain nothing for a shell to fill in.
 
 ## 8. What you should be able to explain now
@@ -573,4 +574,4 @@ So far every command in this module has only looked. The next lesson changes thi
 
 **`$HOME` prints nothing between the brackets.** The variable is not set in your shell, which is unusual. Note which shell the terminal panel names, and include that in a help request.
 
-**A command from this lesson gives a different count of arguments.** Compare your typed line with the lesson's, character by character, looking at spaces and the kind of quotation mark. Text copied from a word processor or a chat program sometimes carries curved quotation marks, `“ ”`, which a shell does not treat as quotation marks at all.
+**A command from this lesson gives a different count of arguments.** Compare your typed line with the lesson's, character by character, looking at spaces and the kind of quotation mark. Text copied from a word processor or a chat program sometimes carries curved quotation marks, `“ ”`. bash and zsh do not treat those as quotation marks at all: in the author's run, `“one two”` arrived as two arguments with the curved marks still attached. PowerShell accepted them as if they were straight ones. Retype them as straight marks and the command means the same in every shell.

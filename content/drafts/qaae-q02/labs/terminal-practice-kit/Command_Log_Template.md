@@ -8,11 +8,15 @@ Save a copy of this file as `command-log.md` in your `course-work` folder, outsi
 
 **Starting folder:** *the full path that `pwd` printed*
 
-| # | Current folder | Command, exactly as typed | What I expected | What happened: who spoke, the exact message, the exit code | What I conclude, and what I change next |
-| --- | --- | --- | --- | --- | --- |
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
+| # | Current folder | Command, exactly as typed | What I expected | What happened: who spoke, the first line of the message, the exit code | What I conclude | What I change next |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | | | | | | |
+| 2 | | | | | | |
+| 3 | | | | | | |
+
+## Full output
+
+*A table cell holds one line. When a message is longer, paste all of it here, with the row's number in front.*
 
 ## What was wrong
 

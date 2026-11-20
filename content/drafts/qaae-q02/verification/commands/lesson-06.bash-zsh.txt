@@ -1,0 +1,34 @@
+node tick.mjs --count 3
+node tick.mjs > t1.out 2>&1 &
+sleep 2.6
+cat tick.running
+ps -p $(cat tick.running)
+ps -p $(cat tick.running) -o pid,args
+pgrep -f tick.mjs
+node tick.mjs
+echo $?
+kill $(cat tick.running)
+sleep 0.8
+cat t1.out
+ls tick.running
+node tick.mjs > t1.out 2>&1 &
+sleep 2.6
+kill -INT $(cat tick.running)
+sleep 0.8
+cat t1.out
+node tick.mjs > t1.out 2>&1 &
+sleep 2.6
+kill -9 $(cat tick.running)
+sleep 0.8
+cat t1.out
+cat tick.running
+ps -p $(cat tick.running)
+node tick.mjs --count 2
+node tick.mjs --stall-after 3 > t2.out 2>&1 &
+sleep 5.6
+cat t2.out
+kill -INT $(cat tick.running)
+sleep 0.8
+cat t2.out
+ls tick.running
+rm -f t1.out t2.out

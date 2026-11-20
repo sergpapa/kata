@@ -49,7 +49,7 @@ if (fs.existsSync(MARKER)) {
   console.error('tick: that process did not stop in an orderly way. Replacing its marker.');
 }
 
-fs.writeFileSync(MARKER, String(process.pid));
+fs.writeFileSync(MARKER, `${process.pid}\n`);
 console.log(`tick: started as process ${process.pid}. Stop me with Ctrl+C.`);
 
 let ticks = 0;

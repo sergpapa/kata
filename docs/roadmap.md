@@ -63,15 +63,23 @@ was run on Windows 11 only; the record is the package's `Verification_and_Known_
 `previous_release` in `content/source/qaae/release.json` stays on `qaae-lesson-01-v1` until the
 next reissue starts (handbook, "Reissuing a release").
 
-**Q02 is drafted, not reviewed.** Commit `05fb0c4` holds seven M002 lessons and the
-`terminal-practice-kit` in `content/drafts/qaae-q02/`. Its README says: not reviewed, not
-re-verified against the final text, not packaged; its "Still to do" lists link checks, heading cuts,
-two fresh reviewers (ADR 0013) and packaging. Two of its design choices, made by the owner on
-2026-11-19, are not yet an ADR.
+**Q02 is reviewed and revised, not packaged, and the revision is uncommitted** (2026-11-20). Seven
+M002 lessons and the `terminal-practice-kit` are in `content/drafts/qaae-q02/`. Two fresh reviewers
+read commit `25c3193` (ADR 0013): 5 blockers, 17 major and 36 minor findings between them, with
+overlap. The author re-ran every command in Windows PowerShell 5.1, bash and zsh before and after
+the revision. The drafts' README lists what was taken, the five findings declined with reasons, and
+six keyboard checks only the owner can make. Changes that reach beyond wording: `ORDERS_DIR` is now
+a second place the checker looks (Lesson 7's explanation contradicted the kit), `reset-sandbox.mjs`
+refuses to run from inside `sandbox` (it crashed on Windows), and the shell labels moved out of the
+code blocks (interactive zsh does not treat `#` as a comment). ADR 0024 records the owner's
+PowerShell-beside-bash/zsh decision. `.gitignore` line 8 is `/data/` now: as `data/` it hid the
+kit's four order files from git, and would have hidden them under `content/source/` too. Those
+four files are still untracked. The command lists and runners are in
+`content/drafts/qaae-q02/verification/`.
 
 **Incident, 2026-11-19.** Removing the finished Q01 drafts with `rm -rf content/drafts` also deleted
 21 uncommitted files of another session's Q02 drafts. That session restored all 21 from its
-transcript by 17:10. The `content/drafts/` ignore lines in `eslint.config.js`, `.prettierignore` and
+transcript by 17:10. The four order files among them were never in git (see the ignore rule above). The `content/drafts/` ignore lines in `eslint.config.js`, `.prettierignore` and
 `.gitattributes` are kept for it.
 
 After the merge, under nvm's Node 24.12: `npm run typecheck`, `npm run lint`, `npm run build` and
@@ -96,7 +104,12 @@ Next action: the owner restarts their dev server, tries feedback and Start over 
 activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13,
 14–15 with theirs). They continue reading QA Lesson 1, Lessons 5–8 and QA Lessons 2–5 in the app,
 and decide whether to split the two longest new Q01 lessons. Optionally they listen to one lesson
-with NVDA or Narrator. Development next: finish Q02 (review and packaging, on the strongest model).
+with NVDA or Narrator. Development next, in a fresh session: commit the Q02 revision, then package
+Q02 (the drafts' README has the brief: cut 35 activity records, add the kit manifest, move lessons
+and kit into `content/source/qaae/`, build the next QA release, point `config.ts`, the release tests
+and `tools/screenshots.mjs` at it, render the five diagrams). Packaging is mechanical, so Sonnet 5.5
+can do it (handbook). One finding for the next Q01 reissue: `M001_Lesson_02` shows bash's
+"command not found" line without saying that Ubuntu words it differently.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 

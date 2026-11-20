@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-05
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner who can run a program with options and read its output and exit code; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-05
@@ -28,7 +28,7 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; this lesson changes no file, and every setting it makes ends when the terminal is closed"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7"
 assessment_scope: "Guided experiments, prediction and explanation in one terminal session; it does not establish skill at configuring a computer permanently"
 deferred:
   - "Making a setting permanent, in system settings or a shell's start-up file: the dependencies and tooling module"
@@ -36,7 +36,7 @@ deferred:
   - "Keeping passwords and keys out of commands, files and history: the authentication module"
   - "Tools that switch between several installed versions of Node.js: the dependencies and tooling module"
 examples: "The agency worker, the two colleagues and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's and tool folders renamed to typical ones"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # The settings a program is handed
@@ -50,6 +50,8 @@ The lesson answers one question:
 > "The command is identical. What else can make the result different?"
 
 You need the kit from the lesson *Where the terminal is standing*, and a terminal standing in the `terminal-practice-kit` folder. Confirm with `pwd`.
+
+If you already set environment variables and know what PATH is, go to Section 8 and try Practices C and D. Practice B is needed for the last lesson of this module, whatever you know already.
 
 ## 1. Start with a familiar situation: the handover sheet
 
@@ -125,13 +127,15 @@ Settings in use:
 
 Now set the variable **for this terminal**. This is the first command in the module that is entirely different in the two families of shell, so use the one for yours.
 
+**PowerShell:**
+
 ```powershell
-# PowerShell
 $env:ORDERS_LIMIT = "100"
 ```
 
+**bash or zsh:**
+
 ```sh
-# bash or zsh
 export ORDERS_LIMIT=100
 ```
 
@@ -158,7 +162,7 @@ The value is on the sheet, and the checker says it is using it and where it foun
 
 ### Predict, then run the unchanged command
 
-Here is a command you ran in *Output, messages and the exit code*. Then, it reported six orders in order and ended with exit code 0.
+Here is a command you ran in *What a program receives*. Then, it reported six orders in order, and in *Output, messages and the exit code* the same check ended with exit code 0.
 
 ```sh
 node check-orders.mjs data/orders-2026-09.csv
@@ -221,17 +225,21 @@ The exit code is 2: the check could not be done. Who is speaking? The program. T
 
 Now take the variable off the sheet again:
 
+**PowerShell:**
+
 ```powershell
-# PowerShell
 Remove-Item Env:ORDERS_LIMIT
 ```
 
+**bash or zsh:**
+
 ```sh
-# bash or zsh
 unset ORDERS_LIMIT
 ```
 
 Confirm with `node show-env.mjs ORDERS_LIMIT`, which should say it is not set.
+
+The help text names a second variable, `ORDERS_DIR`: a second folder for the checker to look in. You will set it yourself in Practice B. Do that practice even if you skip the others, because the last lesson of this module depends on it.
 
 ### A good place to pause
 
@@ -273,7 +281,9 @@ Three consequences follow, and each one catches people.
 
 - **Closing the terminal ends the setting.** The shell's copy disappears with the shell. What you set this way lasts for one terminal's lifetime. Making a setting permanent means changing the master list, which is a different act and belongs to a later module.
 - **A change to the master does not reach what is already running.** This is the VS Code restart from *Set up a safe workspace*, now with its full explanation. An installer changed the master list. VS Code held a copy from before. Every terminal it opened was handed that old copy.
-- **A program cannot set a variable for your terminal.** It can only change its own copy, which vanishes when it ends. When instructions tell you to run a command so that a setting "takes effect in your shell", that command has to be something the shell itself carries out, not a separate program.
+- **A program cannot set a variable for your terminal.** It can only change its own copy, which vanishes when it ends. When instructions tell you to run a command so that a setting "takes effect in your shell", that command has to be one the shell carries out itself, as it does `cd`, and not a separate program. Section 6 shows how to tell the two kinds apart.
+
+Now remove the variable in the first terminal, as you did in Section 4, and close the second terminal. The next part needs a sheet without `ORDERS_LIMIT` on it.
 
 ### The shell's own notes
 
@@ -281,7 +291,7 @@ There is one more step on the way, and it differs between the shells.
 
 A shell keeps variables of its own, for its own use. You met one, `$HOME`, in *What a program receives*. A shell's own variable is like a note in the worker's pocket: it is not on the sheet, and it is not photocopied for the trainee.
 
-In **bash and zsh**, writing `ORDERS_LIMIT=100` without the word `export` creates only such a pocket note. The author's run:
+In **bash and zsh**, writing `ORDERS_LIMIT=100` without the word `export` creates only such a pocket note. Here is the author's run. The `$` at the start of a line stands for the prompt, and is not typed.
 
 ```text
 $ ORDERS_LIMIT=100
@@ -291,15 +301,17 @@ $ node show-env.mjs ORDERS_LIMIT
 ORDERS_LIMIT is not set
 ```
 
-The shell knows the value, and `echo`, which is part of the shell, prints it. The program never received it. The word `export` is what moves a variable onto the sheet. This is a classic puzzle: "I set it, I can print it, and the program says it is not set."
+The shell knows the value, and `echo`, which is part of the shell, prints it. The program never received it. The word `export` is what moves a variable onto the sheet. This is a classic puzzle: "I set it, I can print it, and the program says it is not set." If you try it yourself, remove the note afterwards with `unset ORDERS_LIMIT`.
 
-bash and zsh also have a form that puts a variable on the sheet of **one command only**, written in front of that command on the same line: `ORDERS_LIMIT=50 node check-orders.mjs --settings`. The setting is gone again as soon as that program ends. PowerShell has no such form.
+The reverse also holds. A variable that is already on the sheet stays on the sheet when you give it a new value, with or without `export`. Section 6 relies on that when it changes PATH.
 
 In **PowerShell**, the same distinction is in the spelling. `$env:ORDERS_LIMIT` is on the sheet. `$ORDERS_LIMIT`, without `env:`, is a pocket note that programs never see. [PowerShell: environment variables](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_environment_variables) [Bash manual: environment](https://www.gnu.org/software/bash/manual/bash.html#Environment)
 
-One difference between systems concerns the names. On Windows, the names of environment variables ignore capitals: in the author's run, asking for `orders_limit` returned the value of `ORDERS_LIMIT`. On Linux and macOS they are two different variables. As with file names, write them exactly as documented.
+### Two details you will meet
 
-Remove the variable again before you go on, and close the second terminal.
+**A setting for one command only.** bash and zsh have a form that puts a variable on the sheet of a single command, written in front of that command on the same line: `ORDERS_LIMIT=50 node check-orders.mjs --settings`. The setting is gone again as soon as that program ends. You will see this form in other people's instructions. PowerShell has no such form.
+
+**Capitals in names.** On Windows, the names of environment variables ignore capitals: in the author's run, asking for `orders_limit` returned the value of `ORDERS_LIMIT`. On Linux and macOS they are two different variables. As with file names, write them exactly as documented.
 
 ## 6. PATH, the variable that decides which program runs
 
@@ -329,13 +341,17 @@ Your list is your own computer's, and it will be longer. Read it for three thing
 
 Your shell can answer the same question directly. This is the command to remember for the question "which file runs when I type this name?":
 
+**PowerShell:**
+
 ```powershell
-# PowerShell: prints the full path of the file
 (Get-Command node).Source
 ```
 
+`Get-Command node` looks the name up, and `.Source` picks one fact out of the answer: the full path of the file.
+
+**bash or zsh:**
+
 ```sh
-# bash or zsh
 command -v node
 ```
 
@@ -356,7 +372,7 @@ Looking for a program named node in the 4 folders of PATH, in order:
 Found in 3 folders. The earliest folder on the list wins.
 ```
 
-This computer has more than one Node.js: version 24 in the first folder, and an older version 18 that came with the system, further down. Typing `node` starts version 24, only because its folder comes first. If the order of the list were different, the same command would start version 18, with no message of any kind, and programs written for version 24 would begin to fail in ways that have nothing to do with their own code.
+This computer has more than one Node.js: version 24 in the first folder, and an older version 18 that came with the system, further down. On this system `/bin` is a second name for `/usr/bin`, so lines 3 and 4 show one file twice. Typing `node` starts version 24, only because its folder comes first. If the order of the list were different, the same command would start version 18, with no message of any kind, and programs written for version 24 would begin to fail in ways that have nothing to do with their own code.
 
 This situation is common. It arises whenever a tool has been installed twice by different routes. Its signature is a version number you did not expect. So when a program behaves as if it were the wrong version, ask two questions before anything else: what does `node --version` say, and which file is it? Then look at where on the list that file's folder stands.
 
@@ -366,14 +382,16 @@ You can now run the experiment that *Set up a safe workspace* could only describ
 
 First keep the current value in one of the shell's own pocket notes, then replace PATH with a folder that does not exist:
 
+**PowerShell:**
+
 ```powershell
-# PowerShell
 $saved = $env:PATH
 $env:PATH = "C:\nowhere"
 ```
 
+**bash or zsh:**
+
 ```sh
-# bash or zsh
 saved=$PATH
 PATH=/nowhere
 ```
@@ -402,21 +420,25 @@ bash: ls: command not found
 
 Who is speaking about `node`? The shell. This is the message from the very first failure in *When something goes wrong*, and this time you produced its real cause. Node.js is still installed. Not one of its files has been touched. The shell walked a list that no longer includes its folder, reached the end, and said so. "Not recognised" and "not found" have never meant "not installed". They mean "not on the list I was handed".
 
-Why does `ls` fail in bash and zsh and not in PowerShell? Because commands are of two kinds. Some are **built into the shell**: `cd` and `pwd` in every shell, and in PowerShell on Windows also `ls`, `cp`, `rm` and the rest from *Change files without regret*. The shell carries those out itself and needs no list. Others are **separate programs on the disk**, found through PATH: `node` everywhere, and in bash and zsh also `ls`. In bash and zsh, `type ls` and `type cd` tell you which kind a command is.
+On Ubuntu the message for `node` is longer than the author's one line. Ubuntu's helper notices that a `node` exists in a folder that is no longer on the list, and says so before the words `command not found`. It is the same refusal with a hint attached.
+
+Why does `ls` fail in bash and zsh and not in PowerShell? Because commands are of two kinds. Some are **built into the shell**: `cd` and `pwd` in every shell, and in PowerShell on Windows also `ls`, `cp`, `rm` and the rest from *Change files without regret*. The shell carries those out itself and needs no list. Others are **separate programs on the disk**, found through PATH: `node` everywhere, and in bash and zsh also `ls`.
 
 Now repair it, from the pocket note:
 
+**PowerShell:**
+
 ```powershell
-# PowerShell
 $env:PATH = $saved
 ```
 
+**bash or zsh:**
+
 ```sh
-# bash or zsh
 PATH=$saved
 ```
 
-Go back to the kit folder with `cd ..`, and confirm that `node --version` answers again. If anything went wrong on the way, there is a simpler repair, and you should be able to say why it works: close this terminal and open a new one. The new shell is handed a fresh copy from VS Code, which never knew about your change.
+Go back to the kit folder with `cd ..`, and confirm that `node --version` answers again. In bash and zsh you can now ask which kind a command is. `type cd` answers that it is a shell builtin. `type ls` names a file on the disk. On some systems it says that `ls` is an alias: a short name the system has set up for that same file with an option added. If anything went wrong on the way, there is a simpler repair, and you should be able to say why it works: close this terminal and open a new one. The new shell is handed a fresh copy from VS Code, which never knew about your change.
 
 ## 7. What is on the sheet is not for the noticeboard
 
@@ -443,12 +465,12 @@ For each situation, predict the limit that `node check-orders.mjs --settings` re
 
 ### Practice B: a second variable, and a path
 
-The help text names a second variable, `ORDERS_DIR`: "a folder to look in when the order file is not a full path".
+The help text names a second variable, `ORDERS_DIR`: "a second folder to look in, when the order file is not found from the current folder".
 
 1. Set `ORDERS_DIR` to the **full path** of the kit's `data` folder. Build it from what `pwd` prints, and quote it if it contains a space.
 2. Go to your home folder with `cd ~`.
 3. From there, run the checker on `orders-2026-11.csv`, giving the order file as a bare name with no folder in front. You will need a path to `check-orders.mjs` itself.
-4. Explain why the bare file name worked from your home folder, when the lesson *Where the terminal is standing* said a relative path is joined to the current folder.
+4. Explain why the bare file name worked from your home folder, when the lesson *Where the terminal is standing* said a relative path is joined to the current folder. Was that rule broken?
 5. Remove `ORDERS_DIR`, and return to the kit folder.
 
 ### Practice C: "It works in my other terminal"
@@ -499,7 +521,7 @@ node course-work/terminal-practice-kit/check-orders.mjs orders-2026-11.csv
 
 On Windows the first line is `$env:ORDERS_DIR = "C:\Users\maria\course-work\Terminal_Practice_Kit_v1\terminal-practice-kit\data"` and the path to the program has the extra folder in it. The report begins `Checking orders-2026-11.csv (limit 500.00)` and ends `Result: 7 orders checked, 6 in order, 1 with a problem.`
 
-For question 4: the rule from *Where the terminal is standing* is what happens when nothing else is said, and it still holds for the program's own path, `course-work/.../check-orders.mjs`, which was joined to your home folder. For the order file, this program was written to make its own choice: when `ORDERS_DIR` is set, it joins a relative file name to that folder instead of the current one. The program decides how to treat its arguments, as it decides what its options mean. `node check-orders.mjs --settings` shows the folder in use, and so would the path in the message if the file were missing.
+For question 4: the rule was not broken. It was applied, and then the program added a rule of its own. The program's own path, `course-work/.../check-orders.mjs`, was joined to your home folder as always. The order file's bare name was joined to your home folder too: the checker looked for `orders-2026-11.csv` there first, and found nothing. Only then did it do what its help text describes: when `ORDERS_DIR` is set, it tries the same name from that folder as well. A program decides how to treat its arguments, as it decides what its options mean. `node check-orders.mjs --settings` shows the second folder, and when a file is in neither place, the message names both paths it tried.
 
 This is also the hidden kind of dependence at its clearest. Somebody who had `ORDERS_DIR` set permanently could type `check-orders.mjs orders-2026-11.csv` from anywhere for years, write that command into instructions, and never realise that it works on their computer only.
 
@@ -544,7 +566,7 @@ Every program you have run so far finished in a moment and gave the prompt back.
 
 **bash or zsh says `:ORDERS_LIMIT: command not found` or something similar.** You typed the PowerShell form. Use `export ORDERS_LIMIT=100`.
 
-**bash or zsh says `ORDERS_LIMIT: command not found`.** There is a space next to the `=`. Write it without spaces.
+**bash says `not a valid identifier` after `export`, or zsh says `bad assignment`.** There is a space next to the `=`. Write it without spaces. Without the word `export`, the same mistake reads `ORDERS_LIMIT: command not found`, because the shell took the name for a program.
 
 **After the PATH experiment, nothing works, and restoring from the saved value fails too.** Close the terminal with the bin icon in the terminal panel and open a new one. Nothing outside that one terminal was changed.
 

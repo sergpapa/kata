@@ -1,6 +1,6 @@
 # Year-end check of the 2025 archive
 
-Tomás, typed up from memory on my laptop.
+Tomas, typed up from memory on my laptop.
 
 1. Go to the data folder:
 

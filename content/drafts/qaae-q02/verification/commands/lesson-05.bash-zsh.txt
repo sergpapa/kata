@@ -1,0 +1,45 @@
+node show-env.mjs
+node show-env.mjs ORDERS_LIMIT
+node check-orders.mjs --settings
+export ORDERS_LIMIT=100
+node show-env.mjs ORDERS_LIMIT
+node show-env.mjs orders_limit
+node check-orders.mjs --settings
+node check-orders.mjs data/orders-2026-09.csv
+echo $?
+node check-orders.mjs --settings --limit 250
+export ORDERS_LIMIT=cheap
+node check-orders.mjs data/orders-2026-09.csv
+echo $?
+unset ORDERS_LIMIT
+node show-env.mjs ORDERS_LIMIT
+ORDERS_LIMIT=100
+echo $ORDERS_LIMIT
+node show-env.mjs ORDERS_LIMIT
+node check-orders.mjs --settings
+unset ORDERS_LIMIT
+ORDERS_LIMIT=50 node check-orders.mjs --settings
+node show-env.mjs ORDERS_LIMIT
+export ORDERS_LIMIT=80
+node check-orders.mjs --settings --limit 300
+unset ORDERS_LIMIT
+node find-on-path.mjs node
+command -v node
+type ls
+type cd
+export ORDERS_DIR=$PWD/data
+cd ~
+node "$KIT/check-orders.mjs" orders-2026-11.csv
+unset ORDERS_DIR
+cd "$KIT"
+saved=$PATH
+PATH=/nowhere
+node --version
+pwd
+cd data
+ls
+PATH=$saved
+cd ..
+node --version
+$env:ORDERS_LIMIT = "100"
+export ORDERS_LIMIT = 100

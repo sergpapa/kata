@@ -38,7 +38,7 @@ Options:
 
 Environment variables:
   ORDERS_LIMIT       The limit to use when --limit is not given
-  ORDERS_DIR         A folder to look in when the order file is not a full path
+  ORDERS_DIR         A second folder to look in, when the order file is not found from the current folder
 
 Exit codes:
   0  every order is in order
@@ -116,7 +116,7 @@ if (showSettings) {
   console.log(`  limit        ${fromCents(limit)}  (from ${limitSource})`);
   console.log(
     ordersDir
-      ? `  orders dir   ${ordersDir}  (from the environment variable ORDERS_DIR)`
+      ? `  orders dir   ${ordersDir}  (from the environment variable ORDERS_DIR; tried after the current folder)`
       : '  orders dir   not set  (an order file is looked for from the current folder)',
   );
   process.exit(EXIT_ALL_OK);
@@ -133,14 +133,27 @@ if (files.length > 1) {
 }
 
 const typed = files[0];
-const startingFolder = ordersDir && !path.isAbsolute(typed) ? ordersDir : process.cwd();
-const fullPath = path.resolve(startingFolder, typed);
 
-let text;
-try {
-  text = fs.readFileSync(fullPath, 'utf8');
-} catch {
-  stop(`cannot read the file ${fullPath}`);
+// A relative path is joined to the current folder first, as in every program. Only when nothing
+// can be read there, and ORDERS_DIR is set, is the same path tried from that folder as well.
+const places = [path.resolve(process.cwd(), typed)];
+if (ordersDir && !path.isAbsolute(typed)) places.push(path.resolve(ordersDir, typed));
+
+let text = null;
+for (const place of places) {
+  try {
+    text = fs.readFileSync(place, 'utf8');
+    break;
+  } catch {
+    // Nothing readable at this place. Try the next one, if there is one.
+  }
+}
+if (text === null) {
+  stop(
+    places.length === 1
+      ? `cannot read the file ${places[0]}`
+      : `cannot read the file ${places[0]} and, looking in ORDERS_DIR, cannot read ${places[1]} either`,
+  );
 }
 
 // ---- 4. Check each order ---------------------------------------------------------------------

@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-03
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner who can move around folders in a terminal and knows how a shell cuts a command into arguments; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-03
@@ -27,14 +27,14 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; this lesson creates and changes only the folder named sandbox, which reset-sandbox.mjs rebuilds"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS or in PowerShell 7; the question PowerShell asks before deleting a folder with contents needs a keypress and is described from Microsoft's documentation"
 assessment_scope: "Guided file operations inside a disposable folder, prediction and judgment; it does not establish safe practice on real data"
 deferred:
   - "Getting an earlier version of a file back: the Git module"
   - "Why a file may refuse to be changed or deleted (permissions in depth): the lessons on containers and running services"
-  - "Sending a program's output into a file: the next lesson in this module"
+  - "Sending a program's output into a file: the lesson Output, messages and the exit code"
 examples: "The clearance crew, the colleague's messages and the order files are fictional; output marked as the author's was captured on the systems named in runtime_target, with the home folder renamed to maria's"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # Change files without regret
@@ -48,6 +48,8 @@ The lesson answers one question:
 > "How do I change and delete files from the terminal, and how do I make sure a delete removes what I meant and nothing else?"
 
 Everything happens inside one disposable folder that a kit program builds and rebuilds for you. You need the kit from the lesson *Where the terminal is standing*, and a terminal standing in the `terminal-practice-kit` folder. Confirm with `pwd`.
+
+If you already use `cp`, `mv` and `rm` every day, read "Three checks before anything that destroys" in Section 5, then go to Section 8 and try Practices A and B.
 
 ## 1. Start with a familiar situation: the clearance crew
 
@@ -243,7 +245,7 @@ ls inbox
 
 Nothing is printed by `rm`. The listing shows four files: `draft.tmp`, `notes.txt`, `old.tmp` and `orders-week-1.csv`.
 
-Now the fourth property of the crew. When you delete a file in File Explorer or Finder, it goes to the Recycle Bin or the Trash, and you can take it out again. **A file deleted with `rm` in a terminal does not go there.** It is not in the Recycle Bin. It is not in the Trash. On an ordinary computer there is no command that brings it back. This is true in PowerShell, in bash and in zsh. [PowerShell: Remove-Item](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/remove-item)
+Now the fourth property of the crew. When you delete a file in File Explorer or Finder, it goes to the Recycle Bin or the Trash, and you can take it out again. **A file deleted with `rm` in a terminal does not go there.** It is not in the Recycle Bin. It is not in the Trash. On an ordinary computer there is no command that brings it back. This is true in PowerShell, in bash and in zsh.
 
 Run the same delete a second time, to see what a failed delete looks like:
 
@@ -252,14 +254,14 @@ rm inbox/price-list-copy.txt
 ```
 
 ```text
-bash or zsh (the author's run, on another file):
-rm: cannot remove 'inbox/notes.txt': No such file or directory
+bash or zsh (the author's run):
+rm: cannot remove 'inbox/price-list-copy.txt': No such file or directory
 
-Windows PowerShell (the author's run, on another file, shortened):
-rm : Cannot find path 'C:\Users\maria\...\sandbox\inbox\notes.txt' because it does not exist.
+Windows PowerShell (the author's run, with the path shortened):
+rm : Cannot find path 'C:\Users\maria\...\sandbox\inbox\price-list-copy.txt' because it does not exist.
 ```
 
-Your message names `price-list-copy.txt`. The program says it cannot remove something that is not there. That is harmless, and it shows that `rm`, like every program, works on the one place a path leads to.
+The program says it cannot remove something that is not there. That is harmless, and it shows that `rm`, like every program, works on the one place a path leads to.
 
 ### Three checks before anything that destroys
 
@@ -373,7 +375,9 @@ rm: cannot remove 'archive/2026-12': Is a directory
 
 `rm` alone deletes files, not folders.
 
-**Windows PowerShell** stops and asks a question. The author could not capture it, because it needs a person at the keyboard. According to PowerShell's documentation it tells you that the item has children and that the Recurse parameter was not specified, and it offers choices including `[Y] Yes` and `[N] No`. **Type `N` and press Enter.** Read the prompt carefully before you ever press Enter alone: it marks one choice as the default, and the default is Yes.
+**PowerShell** stops and asks a question. It tells you that the item has children and that the Recurse parameter was not specified, asks whether you are sure you want to continue, and offers a row of choices that begins `[Y] Yes  [A] Yes to All  [N] No`. **Type `N` and press Enter.** Read the prompt carefully before you ever press Enter alone: it marks one choice as the default, and the default is Yes. [PowerShell: Remove-Item](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/remove-item)
+
+If you answered Yes by mistake, the folder and both files are gone, and the first listing below will say that the path does not exist. Nothing else is harmed. Read on, and rebuild the sandbox in Section 7.
 
 To delete a folder **together with everything inside it**, at every depth, add the option `-r`. It stands for *recursive*: do the same to each folder inside, and each folder inside those. This spelling works in PowerShell, bash and zsh:
 
@@ -411,7 +415,18 @@ The listing shows the five files you started with: `draft.tmp`, `notes.txt`, `ol
 
 That last `ls` is not decoration. Running a reset and *believing* it worked is an inference. Listing the result and comparing it with the known starting state is an observation. "Reset, then verify" is a habit you will use with databases, test environments and servers, where a reset that quietly did nothing can waste a day.
 
-One caution about where you stand when you reset. Run `reset-sandbox.mjs` from the kit folder, not from inside `sandbox`. The program deletes the old `sandbox` and builds a new one. A terminal left standing inside the old one is then standing in a folder that no longer exists, and its `ls` shows nothing even though the new files are there. If that happens, `cd` to the kit folder by its full path and go in again.
+One caution about where you stand when you reset. Run `reset-sandbox.mjs` from the kit folder, not from inside `sandbox`. A reset deletes the old `sandbox`, and a terminal standing inside a folder that is deleted is left in a place that no longer exists. The program checks for that before it touches anything. Try it: `cd sandbox`, then run the program from there by its relative path.
+
+```sh
+cd sandbox
+node ../reset-sandbox.mjs
+```
+
+```text
+reset-sandbox: this terminal is standing inside /home/maria/course-work/terminal-practice-kit/sandbox, the folder a reset deletes. Nothing was changed. Go to the kit folder first, then run: node reset-sandbox.mjs
+```
+
+That is the author's run on Linux, and the exit code was 2. The program applied the first of your three checks, "where am I?", to itself, and stopped. Go back with `cd ..`.
 
 ## 8. Try it with less help
 
@@ -527,6 +542,8 @@ So far you have read what programs print without asking where the printing goes.
 
 **A listing shows files this lesson does not mention, or misses some.** An earlier command did something different from what you intended. That is fine here. From the kit folder, run `node reset-sandbox.mjs` and start the section again.
 
-**`ls` shows nothing, and you know the files are there.** You may be standing in a folder that was deleted and rebuilt underneath you, as Section 7 describes. `cd` to the kit folder by its full path.
+**`ls` shows nothing, or says the folder does not exist, and you know the files are there.** The folder this terminal is standing in was deleted and built again, perhaps from a second terminal. A new folder with the same name is not the folder the terminal was in. `cd` to the kit folder by its full path and go in again.
+
+**`reset-sandbox.mjs` says it could not delete the old sandbox.** Something is still using the folder: another terminal standing inside it, or one of its files open in another program. Close that, and run the reset again.
 
 **You deleted something outside the sandbox.** Stop typing commands. Write down the exact command and the folder you were in. If the file came from a kit, extract the ZIP again. If it was your own work, check whether your editor still has the file open in a tab, because an open tab still holds the text and can be saved again.

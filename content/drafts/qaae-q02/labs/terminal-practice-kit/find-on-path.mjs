@@ -5,6 +5,10 @@
 // It prints every folder on the PATH list this program was handed, in order, and marks each
 // folder that holds a program with the name you gave. The first one marked is the one a shell
 // starts. It only looks at file names. It runs nothing and changes nothing.
+//
+// A shell knows a few names this program does not follow: its own built-in commands and short
+// names, and in PowerShell a script file ending in .ps1, which PowerShell prefers to a program
+// of the same name. For node, the name the lessons use, the two agree.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,6 +30,19 @@ const endings = onWindows
 
 const folders = (process.env.PATH || '').split(path.delimiter).filter(Boolean);
 
+/**
+ * The file's name as the folder spells it. Windows finds node.exe when asked for node.EXE, and
+ * PATHEXT is usually written in capitals, so the name that was tried is not always the real one.
+ */
+function nameOnDisk(folder, tried) {
+  if (!onWindows) return tried;
+  try {
+    return fs.readdirSync(folder).find((name) => name.toLowerCase() === tried.toLowerCase()) ?? tried;
+  } catch {
+    return tried;
+  }
+}
+
 /** The file in this folder that a shell would start for the wanted name, or null. */
 function programIn(folder) {
   for (const ending of endings) {
@@ -33,7 +50,7 @@ function programIn(folder) {
     try {
       if (!fs.statSync(candidate).isFile()) continue;
       if (!onWindows) fs.accessSync(candidate, fs.constants.X_OK);
-      return path.basename(candidate);
+      return nameOnDisk(folder, path.basename(candidate));
     } catch {
       // Not in this folder under this ending. Try the next one.
     }

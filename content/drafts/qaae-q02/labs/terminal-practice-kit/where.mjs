@@ -1,7 +1,8 @@
 // Shows where a path leads from the place the terminal is standing in.
 //
-// Run it from any folder with:   node where.mjs            (reports the current folder)
-//                                node where.mjs data       (also follows the path "data")
+// Run it from this folder with:   node where.mjs            (reports the current folder)
+//                                 node where.mjs data       (also follows the path "data")
+// From another folder, give the path to this file, as in:   node ../where.mjs data
 //
 // It only looks. It reads no file contents and changes nothing.
 

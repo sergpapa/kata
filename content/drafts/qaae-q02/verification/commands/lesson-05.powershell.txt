@@ -1,0 +1,43 @@
+node show-env.mjs
+node show-env.mjs ORDERS_LIMIT
+node check-orders.mjs --settings
+$env:ORDERS_LIMIT = "100"
+node show-env.mjs ORDERS_LIMIT
+node show-env.mjs orders_limit
+node check-orders.mjs --settings
+node check-orders.mjs data/orders-2026-09.csv
+$LASTEXITCODE
+node check-orders.mjs --settings --limit 250
+$env:ORDERS_LIMIT = "cheap"
+node check-orders.mjs data/orders-2026-09.csv
+$LASTEXITCODE
+Remove-Item Env:ORDERS_LIMIT
+node show-env.mjs ORDERS_LIMIT
+$env:ORDERS_LIMIT = "100"
+powershell.exe -NoProfile -Command "node show-env.mjs ORDERS_LIMIT"
+$env:ORDERS_LIMIT = "80"
+node check-orders.mjs --settings
+node check-orders.mjs --settings --limit 300
+Remove-Item Env:ORDERS_LIMIT
+node check-orders.mjs --settings
+$ORDERS_LIMIT = "80"
+node check-orders.mjs --settings
+node find-on-path.mjs node | Select-String "FOUND|Found in|also here|Looking"
+(Get-Command node).Source
+Get-Command node -All | Select-Object -ExpandProperty Source
+$env:ORDERS_DIR = (Join-Path (Get-Location) "data")
+cd ~
+node "$env:ORDERS_DIR\..\check-orders.mjs" orders-2026-11.csv
+node "$env:ORDERS_DIR\..\check-orders.mjs" --settings
+Remove-Item Env:ORDERS_DIR
+cd $env:KIT
+$saved = $env:PATH
+$env:PATH = "C:\nowhere"
+node --version
+pwd | Out-Null; "pwd ok"
+cd data
+ls | Select-Object -ExpandProperty Name
+$env:PATH = $saved
+cd ..
+node --version
+export ORDERS_LIMIT=100

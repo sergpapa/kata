@@ -1,0 +1,27 @@
+pwd
+ls data
+node where.mjs data/orders-2026-11.csv
+cd data
+pwd
+node where.mjs data/orders-2026-11.csv
+node ../where.mjs data/orders-2026-11.csv
+node ../where.mjs orders-2026-11.csv
+cd ..
+ls .
+cd data/archive
+pwd
+cd ../..
+pwd
+cd Data
+pwd
+cd data
+node ../check-orders.mjs orders-2026-11.csv
+cd ..
+cd data/archive
+node ../../where.mjs ..
+node ../../where.mjs ../orders-2026-09.csv
+node ../../where.mjs orders-2026-09.csv
+ls
+ls ../../handover
+cd ../..
+pwd

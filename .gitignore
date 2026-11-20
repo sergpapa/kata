@@ -5,7 +5,7 @@ coverage/
 *.tsbuildinfo
 
 # Local data — the learner's work lives here; never commit it
-data/
+/data/
 *.sqlite
 *.sqlite-journal
 *.sqlite-wal

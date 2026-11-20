@@ -1,7 +1,7 @@
 ---
 document_id: M002-STUDENT-06
 version: "1.0.0-draft"
-date: "2026-11-19"
+date: "2026-11-20"
 audience: "A learner who can run programs with arguments, read their output and exit code, and set a variable for one terminal; no programming experience needed"
 module: M002
 candidate_lesson_id: LS-M002-06
@@ -27,7 +27,7 @@ learning_outcomes:
 exercise_kit: Terminal_Practice_Kit_v1.zip
 exercise_kit_id: M002-LAB-01
 exercise_kit_state: "As extracted; tick.mjs keeps a file named tick.running in the kit folder while it runs"
-runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS; the Ctrl+C keypress itself was not pressed by the author on any system"
+runtime_target: "Node.js 24.x; author verification used v24.12.0 with Windows PowerShell 5.1 on Windows 11, and v24.22.3 with bash 5.2 and zsh 5.9 on Ubuntu 24.04; nothing was run on macOS; nothing was run in PowerShell 7; Ctrl+C was sent through a terminal on Linux and was not pressed on Windows; closing a terminal panel with a program running in it was not tried"
 assessment_scope: "Guided observation and control of one harmless process; it does not establish skill at operating services"
 deferred:
   - "Starting a program so that the prompt comes back at once (background jobs): the lessons on containers and running services"
@@ -35,7 +35,7 @@ deferred:
   - "Signals in depth, and programs that start with the computer: the lessons on containers and running services"
   - "How much memory and processor time a process uses: the lessons on performance"
 examples: "The shared kitchen and the colleague's advice are fictional; output marked as the author's was captured on the systems named in runtime_target; process numbers are the ones from those runs and yours will differ"
-references_reviewed: "2026-11-19"
+references_reviewed: "2026-11-20"
 ---
 
 # Programs that keep running
@@ -49,6 +49,8 @@ The lesson answers one question:
 > "I started a program and it is still going. Is my terminal broken, how do I stop the program, and how do I know it has really stopped?"
 
 You need the kit from the lesson *Where the terminal is standing*, and a terminal standing in the `terminal-practice-kit` folder. Confirm with `pwd`.
+
+If you already stop processes by number, read Section 5, where the two shell families turn out to do different things, then go to Section 7 and try Practices C and D.
 
 ## 1. Start with a familiar situation: a recipe and a pan
 
@@ -126,15 +128,17 @@ node tick.mjs
 Let it tick a few times. Then, with the terminal panel active, hold the **Ctrl** key and press **C**. On a Mac it is also the Control key, not Command.
 
 ```text
-tick: started as process 681. Stop me with Ctrl+C.
+tick: started as process 688. Stop me with Ctrl+C.
 tick 1
 tick 2
-tick: stopped on request (Ctrl+C) after 2 ticks. Marker removed.
+tick 3
+tick 4
+^Ctick: stopped on request (Ctrl+C) after 4 ticks. Marker removed.
 ```
 
-That is the author's run on Linux. The author sent the program the same signal that the keypress sends, because a keypress needs a person. Node.js documents that Ctrl+C reaches a program in this way on every system. [Node.js: signal events](https://nodejs.org/api/process.html#signal-events)
+That is the author's run on Linux. The `^C` is the terminal showing the keypress, and your terminal may not show it.
 
-The prompt is back. Look at the last line the program printed, because it shows what Ctrl+C really is. It did not cut the power. The terminal sent the process a **request** to stop. `tick.mjs` received the request, finished properly, printed a closing line, removed something called a marker, and ended. That is the orderly way. A program that receives Ctrl+C and has made no arrangements for it simply ends at once, which is fine for most small programs.
+The prompt is back. Look at the last line the program printed, because it shows what Ctrl+C really is. It did not cut the power. The terminal sent the process a **signal**: a short, fixed message that the operating system delivers to a running program. There are a handful of them, and the one behind Ctrl+C means "please stop". It is a **request**. Node.js documents that Ctrl+C reaches a program in this way on Windows, macOS and Linux. [Node.js: signal events](https://nodejs.org/api/process.html#signal-events) `tick.mjs` received the request, finished properly, printed a closing line, removed something called a marker, and ended. That is the orderly way. A program that receives Ctrl+C and has made no arrangements for it simply ends at once, which is fine for most small programs.
 
 Because it is a request, a program is able to react to it in other ways: some ask "are you sure?", and some take a few seconds to finish what they are doing. Give a program a moment before pressing again.
 
@@ -174,13 +178,15 @@ It contains one number, and it is the process number from terminal 1. This is th
 
 The marker is a note that the program left. To find out whether a process with that number truly exists, ask the operating system, which keeps the real list.
 
+**PowerShell, with your number:**
+
 ```powershell
-# PowerShell, with your number
 Get-Process -Id 16428
 ```
 
+**bash or zsh, with your number:**
+
 ```sh
-# bash or zsh, with your number
 ps -p 629
 ```
 
@@ -219,7 +225,7 @@ tick: already running as process 16428. Stop that one first.
 
 Ask for the exit code: it is `1`. Who is speaking? The program, on its standard error. It started, found the sign, checked that a process with that number really exists, and declined to carry on.
 
-Two cooks can share a recipe card, as Section 1 said. So why refuse? Because this program has chosen to hold something of which there can be only one: its marker. Many real programs are in the same position. A database must be the only one writing its files. A local web server holds a numbered connection point called a port, and only one process can hold a given port. The HTTP module explains ports. The shape of the experience is the one you just had: a correct command, a program that worked a minute ago, and a refusal that says, in some wording, that it is already running. The first thing to do is always what you have just learned: find out whether a process is really there.
+Two cooks can share a recipe card, as Section 1 said. So why refuse? Because some things cannot be shared, and two cooks cannot use one ring. `tick.mjs` needs nothing of that kind. It was written to behave as if it did, so that you can practise on something harmless, and its marker stands in for the real thing. Many real programs do hold something of which there can be only one. A database must be the only one writing its files. A local web server holds a numbered connection point called a port, and only one process can hold a given port. The HTTP module explains ports. The shape of the experience is the one you just had: a correct command, a program that worked a minute ago, and a refusal that says, in some wording, that it is already running. The first thing to do is always what you have just learned: find out whether a process is really there.
 
 Leave the program running in terminal 1 for the next section.
 
@@ -231,13 +237,15 @@ You are in terminal 2, and the process is running in terminal 1. You can end it 
 
 Before you run the command for your shell, predict two things by thinking about the kitchen. Will terminal 1 show the program's closing line, the one ending "Marker removed"? And will the file `tick.running` still exist afterwards?
 
+**PowerShell, with your number:**
+
 ```powershell
-# PowerShell, with your number
 Stop-Process -Id 16428
 ```
 
+**bash or zsh, with your number:**
+
 ```sh
-# bash or zsh, with your number
 kill 629
 ```
 
@@ -265,9 +273,9 @@ On Linux the closing line is there, and `tick.running` is gone. On Windows there
 The two commands sound alike and are different in kind.
 
 - `kill` with a number, in bash and zsh, sends a **request** to stop. The name is harsher than the act. The process receives the request and may finish up, as `tick.mjs` did: the orderly way.
-- `Stop-Process`, in PowerShell on Windows, **ends the process at once**. The process is not told. It does not finish its step and does not clear up. That is the power cut.
+- `Stop-Process`, in PowerShell on Windows, **ends the process at once**. The process is not told. It does not finish its step and does not clear up. That is the power cut. [PowerShell: Stop-Process](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/stop-process)
 
-bash and zsh have the power cut as well. It is `kill -9` with a number, where `-9` is an option that selects the kind of signal that cannot be received or acted on. The author's run of that, with a fresh process:
+bash and zsh have the power cut as well. It is `kill -9` with a number, where `-9` is an option that selects a signal the process never gets to see: the operating system ends the process itself. The author's run of that, with a fresh process:
 
 ```text
 tick: started as process 833. Stop me with Ctrl+C.
@@ -276,7 +284,7 @@ tick 2
 Killed
 ```
 
-No closing line. The shell itself added the word `Killed`, and the exit code it recorded was 137, a number the shell uses for "ended by force". The marker was left behind. [PowerShell: Stop-Process](https://learn.microsoft.com/powershell/module/microsoft.powershell.management/stop-process)
+No closing line. The word `Killed` was added by the shell, bash here. zsh words it `zsh: killed     node tick.mjs`. The exit code both recorded was 137, a number these shells use for "ended by force". The marker was left behind.
 
 | What you do | Shell | Kind | Closing line? | Marker afterwards |
 | --- | --- | --- | --- | --- |
@@ -342,6 +350,8 @@ tick: finished after 2 ticks. Marker removed.
 
 Not every program is this careful. Some see their own stale marker and refuse to start until a person removes it. When a program insists it is already running, you now know the two-step check: read the number it names, and ask the operating system whether that process exists. Delete a marker only after the second step says the process is gone.
 
+One refinement to the second step. An operating system reuses process numbers, so after a while a stale marker's number can belong to some unrelated program. If a row does come back, read what the process is before you believe the marker: the `ProcessName` column in PowerShell, or `ps -p` with `-o pid,args` in bash and zsh. A process that is not `node` running `tick.mjs` is not the one the marker meant.
+
 So the choice of how to stop something is not about strength. Ask first, and force only when asking has failed. A forced stop is sometimes necessary. What it costs is that the program had no chance to put things back, and you may have to do that for it.
 
 ## 6. Stuck, or only quiet?
@@ -371,7 +381,7 @@ These observations are what turn "it froze, so I restarted it" into something a 
 
 ### Closing the terminal
 
-What about simply closing the terminal panel with a program still running in it? In the normal case that ends the program too, by one of the ways above, depending on your system. The author did not test it. It is a poor way to stop something you care about, for two reasons you can now give: you do not choose whether the stop is a request or forced, and you throw away the screen with the program's last lines on it. If you have done it, check afterwards from another terminal that the process is gone, and look for a marker.
+What about simply closing the terminal panel with a program still running in it? In the normal case that ends the program too, by one of the ways above, depending on your system. It is a poor way to stop something you care about, for two reasons you can now give: you do not choose whether the stop is a request or forced, and you throw away the screen with the program's last lines on it. If you have done it, check afterwards from another terminal that the process is gone, and look for a marker.
 
 When you have finished this section, close terminal 2, and make sure no `tick.running` is left in the kit folder. If one is, check its number as in Section 5, and delete the file with `rm tick.running` once you have seen that the process does not exist.
 

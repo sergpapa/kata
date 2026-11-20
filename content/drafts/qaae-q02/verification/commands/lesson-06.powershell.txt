@@ -1,0 +1,23 @@
+node tick.mjs --count 3
+$p = Start-Process node -ArgumentList "tick.mjs" -PassThru -NoNewWindow -RedirectStandardOutput t1.out -RedirectStandardError t1.err
+Start-Sleep -Milliseconds 2600
+cat tick.running
+(Get-Process -Id (cat tick.running)).ProcessName
+node tick.mjs
+$LASTEXITCODE
+Stop-Process -Id (cat tick.running)
+Start-Sleep -Milliseconds 800
+cat t1.out
+Test-Path tick.running
+Get-Process -Id (cat tick.running)
+node tick.mjs --count 2
+Test-Path tick.running
+$p = Start-Process node -ArgumentList "tick.mjs","--stall-after","3" -PassThru -NoNewWindow -RedirectStandardOutput t2.out -RedirectStandardError t2.err
+Start-Sleep -Milliseconds 5600
+cat t2.out
+(Get-Process -Id (cat tick.running)).ProcessName
+Stop-Process -Id (cat tick.running)
+Start-Sleep -Milliseconds 500
+node tick.mjs --count x
+$LASTEXITCODE
+rm tick.running, t1.out, t1.err, t2.out, t2.err
