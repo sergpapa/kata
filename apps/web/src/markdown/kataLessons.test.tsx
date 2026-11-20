@@ -28,6 +28,16 @@ const source = path.join(repoRoot, 'content/source/qaae/lessons', LESSON);
 const served = path.join(repoRoot, 'content/releases/qaae-q02-v1_0_1/content/lessons', LESSON);
 const previous = path.join(repoRoot, 'content/releases/qaae-q02-v1/content/lessons', LESSON);
 
+/**
+ * A lesson's text with CRLF read as LF. Lesson files keep the line endings they were written with,
+ * because a release hashes their bytes (.gitattributes), and QA Lesson 1's are CRLF. The fence
+ * and paragraph comparisons below are about what the lesson says, so they read it this way; the
+ * served-package check compares raw bytes.
+ */
+function readLesson(file: string): string {
+  return fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+}
+
 /** The text between a fence's opening line and its closing backticks, or undefined. */
 function fenceBody(
   text: string,
@@ -77,7 +87,7 @@ function mermaidMessages(body: string): Message[] {
 }
 
 describe('QA Lesson 1’s diagram (KD18)', () => {
-  const text = fs.readFileSync(source, 'utf8');
+  const text = readLesson(source);
 
   it('carries a Kata fence directly before its Mermaid fence', () => {
     const kata = fenceBody(text, 'kata-diagram');
@@ -113,11 +123,13 @@ describe('QA Lesson 1’s diagram (KD18)', () => {
     const frontMatterDates = (lesson: string) =>
       lesson.replace(/^version: .*$/m, 'version: X').replace(/^date: .*$/m, 'date: X');
 
-    expect(frontMatterDates(withoutKata)).toBe(frontMatterDates(fs.readFileSync(previous, 'utf8')));
+    expect(frontMatterDates(withoutKata)).toBe(frontMatterDates(readLesson(previous)));
   });
 
   it('leaves the Mermaid fence and the "In words:" paragraph byte for byte as they were', () => {
-    const before = fs.readFileSync(previous, 'utf8');
+    const before = readLesson(previous);
+    expect(fenceBody(before, 'mermaid')).toBeDefined();
+    expect(inWords(before)).toBeDefined();
 
     expect(fenceBody(text, 'mermaid')?.body).toBe(fenceBody(before, 'mermaid')?.body);
     expect(inWords(text)).toBe(inWords(before));
