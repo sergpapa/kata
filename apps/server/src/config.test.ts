@@ -41,11 +41,11 @@ describe('the default configuration', () => {
     expect(fs.existsSync(path.join(fsse?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
   });
 
-  it('points the QA course at its current release, which really holds a manifest (C15)', () => {
+  it('points the QA course at its current release, which really holds a manifest (C15, KD19)', () => {
     const qaae = loadConfig({}).courses.find((course) => course.courseId === 'QAAE');
 
     expect(qaae?.releaseDir.split(path.sep).join('/')).toContain(
-      'content/releases/qaae-q02-v1/content',
+      'content/releases/qaae-q02-v1_0_1/content',
     );
     expect(fs.existsSync(path.join(qaae?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
   });

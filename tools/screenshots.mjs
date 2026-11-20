@@ -12,6 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { checkDiagram, checkMermaidIsLazy } from './diagram-checks.mjs';
+import { checkKataDiagram } from './kata-diagram-checks.mjs';
 import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
@@ -47,13 +48,16 @@ const schemes = ['light', 'dark'];
  * The diagram expectations are criterion C4 in docs/specs/content-release-corrections-101.md:
  * lessons 1, 2, 5, 6 and 11 all draw — lesson 2 joined the others when the 1.0.1 reissue accepted
  * CF-001 — and every other lesson (14 and 15 carry no fence) must load no Mermaid at all.
+ *
+ * `kata` is criterion KD20 in docs/specs/kata-diagrams.md: the lesson draws a Kata diagram, which
+ * must fit its column at every width (tools/kata-diagram-checks.mjs).
  */
 const routes = [
   // The course list, then each course's dashboard (docs/specs/multi-course.md C10–C11).
   { name: 'courses', path: '/' },
   { name: 'home', path: '/courses/FSSE' },
   { name: 'qa-home', path: '/courses/QAAE' },
-  { name: 'qa-lesson-01', path: '/courses/QAAE/lessons/LS-Q01-01', diagram: 'drawn' },
+  { name: 'qa-lesson-01', path: '/courses/QAAE/lessons/LS-Q01-01', diagram: 'kata' },
   // The rest of Q01 (docs/specs/release-additions.md A11): each draws its diagram and offers its kit.
   { name: 'qa-lesson-02', path: '/courses/QAAE/lessons/LS-M001-01', diagram: 'drawn' },
   { name: 'qa-lesson-03', path: '/courses/QAAE/lessons/LS-M001-02', diagram: 'drawn' },
@@ -231,7 +235,10 @@ try {
         const page = await context.newPage();
         await page.goto(`${baseUrl}${route.path}`, { waitUntil: 'networkidle' });
 
-        const drewDiagram = await checkDiagram(page, route, size, scheme, failures);
+        const drewDiagram =
+          route.diagram === 'kata'
+            ? await checkKataDiagram(page, route, size, scheme, failures)
+            : await checkDiagram(page, route, size, scheme, failures);
 
         // Criterion N3/N4's layout half: every lesson page carries its contents list in the
         // sidebar, and every entry points at an id that exists exactly once on the page.
@@ -340,7 +347,8 @@ try {
         // element which is never coming would throw away every other failure in the run.
         if (drewDiagram) {
           const diagramFile = path.join(outDir, `${route.name}-${size.name}-${scheme}-diagram.png`);
-          await page.locator('.diagram-scroll').first().screenshot({ path: diagramFile });
+          const drawing = route.diagram === 'kata' ? '.kata-diagram' : '.diagram-scroll';
+          await page.locator(drawing).first().screenshot({ path: diagramFile });
           console.log(`  ${path.relative(repoRoot, diagramFile)}`);
         }
 
@@ -643,9 +651,11 @@ ${failures.length} layout check(s) failed:`);
   process.exit(1);
 }
 const drawn = routes.filter((route) => route.diagram === 'drawn').length;
+const kata = routes.filter((route) => route.diagram === 'kata').length;
 console.log(`
 Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
 Accessibility: axe-core found nothing at 375 and 1440 in either scheme, every control was at least 44px at 375 (the open drawer too), the Tab walks reached every control in order with a visible focus, and the dashboard's two cards line up.
 ${drawn} diagram(s) were opened and read inside their frames at every width and scheme.
+${kata} Kata diagram(s) fit their lesson column, with nothing inside them sideways, at every width and scheme.
 ${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.
 ${seededEarlier.activityId} had one started-over feedback conversation: it was opened and measured at every width and scheme.`);

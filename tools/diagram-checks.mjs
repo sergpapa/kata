@@ -57,14 +57,14 @@ function luminance([r, g, b]) {
 }
 
 /** A computed colour as three channels, or null when it is not an opaque colour at all. */
-function rgb(value) {
+export function rgb(value) {
   const parts = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/.exec(value ?? '');
   if (!parts) return null;
   if (parts[4] !== undefined && Number(parts[4]) !== 1) return null;
   return [Number(parts[1]), Number(parts[2]), Number(parts[3])];
 }
 
-function contrast(a, b) {
+export function contrast(a, b) {
   const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (high + 0.05) / (low + 0.05);
 }
