@@ -1,4 +1,4 @@
-# EduCode
+# Kata
 
 A local application for reading the authored HTTP lessons and recording your actual work against
 them. It runs on your own computer. There is no account, no server to sign in to, and no copy of
@@ -40,8 +40,8 @@ have more than one Node on your machine — Anaconda ships its own, for example 
 ### 2. Get the code and install
 
 ```sh
-git clone <repository-url> EduCode
-cd EduCode
+git clone https://github.com/sergpapa/kata.git kata
+cd kata
 npm install
 ```
 
@@ -68,20 +68,22 @@ npm start        # open http://127.0.0.1:8317
 
 ### 4. Where your work goes
 
-Everything you type and save is in `data/educode.sqlite` inside the clone. It never leaves your
+Everything you type and save is in `data/kata.sqlite` inside the clone. It never leaves your
 machine and is never committed (`.gitignore` excludes `data/`). Delete the `data/` directory to
-start clean. Pulling a newer version of the repository keeps it: the app migrates the store on start.
+start clean. Pulling a newer version of the repository keeps it: the app migrates the store on start. A
+clone from before the rename to Kata has `data/educode.sqlite`; the server moves it to
+`data/kata.sqlite` on its next start and says so in the terminal.
 
 ### Settings
 
 All optional, set as environment variables before `npm run dev` or `npm start`:
 
-| Variable                   | Default                                              | What it changes                         |
-| -------------------------- | ---------------------------------------------------- | --------------------------------------- |
-| `EDUCODE_PORT`             | `8317`                                               | The server's port (the page follows it) |
-| `EDUCODE_DATA_DIR`         | `data/`                                              | Where your work is stored               |
-| `EDUCODE_RELEASE_DIR_FSSE` | `content/releases/http-first-fifteen-v1_0_1/content` | The full-stack course's release         |
-| `EDUCODE_RELEASE_DIR_QAAE` | `content/releases/qaae-q01-v1/content`               | The QA course's release                 |
+| Variable                | Default                                              | What it changes                         |
+| ----------------------- | ---------------------------------------------------- | --------------------------------------- |
+| `KATA_PORT`             | `8317`                                               | The server's port (the page follows it) |
+| `KATA_DATA_DIR`         | `data/`                                              | Where your work is stored               |
+| `KATA_RELEASE_DIR_FSSE` | `content/releases/http-first-fifteen-v1_0_1/content` | The full-stack course's release         |
+| `KATA_RELEASE_DIR_QAAE` | `content/releases/qaae-q01-v1/content`               | The QA course's release                 |
 
 The page always runs on 5317 in dev mode. The app deliberately stays off ports 4315–4323: the
 lessons' lab kits run their own local servers there — lessons 6–8 tell you to start one on 4317
@@ -90,7 +92,7 @@ while you read, and the lessons 14–15 investigation kit uses 4321 and 4323.
 ### When it does not start
 
 - **`Port 5317 is already in use`, or `EADDRINUSE` on 8317.** Another copy of the app is running.
-  Stop it, or set `EDUCODE_PORT` for the server.
+  Stop it, or set `KATA_PORT` for the server.
 - **The page loads but every request fails, and the terminal shows `ECONNREFUSED 127.0.0.1:8317`.**
   The server crashed on start; scroll up in the terminal for the reason. The usual one is a Node
   older than 22.13, or a different Node from the one `npm install` ran under (see step 2).
@@ -108,7 +110,7 @@ login, as a child process on your machine — the app holds no key and calls no 
 When it ships, you will need [Claude Code](https://claude.com/claude-code) installed and signed in
 with a Claude subscription. The app refuses to run it if Claude Code is set up to bill an API key,
 and pauses new requests before your usage would reach extra (paid) usage. If the app cannot find
-`claude`, set `EDUCODE_CLAUDE_PATH` to the executable. Criteria:
+`claude`, set `KATA_CLAUDE_PATH` to the executable. Criteria:
 [docs/specs/practice-feedback.md](docs/specs/practice-feedback.md).
 
 ## The content release
@@ -124,7 +126,7 @@ imported — not even the ones that verified — and nothing is ever filled in w
 The app serves two courses, each from its own release (ADR 0018): Full-Stack Software Engineering
 (`FSSE`) and QA Automation Engineering (`QAAE`). Each release is checked on its own, so a refused
 release refuses only its course. The release directories are set in `apps/server/src/config.ts`.
-Point `EDUCODE_RELEASE_DIR_FSSE` or `EDUCODE_RELEASE_DIR_QAAE` elsewhere to read a different one;
+Point `KATA_RELEASE_DIR_FSSE` or `KATA_RELEASE_DIR_QAAE` elsewhere to read a different one;
 a release is only ever read, never written to.
 
 ## Reading a lesson

@@ -24,7 +24,7 @@ afterEach(() => {
  * reader that shares it. Windows ships bsdtar, which reads zip; elsewhere Info-ZIP `unzip`.
  */
 function extractWithSystemTool(zipBytes: Buffer, member: string): Buffer {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-zip-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-zip-'));
   temps.push(dir);
   const file = path.join(dir, 'archive.zip');
   fs.writeFileSync(file, zipBytes);

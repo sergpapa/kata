@@ -1,5 +1,5 @@
 {
-  "name": "educode",
+  "name": "kata",
   "private": true,
   "version": "0.1.0",
   "description": "Local learning application for the authored HTTP lesson releases",
@@ -12,12 +12,12 @@
     "apps/web"
   ],
   "scripts": {
-    "dev": "concurrently -n server,web -c blue,green \"npm:dev -w @educode/server\" \"npm:dev -w @educode/web\"",
-    "build": "npm run build -w @educode/web && npm run build -w @educode/server",
-    "start": "npm run start -w @educode/server",
+    "dev": "concurrently -n server,web -c blue,green \"npm:dev -w @kata/server\" \"npm:dev -w @kata/web\"",
+    "build": "npm run build -w @kata/web && npm run build -w @kata/server",
+    "start": "npm run start -w @kata/server",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc -b --pretty && npm run typecheck -w @educode/web",
+    "typecheck": "tsc -b --pretty && npm run typecheck -w @kata/web",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

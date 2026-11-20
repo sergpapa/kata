@@ -11,13 +11,13 @@ import { FEEDBACK_TIMEOUT_MS, feedbackRunnerOptions } from './compose.js';
  * useful limit. This pins what the app actually starts it with.
  */
 
-const dataDir = path.join('C:', 'Users', 'learner', 'EduCode', 'data');
+const dataDir = path.join('C:', 'Users', 'learner', 'kata', 'data');
 const exe = 'D:\\tools\\claude.exe';
 
 function options(env: NodeJS.ProcessEnv = {}, found = true) {
   return feedbackRunnerOptions({
     dataDir,
-    env: { EDUCODE_CLAUDE_PATH: exe, PATH: 'C:\\Windows', ...env },
+    env: { KATA_CLAUDE_PATH: exe, PATH: 'C:\\Windows', ...env },
     platform: 'win32',
     exists: (candidate) => found && candidate === exe,
   });

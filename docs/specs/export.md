@@ -32,6 +32,8 @@ own H1).
 attachment; filename="EduCode_<courseId>_Lessons_<from order>-<to order>_<YYYY-MM-DD>.md"`
   (orders two digits, the date the UTC day of the export, e.g.
   `EduCode_FSSE_Lessons_06-08_2026-11-19.md`).
+  _Amended 2026-11-20 (`kata-rename.md` R3): the prefix is now `Kata_` and the heading
+  `# Kata export: <course title>`. Files exported before then keep the EduCode name._
 - **EX2.** The context block has these lines, each optionally a `- ` list item:
   `Course: <id> — <title>`; `Release: <release id> version <version> (<date>)`;
   `App version: <package.json version>`; `Exported: <ISO 8601 time>`;

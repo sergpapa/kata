@@ -19,8 +19,8 @@ describe('the default configuration', () => {
     expect(config.host).toBe('127.0.0.1');
   });
 
-  it('still lets EDUCODE_PORT choose the port', () => {
-    expect(loadConfig({ EDUCODE_PORT: '5000' }).port).toBe(5000);
+  it('still lets KATA_PORT choose the port', () => {
+    expect(loadConfig({ KATA_PORT: '5000' }).port).toBe(5000);
   });
 
   it('serves the full-stack course and then the QA course, in that order (multi-course C1)', () => {
@@ -50,17 +50,42 @@ describe('the default configuration', () => {
     expect(fs.existsSync(path.join(qaae?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
   });
 
-  it('lets EDUCODE_RELEASE_DIR_FSSE and EDUCODE_RELEASE_DIR_QAAE move each course on its own', () => {
+  it('lets KATA_RELEASE_DIR_FSSE and KATA_RELEASE_DIR_QAAE move each course on its own', () => {
     const elsewhere = path.join('somewhere', 'else');
-    const courses = loadConfig({ EDUCODE_RELEASE_DIR_QAAE: elsewhere }).courses;
+    const courses = loadConfig({ KATA_RELEASE_DIR_QAAE: elsewhere }).courses;
 
     expect(courses.find((course) => course.courseId === 'QAAE')?.releaseDir).toBe(elsewhere);
     expect(courses.find((course) => course.courseId === 'FSSE')?.releaseDir).not.toBe(elsewhere);
     expect(
-      loadConfig({ EDUCODE_RELEASE_DIR_FSSE: elsewhere }).courses.find(
+      loadConfig({ KATA_RELEASE_DIR_FSSE: elsewhere }).courses.find(
         (course) => course.courseId === 'FSSE',
       )?.releaseDir,
     ).toBe(elsewhere);
+  });
+
+  it('keeps the store in kata.sqlite, inside KATA_DATA_DIR when it is set (kata-rename R1, R2)', () => {
+    expect(path.basename(loadConfig({}).databaseFile)).toBe('kata.sqlite');
+
+    const elsewhere = path.join('somewhere', 'else');
+    const config = loadConfig({ KATA_DATA_DIR: elsewhere });
+    expect(config.dataDir).toBe(elsewhere);
+    expect(config.databaseFile).toBe(path.join(elsewhere, 'kata.sqlite'));
+  });
+
+  it('no longer reads the EDUCODE_* names, so a stale one cannot re-aim the app (kata-rename R2)', () => {
+    const elsewhere = path.join('somewhere', 'else');
+    const config = loadConfig({
+      EDUCODE_PORT: '5000',
+      EDUCODE_DATA_DIR: elsewhere,
+      EDUCODE_RELEASE_DIR_FSSE: elsewhere,
+      EDUCODE_RELEASE_DIR_QAAE: elsewhere,
+    });
+
+    expect(config.port).toBe(8317);
+    expect(config.dataDir).not.toBe(elsewhere);
+    for (const course of config.courses) {
+      expect(course.releaseDir).not.toBe(elsewhere);
+    }
   });
 
   it('no longer reads EDUCODE_RELEASE_DIR, which named one release for a one-course app', () => {

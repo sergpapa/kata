@@ -23,8 +23,7 @@ function stubServer() {
           status: 200,
           headers: {
             'content-type': 'text/markdown; charset=utf-8',
-            'content-disposition':
-              'attachment; filename="EduCode_FSSE_Lessons_01-05_2026-11-19.md"',
+            'content-disposition': 'attachment; filename="Kata_FSSE_Lessons_01-05_2026-11-19.md"',
           },
         });
       }

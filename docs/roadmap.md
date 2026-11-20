@@ -9,6 +9,13 @@ has no help feature for the first handoff's "help" to mean. Rerun it with `npm r
 `npm run acceptance` (`tools/acceptance/`, output in `data/acceptance/`); it exits 1 on any
 difference.
 
+**The rename from EduCode to Kata is finished** (2026-11-20, `docs/specs/kata-rename.md`). The
+repository is `sergpapa/kata`. The store is `data/kata.sqlite`; the server renames an existing
+`data/educode.sqlite` to it on its next start and says so in the terminal. Environment variables are
+`KATA_*` only (the `EDUCODE_*` names are no longer read), packages are `@kata/*`, exports are
+`Kata_<course>_Lessons_…md` headed `# Kata export`, and the saved feedback model is forgotten once
+(new key `kata.feedbackModel`). After pulling, run `npm install` so `node_modules/@kata` exists.
+
 **The accessibility and responsiveness pass is merged into `main`.** It
 was built on branch `a11y-pass` in `.claude/worktrees/a11y-pass` while earlier conversations landed
 on `main`. ADR 0022: `npm run screenshots` runs axe-core on every route, a 44px target check at
@@ -42,7 +49,8 @@ reply can start inside extra usage before the pause stops the next. This develop
 on the same plan allowance. Neither the merge nor its checks started a Claude run.
 
 **The owner's real store may not be on schema 7 yet.** Their `npm run dev` server applies migration
-7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export,
+7 (practice feedback) the next time it restarts, after moving `data/educode.sqlite` to
+`data/kata.sqlite`; it is additive. Export,
 earlier conversations and the accessibility pass add no migration.
 
 **The QA course serves all of module Q01** (2026-11-19). `npm run release:build` can add lessons

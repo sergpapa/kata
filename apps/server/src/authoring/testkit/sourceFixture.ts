@@ -17,7 +17,7 @@ export const sha256 = (bytes: Buffer) => crypto.createHash('sha256').update(byte
 const temps: string[] = [];
 
 export function tempDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-authoring-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-authoring-'));
   temps.push(dir);
   return dir;
 }
@@ -35,7 +35,7 @@ let template: string | undefined;
  */
 function seededTemplate(): string {
   if (template === undefined) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-authoring-template-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-authoring-template-'));
     process.once('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
     const source = path.join(dir, 'source');
     const outcome = seedSource(REAL_PACKAGE, source);

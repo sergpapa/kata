@@ -111,32 +111,32 @@ describe('finding Claude Code', () => {
     'claude.exe',
   );
 
-  it('uses EDUCODE_CLAUDE_PATH when it names a file that exists', () => {
+  it('uses KATA_CLAUDE_PATH when it names a file that exists', () => {
     const chosen = 'D:\\tools\\claude.exe';
     expect(
       resolveClaudeExecutable(
-        { EDUCODE_CLAUDE_PATH: chosen, PATH: npmDir },
+        { KATA_CLAUDE_PATH: chosen, PATH: npmDir },
         'win32',
         (p) => p === chosen || p === exe,
       ),
     ).toBe(chosen);
   });
 
-  it('reads a relative EDUCODE_CLAUDE_PATH from the directory the server started in', () => {
+  it('reads a relative KATA_CLAUDE_PATH from the directory the server started in', () => {
     const absolute = path.resolve('tools', 'claude.exe');
     expect(
       resolveClaudeExecutable(
-        { EDUCODE_CLAUDE_PATH: path.join('tools', 'claude.exe') },
+        { KATA_CLAUDE_PATH: path.join('tools', 'claude.exe') },
         process.platform,
         (candidate) => candidate === absolute,
       ),
     ).toBe(absolute);
   });
 
-  it('answers null when EDUCODE_CLAUDE_PATH names nothing, rather than silently using another', () => {
+  it('answers null when KATA_CLAUDE_PATH names nothing, rather than silently using another', () => {
     expect(
       resolveClaudeExecutable(
-        { EDUCODE_CLAUDE_PATH: 'D:\\gone.exe', PATH: npmDir },
+        { KATA_CLAUDE_PATH: 'D:\\gone.exe', PATH: npmDir },
         'win32',
         (p) => p === exe,
       ),

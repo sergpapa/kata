@@ -278,7 +278,7 @@ describe('reading responses back', () => {
 
 describe('surviving a restart', () => {
   it('reads back through a second handle opened after the first was closed', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-responses-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-responses-'));
     files.push(dir);
     const file = path.join(dir, 'records.sqlite');
 

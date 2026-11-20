@@ -29,7 +29,7 @@ afterEach(() => {
 
 /** A data directory whose name a shell would mangle, to prove no shell is involved. */
 function dataDir(): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode feedback & co-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata feedback & co-'));
   made.push(dir);
   return dir;
 }
@@ -118,7 +118,7 @@ describe('a turn run as a real process', () => {
     // An empty argument lost on the way would let `--tools` swallow the next flag and enable tools.
     expect(report.args[report.args.indexOf('--tools') + 1]).toBe('');
     const file = report.args[report.args.indexOf('--system-prompt-file') + 1] as string;
-    expect(file).toContain('educode feedback & co-');
+    expect(file).toContain('kata feedback & co-');
     expect(fs.existsSync(file)).toBe(true);
   });
 
@@ -182,7 +182,7 @@ describe('when Claude Code is not on this computer', () => {
       timeoutMs: 1_000,
     });
   const reason =
-    'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.';
+    'Claude Code was not found on this computer. Install it, or set KATA_CLAUDE_PATH to its claude.exe.';
 
   it('says so before anybody asks', () => {
     expect(missing().unavailableReason).toBe(reason);

@@ -64,8 +64,8 @@ const appVersion = (
 
 describe('the download (EX1)', () => {
   it.each([
-    [{ from: 'FIX-LS-02', to: LESSON_3 }, 'EduCode_FIX_Lessons_02-03_2026-11-19.md'],
-    [{ from: 'FIX-LS-01', to: 'FIX-LS-02' }, 'EduCode_FIX_Lessons_01-02_2026-11-19.md'],
+    [{ from: 'FIX-LS-02', to: LESSON_3 }, 'Kata_FIX_Lessons_02-03_2026-11-19.md'],
+    [{ from: 'FIX-LS-01', to: 'FIX-LS-02' }, 'Kata_FIX_Lessons_01-02_2026-11-19.md'],
   ])('answers Markdown as an attachment named for the range %j', async (range, name) => {
     const answer = await app().inject({
       method: 'GET',
@@ -86,7 +86,7 @@ describe('the download (EX1)', () => {
     });
 
     expect(answer.headers['content-disposition']).toBe(
-      'attachment; filename="EduCode_FIX_Lessons_01-03_2026-11-19.md"',
+      'attachment; filename="Kata_FIX_Lessons_01-03_2026-11-19.md"',
     );
   });
 });

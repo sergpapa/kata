@@ -74,7 +74,7 @@ describe('an activity without a worked answer (PF3)', () => {
 describe('when feedback cannot start (PF16, PF20)', () => {
   it('names a missing Claude Code in place of the button', async () => {
     const reason =
-      'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.';
+      'Claude Code was not found on this computer. Install it, or set KATA_CLAUDE_PATH to its claude.exe.';
     serve({ availability: { state: 'unavailable', reason } });
     const feedback = await openLesson();
 
@@ -242,7 +242,7 @@ describe('words the area never uses (PF10)', () => {
         availability: {
           state: 'unavailable',
           reason:
-            'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.',
+            'Claude Code was not found on this computer. Install it, or set KATA_CLAUDE_PATH to its claude.exe.',
         },
       }),
     replying: () =>
@@ -286,6 +286,8 @@ describe('the model picker (PF13)', () => {
     const first = await openLesson();
     fireEvent.change(within(first).getByLabelText(/model/i), { target: { value: 'opus' } });
     expect(window.localStorage.getItem(FEEDBACK_MODEL_STORAGE_KEY)).toBe('opus');
+    // kata-rename R4: the key carries the product's current name.
+    expect(window.localStorage.getItem('kata.feedbackModel')).toBe('opus');
     cleanup();
 
     const feedback = await openLesson();

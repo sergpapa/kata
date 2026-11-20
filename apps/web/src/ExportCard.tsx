@@ -34,7 +34,7 @@ type ConversationsValue = (typeof CONVERSATION_CHOICES)[number]['value'];
 /** The name the server gave the file, or a plain fallback if a proxy dropped the header. */
 function fileNameFrom(disposition: string | null, courseId: string): string {
   const quoted = disposition ? /filename="([^"]+)"/.exec(disposition) : null;
-  return quoted?.[1] ?? `EduCode_${courseId}_export.md`;
+  return quoted?.[1] ?? `Kata_${courseId}_export.md`;
 }
 
 /** The refusal's own words when it has some, a status otherwise (EX16). */

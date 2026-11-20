@@ -123,7 +123,7 @@ export function registerExportRoutes(app: FastifyInstance, deps: ExportRouteDeps
       // Header-safe whatever the configured id is: a quote or a non-Latin-1 character would make
       // Node refuse the header and turn every export of that course into a 500.
       const safeId = course.courseId.replace(/[^A-Za-z0-9_-]/g, '_');
-      const fileName = `EduCode_${safeId}_Lessons_${twoDigits(content.from.order)}-${twoDigits(content.to.order)}_${exportedAt.slice(0, 10)}.md`;
+      const fileName = `Kata_${safeId}_Lessons_${twoDigits(content.from.order)}-${twoDigits(content.to.order)}_${exportedAt.slice(0, 10)}.md`;
       return reply
         .header('content-type', 'text/markdown; charset=utf-8')
         .header('content-disposition', `attachment; filename="${fileName}"`)

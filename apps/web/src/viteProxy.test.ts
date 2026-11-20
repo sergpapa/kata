@@ -11,11 +11,11 @@ interface ProxyShape {
   server: { proxy: Record<string, { target: string }> };
 }
 
-const savedPort = process.env.EDUCODE_PORT;
+const savedPort = process.env.KATA_PORT;
 
 afterEach(() => {
-  if (savedPort === undefined) delete process.env.EDUCODE_PORT;
-  else process.env.EDUCODE_PORT = savedPort;
+  if (savedPort === undefined) delete process.env.KATA_PORT;
+  else process.env.KATA_PORT = savedPort;
 });
 
 /** The config reads the environment at import time, so each claim needs a fresh module. */
@@ -27,13 +27,13 @@ async function apiProxyTarget(): Promise<string> {
 
 describe('the dev proxy', () => {
   it('follows the server to 8317 by default', async () => {
-    delete process.env.EDUCODE_PORT;
+    delete process.env.KATA_PORT;
 
     expect(await apiProxyTarget()).toBe('http://127.0.0.1:8317');
   });
 
-  it('follows EDUCODE_PORT wherever it points, as the server does', async () => {
-    process.env.EDUCODE_PORT = '5000';
+  it('follows KATA_PORT wherever it points, as the server does', async () => {
+    process.env.KATA_PORT = '5000';
 
     expect(await apiProxyTarget()).toBe('http://127.0.0.1:5000');
   });

@@ -459,7 +459,7 @@ describe('reading the earlier versions back', () => {
 
 describe('what survives', () => {
   it('reads every revision back after the process that wrote them is gone', () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-revisions-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-revisions-'));
     files.push(dir);
     const file = path.join(dir, 'records.sqlite');
 

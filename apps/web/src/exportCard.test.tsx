@@ -14,8 +14,8 @@ import { stubDownloads } from './testkit/responseFieldHarness.js';
  * one was not, and never a card stuck on "Preparing…".
  */
 
-const MARKDOWN = '# EduCode export\n\nThe file body, exactly.\n';
-const FILE_NAME = 'EduCode_FSSE_Lessons_01-05_2026-11-19.md';
+const MARKDOWN = '# Kata export\n\nThe file body, exactly.\n';
+const FILE_NAME = 'Kata_FSSE_Lessons_01-05_2026-11-19.md';
 
 type ExportAnswer = () => Promise<Response>;
 

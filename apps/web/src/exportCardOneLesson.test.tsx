@@ -27,8 +27,7 @@ function stubOneLessonCourse() {
           status: 200,
           headers: {
             'content-type': 'text/markdown; charset=utf-8',
-            'content-disposition':
-              'attachment; filename="EduCode_QAAE_Lessons_01-01_2026-11-19.md"',
+            'content-disposition': 'attachment; filename="Kata_QAAE_Lessons_01-01_2026-11-19.md"',
           },
         });
       }

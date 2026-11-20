@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { openDatabase } from './modules/lifecycle/database.js';
+import { renameLegacyDatabase } from './modules/lifecycle/legacyDatabase.js';
 import { importCourses } from './modules/content/courses.js';
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -8,6 +9,14 @@ import { createClaudeCodeRunner } from './modules/feedback/claudeCode.js';
 import { feedbackRunnerOptions } from './modules/feedback/compose.js';
 
 const config = loadConfig();
+const legacy = renameLegacyDatabase(config.dataDir);
+if (legacy === 'moved') {
+  console.log(`Moved your saved work from educode.sqlite to ${config.databaseFile}`);
+} else if (legacy === 'kept-both') {
+  console.warn(
+    `Both educode.sqlite and kata.sqlite are in ${config.dataDir}. Kata uses kata.sqlite and left educode.sqlite untouched.`,
+  );
+}
 const db = openDatabase(config.databaseFile);
 
 /**

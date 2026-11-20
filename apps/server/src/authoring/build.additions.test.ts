@@ -70,7 +70,7 @@ let sharedParent: string | undefined;
  */
 function releaseWithAdditions(): { source: string; out: string; outcome: BuildOutcome } {
   if (shared === undefined) {
-    sharedParent = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-additions-shared-'));
+    sharedParent = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-additions-shared-'));
     const source = seededSource(sharedParent);
     addLesson(source);
     addActivity(source);

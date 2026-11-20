@@ -161,7 +161,7 @@ export function exportMarkdown(
 ): string {
   const { release, from, to } = content;
   const sections = [
-    `# EduCode export: ${oneLine(context.courseTitle)}`,
+    `# Kata export: ${oneLine(context.courseTitle)}`,
     [
       `- Course: ${context.courseId} — ${oneLine(context.courseTitle)}`,
       `- Release: ${release.releaseId} version ${release.version} (${release.date ?? 'undated'})`,

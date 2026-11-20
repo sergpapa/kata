@@ -24,7 +24,7 @@ const outDir = path.join(repoRoot, 'screenshots');
 // 8318, beside the app's 8317: the author's lab kits own 4315–4320, including 4318 as the 6–8
 // kit's stated alternate, and a screenshot run must not squat on a port a lesson tells the
 // learner to use.
-const port = Number(process.env.EDUCODE_SCREENSHOT_PORT ?? 8318);
+const port = Number(process.env.KATA_SCREENSHOT_PORT ?? 8318);
 const baseUrl = `http://127.0.0.1:${port}`;
 
 const widths = [
@@ -139,8 +139,8 @@ fs.rmSync(path.join(repoRoot, 'data', 'screenshots'), { recursive: true, force: 
 const child = spawn(process.execPath, [serverEntry], {
   env: {
     ...process.env,
-    EDUCODE_PORT: String(port),
-    EDUCODE_DATA_DIR: path.join(repoRoot, 'data', 'screenshots'),
+    KATA_PORT: String(port),
+    KATA_DATA_DIR: path.join(repoRoot, 'data', 'screenshots'),
   },
   stdio: 'ignore',
 });
@@ -174,7 +174,7 @@ try {
     throw new Error(`Lesson 1 did not answer as a lesson, so EC9 has nothing to stamp a seed with`);
   }
   seededEarlier = seedEarlierConversation(
-    path.join(repoRoot, 'data', 'screenshots', 'educode.sqlite'),
+    path.join(repoRoot, 'data', 'screenshots', 'kata.sqlite'),
     {
       activityId: seededHistory.activityId,
       lessonId: 'LS-M020-01',

@@ -27,27 +27,27 @@ export interface Config {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const dataDir = env.EDUCODE_DATA_DIR ?? path.join(repoRoot, 'data');
+  const dataDir = env.KATA_DATA_DIR ?? path.join(repoRoot, 'data');
   return {
     host: '127.0.0.1',
     // 8317, not 4317: the author's lab kits climb 4315, 4317, 4319–4320, and lessons 6–8 tell the
     // learner to run their kit's server on 4317 while reading the lesson in this app.
-    port: Number(env.EDUCODE_PORT ?? 8317),
+    port: Number(env.KATA_PORT ?? 8317),
     dataDir,
-    databaseFile: path.join(dataDir, 'educode.sqlite'),
+    databaseFile: path.join(dataDir, 'kata.sqlite'),
     courses: [
       {
         courseId: 'FSSE',
         title: 'Full-Stack Software Engineering',
         releaseDir:
-          env.EDUCODE_RELEASE_DIR_FSSE ??
+          env.KATA_RELEASE_DIR_FSSE ??
           path.join(repoRoot, 'content', 'releases', 'http-first-fifteen-v1_0_1', 'content'),
       },
       {
         courseId: 'QAAE',
         title: 'QA Automation Engineering',
         releaseDir:
-          env.EDUCODE_RELEASE_DIR_QAAE ??
+          env.KATA_RELEASE_DIR_QAAE ??
           path.join(repoRoot, 'content', 'releases', 'qaae-q01-v1', 'content'),
       },
     ],

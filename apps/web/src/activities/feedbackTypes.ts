@@ -14,7 +14,7 @@ export const FEEDBACK_MODELS = [
 export type FeedbackModel = (typeof FEEDBACK_MODELS)[number]['value'];
 
 /** Where the chosen model is remembered, per browser. */
-export const FEEDBACK_MODEL_STORAGE_KEY = 'educode.feedbackModel';
+export const FEEDBACK_MODEL_STORAGE_KEY = 'kata.feedbackModel';
 
 export interface SentField {
   readonly fieldName: string;

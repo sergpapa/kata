@@ -1,6 +1,6 @@
-# Product brief — EduCode learning application (first-five checkpoint)
+# Product brief — Kata learning application (first-five checkpoint)
 
-**Status:** approved 2026-09-11. Derived from the supplied handoff package rather than a discovery
+**Status:** approved 2026-09-11. Written when the app was called EduCode. Derived from the supplied handoff package rather than a discovery
 interview — the requirements already exist in writing, and this brief selects the subset that the
 first checkpoint delivers.
 

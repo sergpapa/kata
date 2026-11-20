@@ -19,7 +19,7 @@ export { StreamInterpreter };
  */
 
 const NOT_FOUND =
-  'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.';
+  'Claude Code was not found on this computer. Install it, or set KATA_CLAUDE_PATH to its claude.exe.';
 
 /** Compared upper-cased: Windows honours a variable in whatever case it was set. */
 const BILLING_VARIABLES = new Set([
@@ -74,7 +74,7 @@ export function childEnvironment(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
 }
 
 /**
- * Where the learner's Claude Code is, or null. `EDUCODE_CLAUDE_PATH` wins and is never second-
+ * Where the learner's Claude Code is, or null. `KATA_CLAUDE_PATH` wins and is never second-
  * guessed: if it names nothing, the answer is null rather than some other `claude` on PATH. On
  * Windows an npm `claude.cmd` shim is followed to the `claude.exe` beside it, since a shim needs a
  * shell and the runner never uses one.
@@ -84,7 +84,7 @@ export function resolveClaudeExecutable(
   platform: NodeJS.Platform,
   exists: (candidate: string) => boolean,
 ): string | null {
-  const chosen = env.EDUCODE_CLAUDE_PATH;
+  const chosen = env.KATA_CLAUDE_PATH;
   // A named path that is not there is an answer, not a hint: silently starting a different
   // executable would run something the learner did not choose.
   if (chosen) {

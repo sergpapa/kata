@@ -172,7 +172,7 @@ export function writeFixture(dir: string, fixture: Fixture): string {
 }
 
 export function makeTempDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'educode-release-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'kata-release-'));
 }
 
 export function removeDir(dir: string): void {

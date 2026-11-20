@@ -21,7 +21,7 @@ let outcome: BuildOutcome;
 
 // Building three kits is the slowest step of this project's suite, so the hook gets its own budget.
 beforeAll(() => {
-  parent = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-qaae-source-'));
+  parent = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-qaae-source-'));
   out = path.join(parent, 'qaae-q01-v1');
   outcome = buildRelease(SOURCE, out);
 }, 60_000);

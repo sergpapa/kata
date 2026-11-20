@@ -63,7 +63,7 @@ let sharedParent: string | undefined;
  */
 function correctedRelease(): { source: string; out: string; outcome: BuildOutcome } {
   if (shared === undefined) {
-    sharedParent = fs.mkdtempSync(path.join(os.tmpdir(), 'educode-authoring-shared-'));
+    sharedParent = fs.mkdtempSync(path.join(os.tmpdir(), 'kata-authoring-shared-'));
     const source = seededSource(sharedParent);
     correctLesson5(source);
     editReleaseJson(source, (release) => {

@@ -338,7 +338,7 @@ describe('a run that fails (PF16)', () => {
 
   it('says Claude Code is missing on the lesson answer, and runs nothing when asked', async () => {
     const reason =
-      'Claude Code was not found on this computer. Install it, or set EDUCODE_CLAUDE_PATH to its claude.exe.';
+      'Claude Code was not found on this computer. Install it, or set KATA_CLAUDE_PATH to its claude.exe.';
     const runner = fakeRunner({ unavailableReason: reason });
     const { app } = feedbackApp(runner);
 

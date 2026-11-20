@@ -1,9 +1,9 @@
 /**
  * Shared ground for the acceptance run (docs/specs/acceptance-run.md): where things live, and the
- * built EduCode server started on a throwaway data directory with a chosen FSSE release.
+ * built Kata server started on a throwaway data directory with a chosen FSSE release.
  *
  * Everything the run writes goes under `data/acceptance/`, which .gitignore covers. The owner's
- * `data/educode.sqlite` is never opened: the server is always started with its own data directory.
+ * `data/kata.sqlite` is never opened: the server is always started with its own data directory.
  */
 import { spawn } from 'node:child_process';
 import path from 'node:path';
@@ -14,7 +14,7 @@ export const outDir = path.join(repoRoot, 'data', 'acceptance');
 /** Where kits.mjs extracts the downloaded kits, and the rehearsals run them. */
 export const kitsDir = path.join(outDir, 'kits');
 /** 8319: clear of the app's 8317, the screenshot gate's 8318 and every lab kit's ports. */
-export const port = Number(process.env.EDUCODE_ACCEPTANCE_PORT ?? 8319);
+export const port = Number(process.env.KATA_ACCEPTANCE_PORT ?? 8319);
 export const baseUrl = `http://127.0.0.1:${port}`;
 export const releaseDir = (name) => path.join(repoRoot, 'content', 'releases', name, 'content');
 
@@ -24,9 +24,9 @@ export async function startServer(dataDir, fsseRelease) {
     cwd: repoRoot,
     env: {
       ...process.env,
-      EDUCODE_PORT: String(port),
-      EDUCODE_DATA_DIR: dataDir,
-      EDUCODE_RELEASE_DIR_FSSE: releaseDir(fsseRelease),
+      KATA_PORT: String(port),
+      KATA_DATA_DIR: dataDir,
+      KATA_RELEASE_DIR_FSSE: releaseDir(fsseRelease),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
