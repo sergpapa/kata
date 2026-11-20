@@ -2,7 +2,14 @@
 
 ## Current state
 
-Last updated 2026-11-20. **The accessibility and responsiveness pass is merged into `main`.** It
+Last updated 2026-11-20. **Milestone 3's acceptance run is done** (`docs/specs/acceptance-run.md`):
+32 of the four handoffs' 35 checks pass, 3 pass in part, no app defect found. Still open from it: a
+by-hand browser-cache rehearsal in installed Chrome, a screen-reader pass, and the fact that the app
+has no help feature for the first handoff's "help" to mean. Rerun it with `npm run build` then
+`npm run acceptance` (`tools/acceptance/`, output in `data/acceptance/`); it exits 1 on any
+difference.
+
+**The accessibility and responsiveness pass is merged into `main`.** It
 was built on branch `a11y-pass` in `.claude/worktrees/a11y-pass` while earlier conversations landed
 on `main`. ADR 0022: `npm run screenshots` runs axe-core on every route, a 44px target check at
 375, three keyboard walks and the dashboard alignment, and fails on any finding. Every table, code
@@ -81,8 +88,7 @@ Next action: the owner restarts their dev server, tries feedback and Start over 
 activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13,
 14–15 with theirs). They continue reading QA Lesson 1, Lessons 5–8 and QA Lessons 2–5 in the app,
 and decide whether to split the two longest new Q01 lessons. Optionally they listen to one lesson
-with NVDA or Narrator. Development next: either finish Q02 (review and packaging, on the strongest
-model) or Milestone 3's acceptance run.
+with NVDA or Narrator. Development next: finish Q02 (review and packaging, on the strongest model).
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -221,11 +227,11 @@ model) or Milestone 3's acceptance run.
       test-guardian PRE (FAIL twice, then PASS) and POST (pass), `/code-review` at medium (six
       findings: five taken, one declined with a reason), design review (ship-with-nits), `/hygiene`
       clean after one split. Record in `docs/specs/accessibility-pass.md`.
-- [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
-      the 6–8 handoff's "App acceptance checks", the seven in the 9–13 handoff's "Acceptance in
-      your app" and the seven in the 14–15 handoff's "Acceptance" (several depend on Milestone 2/3
-      surfaces that do not exist yet), and write an honest verification report naming what was
-      exercised and what was not.
+- [x] **Acceptance run.** Done 2026-11-20. The 35 checks of the four handoffs (12 + 8 + 7, and 8
+      in the current 1.0.1 package for 14–15), run on the built app over one throwaway store
+      restarted on each release in turn. 32 pass; 3 pass in part (no help feature and no screen
+      reader; the two browser-cache rehearsals ran in automated Chromium, not by hand in Chrome).
+      No app defect found. Report in `docs/specs/acceptance-run.md`.
 
 ## Authoring in-house (ADR 0013; goal: lessons keep coming at the standard of Lessons 1–4)
 

@@ -11,6 +11,8 @@ export default tseslint.config(
       'screenshots/**',
       'test-results/**',
       'playwright-report/**',
+      // Local data and run output, never source: the acceptance run extracts lab kits here.
+      'data/**',
       'content/releases/**',
       // The editable source of the next release: authored kit code, some of it faulty on purpose.
       'content/source/**',

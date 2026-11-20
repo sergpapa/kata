@@ -22,6 +22,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "screenshots": "node tools/screenshots.mjs",
+    "acceptance": "node tools/acceptance/run.mjs && node tools/acceptance/kits.mjs && node tools/acceptance/rehearse-09-13.mjs && node tools/acceptance/rehearse-14-15.mjs",
     "release:seed": "tsx apps/server/src/authoring/main.ts seed",
     "release:build": "tsx apps/server/src/authoring/main.ts build"
   },
