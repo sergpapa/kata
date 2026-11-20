@@ -43,7 +43,15 @@ function LearnerTurn({ turn }: { readonly turn: FeedbackTurn }) {
   );
 }
 
-function ClaudeTurn({ turn }: { readonly turn: FeedbackTurn }) {
+function ClaudeTurn({
+  turn,
+  activityTitle,
+}: {
+  readonly turn: FeedbackTurn;
+  readonly activityTitle: string;
+}) {
+  // Names this reply's tables, samples and diagrams apart from the body's (accessibility-pass AX7).
+  const place = `Claude’s reply ${turn.turn} on ${activityTitle}`;
   const label = `AI feedback · ${turn.model ?? 'model not reported'}`;
   if (turn.outcome === 'failed') {
     return (
@@ -56,7 +64,7 @@ function ClaudeTurn({ turn }: { readonly turn: FeedbackTurn }) {
               Unfinished: what Claude had written before it stopped.
             </p>
             <div className="feedback-reply">
-              <LessonMarkdown markdown={turn.text} headingIds={false} />
+              <LessonMarkdown markdown={turn.text} headingIds={false} place={place} />
             </div>
           </div>
         )}
@@ -67,7 +75,7 @@ function ClaudeTurn({ turn }: { readonly turn: FeedbackTurn }) {
     <li className="feedback-turn feedback-turn-claude">
       <p className="feedback-turn-label">{label}</p>
       <div className="feedback-reply">
-        <LessonMarkdown markdown={turn.text} headingIds={false} />
+        <LessonMarkdown markdown={turn.text} headingIds={false} place={place} />
       </div>
     </li>
   );
@@ -76,9 +84,12 @@ function ClaudeTurn({ turn }: { readonly turn: FeedbackTurn }) {
 export function FeedbackTurns({
   turns,
   writing,
+  activityTitle,
   label = 'Conversation',
 }: {
   readonly turns: readonly FeedbackTurn[];
+  /** The activity these turns belong to, named in each reply's region names. */
+  readonly activityTitle: string;
   /** Text Claude is writing now, shown as it arrives and replaced by the stored reply. */
   readonly writing: string | null;
   /** The list's accessible name; an earlier conversation names itself by when it ended (EC9). */
@@ -90,7 +101,7 @@ export function FeedbackTurns({
         turn.role === 'learner' ? (
           <LearnerTurn key={turn.turn} turn={turn} />
         ) : (
-          <ClaudeTurn key={turn.turn} turn={turn} />
+          <ClaudeTurn key={turn.turn} turn={turn} activityTitle={activityTitle} />
         ),
       )}
       {writing !== null && (

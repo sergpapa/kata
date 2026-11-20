@@ -1,0 +1,31 @@
+/*
+ * The 44px touch-target floor at phone width (docs/specs/accessibility-pass.md AX2), for the
+ * controls whose own styles fall short of it. Kept in one place so the floor is one rule to read,
+ * and gated by `npm run screenshots` at 375px so a later style cannot quietly undo it. Desktop
+ * pointer targets are left as each component draws them.
+ */
+@media (max-width: 767px) {
+  .sidebar-trigger,
+  .code-block-copy,
+  .response-recover {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .crumb-link,
+  .lab-kit-download,
+  .course-card h2 a {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* A disclosure's summary keeps its marker (display stays list-item); the padding takes a single
+     line of text to the floor and centres it, and min-height covers a summary that wraps less. */
+  summary {
+    min-height: 44px;
+    padding-block: 0.55rem;
+    box-sizing: border-box;
+  }
+}

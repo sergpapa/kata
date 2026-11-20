@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
+import { createContext, useContext, useEffect, useId, useMemo, useRef } from 'react';
 import Markdown, { type Components, type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -7,6 +7,14 @@ import type { Element, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
 import { MermaidDiagram } from './MermaidDiagram.js';
+import {
+  DESCRIBED_BY,
+  DIAGRAM_NUMBER,
+  DIAGRAM_PLACE,
+  languageOf,
+  REGION_NAME,
+  rehypeRegionNames,
+} from './regionNames.js';
 import { CopyBlock } from './CopyBlock.js';
 import { ActivityPanel } from '../activities/ActivityPanel.js';
 import {
@@ -63,20 +71,6 @@ function rehypeCollectOutline(box: { entries: OutlineEntry[] }) {
   };
 }
 
-/** The fence's info string, read off the `language-*` class mdast puts on the `code` element. */
-function fenceLanguage(node: Element | undefined): string | undefined {
-  const code = node?.children.find((child) => child.type === 'element');
-  const className = code && code.type === 'element' ? code.properties?.className : undefined;
-  const names = Array.isArray(className) ? className : [];
-
-  for (const name of names) {
-    if (typeof name === 'string' && name.startsWith('language-')) {
-      return name.slice('language-'.length);
-    }
-  }
-  return undefined;
-}
-
 /**
  * The characters between the fences, taken from the tree rather than from the React children.
  *
@@ -88,6 +82,12 @@ function fenceText(node: Element | undefined): string {
   const code = node?.children.find((child) => child.type === 'element');
   if (!code || code.type !== 'element') return '';
   return code.children.map((child) => (child.type === 'text' ? child.value : '')).join('');
+}
+
+/** The name `rehypeRegionNames` gave this region; the fallback only if that plugin did not run. */
+function regionName(node: Element | undefined, fallback: string): string {
+  const name = node?.properties?.[REGION_NAME];
+  return typeof name === 'string' ? name : fallback;
 }
 
 const components: Components = {
@@ -125,7 +125,8 @@ const components: Components = {
    * character is the lesson.
    */
   pre({ node, children }) {
-    const language = fenceLanguage(node);
+    const language = languageOf(node);
+    const name = regionName(node, language ? `${language} sample` : 'Code sample');
     const block = (
       <div className="code-block">
         {/* The header, never inside the `pre`: anything in there becomes part of the sample, and
@@ -135,12 +136,7 @@ const components: Components = {
           {language ? <p className="code-block-language">{language}</p> : <span />}
           <CopyBlock source={fenceText(node)} language={language} />
         </div>
-        <pre
-          className="code-block-text"
-          tabIndex={0}
-          role="region"
-          aria-label={language ? `${language} sample` : 'Code sample'}
-        >
+        <pre className="code-block-text" tabIndex={0} role="region" aria-label={name}>
           {children}
         </pre>
       </div>
@@ -150,13 +146,30 @@ const components: Components = {
     // handed over as the fallback rather than rebuilt, so the labelled source a reader falls back
     // to is the same markup every other fence gets — including its character-for-character text.
     if (language !== 'mermaid') return block;
-    return <MermaidDiagram source={fenceText(node)}>{block}</MermaidDiagram>;
+    const describedBy = node?.properties?.[DESCRIBED_BY];
+    const number = node?.properties?.[DIAGRAM_NUMBER];
+    const place = node?.properties?.[DIAGRAM_PLACE];
+    return (
+      <MermaidDiagram
+        source={fenceText(node)}
+        describedBy={typeof describedBy === 'string' ? describedBy : undefined}
+        number={typeof number === 'string' ? number : 'Diagram'}
+        place={typeof place === 'string' ? place : ''}
+      >
+        {block}
+      </MermaidDiagram>
+    );
   },
 
   /** A wide table scrolls inside its own box, so the page never scrolls sideways at 375px. */
-  table({ children }) {
+  table({ node, children }) {
     return (
-      <div className="table-scroll" tabIndex={0} role="region" aria-label="Table">
+      <div
+        className="table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label={regionName(node, 'Table')}
+      >
         <table>{children}</table>
       </div>
     );
@@ -245,10 +258,17 @@ export function LessonMarkdown({
   responses,
   lessonContext,
   headingIds = true,
+  place,
   onOutline,
   onUnplacedActivities,
 }: {
   readonly markdown: string;
+  /**
+   * Where this Markdown sits when it is not the lesson body — "the prompt for Practice B",
+   * "Claude’s reply 2 on Practice A". Its tables, samples and diagrams say so in their names, so no
+   * two regions on one lesson page share a name (docs/specs/accessibility-pass.md AX6, AX7).
+   */
+  readonly place?: string;
   /**
    * Whether headings get anchor ids. False for anything rendered beside the lesson body — a
    * second pass slugs independently, so a prompt heading matching a body heading would put the
@@ -264,6 +284,8 @@ export function LessonMarkdown({
   // commit — a callback fired mid-render would be a state write inside someone else's render.
   const box = useRef<{ entries: OutlineEntry[] }>({ entries: [] });
   const placement = useRef<{ unplaced: UnplacedActivity[] }>({ unplaced: [] });
+  // Unique per rendered pass and stable across renders, so a description id is never shared.
+  const idPrefix = useId();
 
   useEffect(() => {
     onOutline?.(box.current.entries);
@@ -298,6 +320,7 @@ export function LessonMarkdown({
             rehypeInertElements,
             ...(headingIds ? [rehypeSlug] : []),
             rehypeSanitize,
+            () => rehypeRegionNames(place, idPrefix),
             () => rehypeCollectOutline(box.current),
             // Last of all, and after the outline is settled: the panels are the app's own furniture,
             // so they can neither be stripped by the sanitizer nor appear in the contents list.

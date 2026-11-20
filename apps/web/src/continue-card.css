@@ -10,7 +10,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 1.75rem 2rem 2rem;
+  /* The bottom is shared with the Export card through the grid's custom property, so the two
+     cards' actions stay on one line at every width (accessibility-pass AX4). */
+  padding: 1.75rem 2rem var(--overview-card-bottom, 2rem);
   border-radius: 10px;
   background: var(--continue-card);
   color: var(--continue-foreground);
@@ -65,6 +67,20 @@
   opacity: 0.07;
   pointer-events: none;
   user-select: none;
+}
+
+/* The digits themselves. The empty alternative text after the slash keeps them out of the
+   accessibility tree even if the host's aria-hidden is ever lost; the first declaration is the
+   fallback for a browser that does not read the alternative-text form. */
+.continue-ghost::before {
+  content: attr(data-ghost);
+  content: attr(data-ghost) / '';
+}
+
+/* Pinned to the card's bottom, so when the grid stretches this card to the Export card's height
+   the two actions sit on one line (accessibility-pass AX4). */
+.continue-card > .lime-button {
+  margin-top: auto;
 }
 
 .continue-card > :not(.continue-ghost) {
@@ -136,6 +152,6 @@
 
 @media (max-width: 1150px) {
   .continue-card {
-    padding: 1.5rem 1.5rem 1.75rem;
+    padding: 1.5rem 1.5rem var(--overview-card-bottom, 1.75rem);
   }
 }

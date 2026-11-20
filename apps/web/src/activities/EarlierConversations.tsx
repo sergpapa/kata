@@ -12,9 +12,12 @@ import { FeedbackTurns } from './FeedbackTurns.js';
  */
 export function EarlierConversations({
   conversations,
+  activityTitle,
 }: {
   /** Newest first, as the server sends them. */
   readonly conversations: readonly EarlierConversation[];
+  /** Named in each reply's region names, with the conversation, so none repeats the current one's (AX7). */
+  readonly activityTitle: string;
 }) {
   if (conversations.length === 0) return null;
   return (
@@ -30,6 +33,7 @@ export function EarlierConversations({
             <FeedbackTurns
               turns={one.turns}
               writing={null}
+              activityTitle={`${activityTitle}, earlier conversation started over ${when}`}
               label={`Earlier conversation, started over ${when}`}
             />
           </div>

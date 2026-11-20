@@ -16,6 +16,8 @@ import { checkActivityPanels } from './activity-checks.mjs';
 import { checkCopyButtons, checkLabKit } from './lab-kit-checks.mjs';
 import { checkEarlierVersions, seedHistory } from './history-checks.mjs';
 import { checkEarlierConversations, seedEarlierConversation } from './feedback-checks.mjs';
+import { checkRouteA11y } from './a11y-checks.mjs';
+import { runA11yJourneys } from './a11y-journeys.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(repoRoot, 'screenshots');
@@ -317,6 +319,11 @@ try {
         await page.screenshot({ path: file, fullPage: true });
         console.log(`  ${path.relative(repoRoot, file)}`);
 
+        // AX1 and AX2, after the capture so the injected checker is never in a screenshot.
+        failures.push(
+          ...(await checkRouteA11y(page, route.name, scheme, size.width, scheme === schemes[0])),
+        );
+
         // The drawing on its own, as well as inside the page. A blank frame is invisible in a
         // 12,000px full-page PNG — the review that found this one had to crop it out to see it.
         //
@@ -369,6 +376,18 @@ try {
               .screenshot({ path: earlierFile });
             console.log(`  ${path.relative(repoRoot, earlierFile)}`);
           }
+          // AX1 and AX2 again with both disclosures left open by the checks above. The pass at
+          // rest sees only their summaries, and the accessibility pass was built before earlier
+          // conversations existed, so nothing else puts axe on their contents.
+          failures.push(
+            ...(await checkRouteA11y(
+              page,
+              `${route.name} with its disclosures open`,
+              scheme,
+              size.width,
+              scheme === schemes[0],
+            )),
+          );
         }
         await context.close();
       }
@@ -601,6 +620,9 @@ try {
     console.log(`  ${path.relative(repoRoot, path.join(outDir, 'resume-home-1440.png'))}`);
     await context.close();
   }
+
+  // AX3 and AX4: the keyboard walks and the dashboard's two cards.
+  failures.push(...(await runA11yJourneys(browser, baseUrl)));
 } finally {
   await browser?.close();
   child.kill();
@@ -615,6 +637,7 @@ ${failures.length} layout check(s) failed:`);
 const drawn = routes.filter((route) => route.diagram === 'drawn').length;
 console.log(`
 Layout checks passed on ${routes.length} routes x ${widths.length} widths x ${schemes.length} schemes, plus 720px (1440 at 200% zoom), the open drawer at 375px, and navigation still in view 3000px down a lesson.
+Accessibility: axe-core found nothing at 375 and 1440 in either scheme, every control was at least 44px at 375 (the open drawer too), the Tab walks reached every control in order with a visible focus, and the dashboard's two cards line up.
 ${drawn} diagram(s) were opened and read inside their frames at every width and scheme.
 ${seededHistory.activityId}/${seededHistory.fieldName} was written three times, two of them different: its ${seededHistory.earlierVersions} earlier version(s) were opened and measured at every width and scheme, and no other field on the page showed any.
 ${seededEarlier.activityId} had one started-over feedback conversation: it was opened and measured at every width and scheme.`);

@@ -65,12 +65,15 @@ function ModelPicker({
 
 export function FeedbackArea({
   activityId,
+  activityTitle,
   fieldNames,
   drafts,
   area,
   availability: loadedAvailability,
 }: {
   readonly activityId: string;
+  /** Names this area for a screen reader: “Feedback from Claude on <title>” (accessibility-pass AX8). */
+  readonly activityTitle: string;
   /** The activity's declared boxes, in order. */
   readonly fieldNames: readonly string[];
   /** Each box's text as typed, saved or not. */
@@ -96,7 +99,6 @@ export function FeedbackArea({
     (turns.length === 1 && turns[0]?.role === 'learner') ||
     (turns.length === 2 && turns[1]?.outcome === 'failed');
   const sentFirst = turns[0]?.sentFields;
-  const titleId = `feedback-title-${activityId}`;
 
   const startOverButton = !busy && (
     <button type="button" className="feedback-text-button" onClick={() => void talk.startOver()}>
@@ -175,10 +177,8 @@ export function FeedbackArea({
   }
 
   return (
-    <section className="feedback-area" aria-labelledby={titleId}>
-      <p id={titleId} className="feedback-title">
-        Feedback from Claude
-      </p>
+    <section className="feedback-area" aria-label={`Feedback from Claude on ${activityTitle}`}>
+      <p className="feedback-title">Feedback from Claude</p>
       <p className="feedback-note">
         <span>{NOTE}</span>
         {!area.hasWorkedAnswer && (
@@ -189,7 +189,9 @@ export function FeedbackArea({
         )}
       </p>
 
-      {(turns.length > 0 || writing !== null) && <FeedbackTurns turns={turns} writing={writing} />}
+      {(turns.length > 0 || writing !== null) && (
+        <FeedbackTurns turns={turns} writing={writing} activityTitle={activityTitle} />
+      )}
       {replyingElsewhere && writing === null && (
         <p className="feedback-status">Claude is still replying…</p>
       )}
@@ -205,7 +207,7 @@ export function FeedbackArea({
       )}
 
       {controls}
-      <EarlierConversations conversations={earlier} />
+      <EarlierConversations conversations={earlier} activityTitle={activityTitle} />
     </section>
   );
 }

@@ -146,10 +146,14 @@ export function DashboardPage({
         {current && (
           <section className="continue-card" data-testid="current-lesson">
             {/* Ornament, not information: the same two digits the LESSON line announces, at card
-                scale behind the content. Hidden from readers so nothing is said twice. */}
-            <span className="continue-ghost" aria-hidden="true">
-              {twoDigits(current.order)}
-            </span>
+                scale behind the content. Drawn by CSS from the attribute rather than written as
+                text, so it is not in the card's text (a copy, a contrast check) and nothing is said
+                twice (docs/specs/accessibility-pass.md AX10, AX4a). */}
+            <span
+              className="continue-ghost"
+              aria-hidden="true"
+              data-ghost={twoDigits(current.order)}
+            />
             <p className="card-kicker">
               {/* "Last opened" is the whole recorded fact — the card claims nothing about how far
                   it was followed, because the app cannot know. */}

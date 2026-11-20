@@ -18,6 +18,7 @@ import './feedback.css';
 import './lab-kit.css';
 import './diagram.css';
 import './unsaved.css';
+import './targets.css';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('index.html is missing its #root element');

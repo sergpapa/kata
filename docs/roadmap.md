@@ -2,74 +2,87 @@
 
 ## Current state
 
-Last updated 2026-11-19. **Earlier feedback conversations are visible and exportable.** Under each
-activity's feedback area, a closed "Earlier conversations (n)" disclosure shows, read-only, the
-conversations Start over hid that had a reply, newest first; Try again's leftovers (no reply) are
-not listed and stay in the store. Export's checkbox became None / Current only / Current and
-earlier (`conversations=0|1|all`), and `all` writes each earlier conversation under its own
-labelled heading. No migration. Criteria and slice record: `docs/specs/earlier-conversations.md`.
-ADR 0021 (same day): no accounts now, but learner state stays in the store, every learner-owned
-table is listed there, only repositories query it, and feedback goes through `FeedbackRunner`, so a
-later hosted version is one migration plus one filter layer.
+Last updated 2026-11-20. **The accessibility and responsiveness pass is merged into `main`.** It
+was built on branch `a11y-pass` in `.claude/worktrees/a11y-pass` while earlier conversations landed
+on `main`. ADR 0022: `npm run screenshots` runs axe-core on every route, a 44px target check at
+375, three keyboard walks and the dashboard alignment, and fails on any finding. Every table, code
+sample and diagram has its own region name across the whole lesson page; each diagram is described
+by the author's "In words:" paragraph; the continue card and the Export card line up at the bottom.
+Criteria and slice record: `docs/specs/accessibility-pass.md`. The numbering clash is settled: the
+pass's ADR is 0022, and ADR 0023 is the release-additions one.
 
-**ADR numbering clash, open.** The accessibility pass is being built by another session in
-`.claude/worktrees/a11y-pass` (branch `a11y-pass`, from `2caf09e`). Its ADR is numbered 0021 too;
-the owner chose that it becomes 0022, and that session was told so. Check before merging it.
+**What the merge itself changed.** Three files conflicted: `FeedbackTurns.tsx` (it now takes both
+`activityTitle` and `label`), `tools/screenshots.mjs` and this file. The earlier-conversations list
+now passes the activity title too, with "earlier conversation started over <when>" added, so an
+earlier reply's tables and code samples are not named like the current reply's. A new test in
+`lessonRegionNames.test.tsx` failed on the merge without that suffix (18 regions, 15 names) and
+passes with it. The screenshot gate also runs axe and the 44px check a second time on the seeded
+lesson with its two disclosures open; before, axe only ever saw them closed. Its seeded earlier
+reply is plain text with no region in it, so that pass could not have caught the naming defect.
+
+**Earlier feedback conversations are visible and exportable** (2026-11-19). Under each activity's
+feedback area, a closed "Earlier conversations (n)" disclosure shows, read-only, the conversations
+Start over hid that had a reply, newest first; Try again's leftovers (no reply) are not listed and
+stay in the store. Export offers None / Current only / Current and earlier
+(`conversations=0|1|all`). No migration. Record: `docs/specs/earlier-conversations.md`. ADR 0021:
+no accounts now, but learner state stays in the store, every learner-owned table is listed there,
+only repositories query it, and feedback goes through `FeedbackRunner`, so a later hosted version
+is one migration plus one filter layer.
 
 **Money.** The owner's org has paid extra usage switched on. New feedback turns pause while the last
 usage report showed any window at 90% or more, or extra usage in use, until it resets; at most one
 reply can start inside extra usage before the pause stops the next. This development session draws
-on the same plan allowance. Neither Export nor this slice's checks start a Claude run.
+on the same plan allowance. Neither the merge nor its checks started a Claude run.
 
 **The owner's real store may not be on schema 7 yet.** Their `npm run dev` server applies migration
-7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export and
-earlier conversations add no migration.
+7 (practice feedback) to `data/educode.sqlite` the next time it restarts; it is additive. Export,
+earlier conversations and the accessibility pass add no migration.
 
-**The QA course now serves all of module Q01** (2026-11-19). `npm run release:build` can add
-lessons and kits to a release (spec `docs/specs/release-additions.md`; removal is still refused).
-It built `content/releases/qaae-q01-v1/` (`QAAE-Q01@1.1.0-draft`) from the QA course's editable
-source `content/source/qaae/`, and `config.ts` points the QA course at it. That release holds
-five lessons in course order: QA Lesson 1 (corrected to 1.0.1-draft), "Set up a safe workspace",
-"When something goes wrong", QA Lesson 4 "Run a test someone else wrote" and QA Lesson 5 "How good
-are your tests?". It also has three kits and 24 activities (ADR 0023). The owner has not read the
-four new lessons. Every kit command was run on Windows 11 only. The review and verification record
-is the package's `Verification_and_Known_Limits.md`. A test rebuilds the release from its source
-and compares byte for byte, so `previous_release` in `content/source/qaae/release.json` stays on
-`qaae-lesson-01-v1` until the next reissue starts (handbook, "Reissuing a release"). The owner's
-running `npm run dev` server restarted on the `config.ts` change at 17:04 and imported it.
+**The QA course serves all of module Q01** (2026-11-19). `npm run release:build` can add lessons
+and kits to a release (spec `docs/specs/release-additions.md`; removal is still refused). It built
+`content/releases/qaae-q01-v1/` (`QAAE-Q01@1.1.0-draft`) from `content/source/qaae/`, and
+`config.ts` points the QA course at it: QA Lesson 1 (1.0.1-draft), "Set up a safe workspace", "When
+something goes wrong", "Run a test someone else wrote" and "How good are your tests?", with three
+kits and 24 activities (ADR 0023). The owner has not read the four new lessons. Every kit command
+was run on Windows 11 only; the record is the package's `Verification_and_Known_Limits.md`.
+`previous_release` in `content/source/qaae/release.json` stays on `qaae-lesson-01-v1` until the
+next reissue starts (handbook, "Reissuing a release").
+
+**Q02 is drafted, not reviewed.** Commit `05fb0c4` holds seven M002 lessons and the
+`terminal-practice-kit` in `content/drafts/qaae-q02/`. Its README says: not reviewed, not
+re-verified against the final text, not packaged; its "Still to do" lists link checks, heading cuts,
+two fresh reviewers (ADR 0013) and packaging. Two of its design choices, made by the owner on
+2026-11-19, are not yet an ADR.
 
 **Incident, 2026-11-19.** Removing the finished Q01 drafts with `rm -rf content/drafts` also deleted
-21 uncommitted files of another session's Q02 drafts in `content/drafts/qaae-q02/`. That session
-restored all 21 from its transcript by 17:10. The `content/drafts/` ignore lines in
-`eslint.config.js`, `.prettierignore` and `.gitattributes` are kept for it.
+21 uncommitted files of another session's Q02 drafts. That session restored all 21 from its
+transcript by 17:10. The `content/drafts/` ignore lines in `eslint.config.js`, `.prettierignore` and
+`.gitattributes` are kept for it.
 
-`npm test` (1540 tests), `npm run typecheck`, `npm run lint`, `npm run build` and `npm run
-screenshots` (26 routes × 3 widths × 2 schemes; 10 diagrams read) pass under nvm's Node 24.12.
-`npm run format:check` fails only on files inside `.claude/worktrees/a11y-pass`, another session's
-worktree. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
+After the merge, under nvm's Node 24.12: `npm run typecheck`, `npm run lint`, `npm run build` and
+`npm run screenshots` (26 routes × 3 widths × 2 schemes, axe clean, 10 diagrams read) pass. `npm
+test` passed 1568 of 1568 on its last full run. `npm run format:check` fails only
+on files inside `.claude/worktrees/a11y-pass`, which can now be removed. Run filtered vitest from
+`C:/…`, not `c:\…` (see memory).
 
 **Known and not fixed.** `README.md` describes neither practice feedback, Export nor earlier
-conversations, and calls feedback "in progress": the owner has an uncommitted rewrite of it in
-progress, which no slice touched. The field labels are written twice
-(`apps/server/src/modules/learner/fieldLabels.ts` and `apps/web/src/activities/fieldLabels.ts`).
-`LessonPage.tsx` is 362 lines; `FeedbackAreaEarlier.test.tsx` is 366. Try again hides the failed
-conversation before its second step, so a refused second step leaves the area empty (nothing is
-lost from the store). Two jsdom tests can hit their 5 s timeout in a full run while other sessions
-load the machine: `realActivityPlacement.test.tsx` "places all three of LS-M020-02…" and
-`CopyBlock.test.tsx` "puts one on the labelled source a diagram falls back to" (10 of 10 alone,
-66–1684 ms; the next full run passed 780 of 780). Their budgets were not widened.
+conversations. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts`
+and `apps/web/src/activities/fieldLabels.ts`). Over the 350-line rule: `tools/screenshots.mjs` 643,
+`LessonPage.tsx` 366, `FeedbackAreaEarlier.test.tsx` 366. Try again hides the failed conversation
+before its second step, so a refused second step leaves the area empty (nothing is lost from the
+store). Under a loaded machine, full runs time out on a few jsdom and server tests; on 2026-11-20
+`exportDropped.test.ts`, `lessonRegionNames.test.tsx` and `realActivityPlacement.test.tsx` each
+passed 10 of 10 alone. Their budgets were not widened. No screen reader has been run.
 
 Owner on Lesson 5 (2026-11-03): still good; the language gets complex in places. No change wanted
 yet; the owner will judge Lessons 6+ first and decide then.
 
 Next action: the owner restarts their dev server, tries feedback and Start over on a Lesson 5
 activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13,
-14–15 with theirs), choosing None, Current only or Current and earlier per review. They continue
-reading QA Lesson 1 and Lessons 5–8 and reviewing the QA course plans in
-`docs/courses/qa-automation/`, and now read the rest of Q01 in the app (QA Lessons 2–5). They
-decide whether to split the two longest new lessons; a split is now an ordinary reissue. The app's
-next slice is Milestone 3's accessibility and responsiveness pass, in progress in the `a11y-pass`
-worktree.
+14–15 with theirs). They continue reading QA Lesson 1, Lessons 5–8 and QA Lessons 2–5 in the app,
+and decide whether to split the two longest new Q01 lessons. Optionally they listen to one lesson
+with NVDA or Narrator. Development next: either finish Q02 (review and packaging, on the strongest
+model) or Milestone 3's acceptance run.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -202,8 +215,12 @@ worktree.
       taken, three declined with reasons), design review (ship-with-nits: the major and two minors
       taken). Verified in Chromium against the built app. Record in
       `docs/specs/earlier-conversations.md`.
-- [ ] **Accessibility and responsiveness pass.** Keyboard operation of navigation, notes, downloads,
-      help and export; 375 / 768 / 1440 with no horizontal page scroll; diagram meaning as text.
+- [x] **Accessibility and responsiveness pass.** Done 2026-11-19 on branch `a11y-pass` (ADR
+      0022), merged 2026-11-20. axe-core, 44px targets, keyboard walks and card alignment gated in
+      `npm run screenshots`; unique region names and "In words:" diagram descriptions.
+      test-guardian PRE (FAIL twice, then PASS) and POST (pass), `/code-review` at medium (six
+      findings: five taken, one declined with a reason), design review (ship-with-nits), `/hygiene`
+      clean after one split. Record in `docs/specs/accessibility-pass.md`.
 - [ ] **Acceptance run.** Work the twelve checks in `VS_Code_Coder_Handoff_v1.md` §6, the eight in
       the 6–8 handoff's "App acceptance checks", the seven in the 9–13 handoff's "Acceptance in
       your app" and the seven in the 14–15 handoff's "Acceptance" (several depend on Milestone 2/3
@@ -568,7 +585,8 @@ need an approved data policy and a named reviewer before they mean anything.
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
 
-- **2026-11-19, before earlier feedback conversations.**
+- **2026-11-19, before earlier feedback conversations and the accessibility pass** (both slices
+  started from this state; it was the last one they shared).
 
   Last updated 2026-11-19. **The owner can export their work.** ADR 0020: the course dashboard's
   Export card downloads one Markdown file for a chosen lesson range (From/To, default the whole

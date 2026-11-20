@@ -63,7 +63,18 @@
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 1fr);
   gap: 1.25rem;
-  align-items: start;
+  /* Stretched, so the continue card and the Export card end on one line and their actions, each
+     pinned to its card's bottom, sit level (accessibility-pass AX4). Stacked below 901px, where
+     each card keeps its own height. */
+  align-items: stretch;
+  /* The one bottom padding both cards use; it narrows with the continue card below 1151px. */
+  --overview-card-bottom: 2rem;
+}
+
+@media (max-width: 1150px) {
+  .overview-grid {
+    --overview-card-bottom: 1.75rem;
+  }
 }
 
 /* The current-lesson card lives in continue-card.css — its own responsibility, split when the
