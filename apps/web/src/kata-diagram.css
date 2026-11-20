@@ -4,10 +4,11 @@
 
    Two layouts, chosen by the diagram's own width through a container query, never by the window:
    a diagram in a narrow column on a wide screen still gets the layout that fits it.
-   - Columns: each participant is a lane with a lifeline down its centre, and each step is a grid
-     row whose arrow runs from one lifeline to another. The grid has two columns per lane, so lane
-     i's lifeline is grid line 2i+2 and the component only has to say where a step starts and ends.
-   - One row per step: number, "sender → receiver", text. No arrows, no lifelines.
+   - Columns, in this file: each participant is a lane with a lifeline down its centre, and each
+     step is a grid row whose arrow runs from one lifeline to another. The grid has two columns per
+     lane, so lane i's lifeline is grid line 2i+2 and the component only says where a step starts
+     and ends.
+   - One row per step, in kata-diagram-rows.css: number, "sender → receiver", text. No arrows.
    Labels wrap in both, so nothing here ever scrolls sideways; tools/kata-diagram-checks.mjs fails
    the build if it does.
 
@@ -35,6 +36,23 @@
 
 .kata-diagram :where(ul, ol) {
   list-style: none;
+}
+
+/* Read by a screen reader, not shown. Clipped rather than hidden, and without `overflow`, so it is
+   still read and never counts as a box that scrolls sideways. */
+.kd-sr,
+.kd-who {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A participant's name breaks only if it is longer than the whole line. */
+.kd-name {
+  display: inline-block;
+  max-width: 100%;
 }
 
 /* --- Participants -------------------------------------------------------------------------- */
@@ -79,6 +97,8 @@
   position: relative;
 }
 
+/* Lifelines run unbroken from the participants to the last step, through the gaps between phases,
+   as a sequence diagram's do: a participant exists for the whole run, not phase by phase. */
 .kd-lifelines {
   position: absolute;
   inset: 0;
@@ -110,7 +130,7 @@
   position: absolute;
   top: 0.35rem;
   left: 0.6rem;
-  padding: 0 0.3rem;
+  padding: 0 0.4rem;
   background: var(--background);
   color: var(--eyebrow);
   font-family: var(--font-mono);
@@ -141,30 +161,19 @@
   overflow-wrap: anywhere;
 }
 
-/* Said in words for a screen reader, and shown in the one-row layout; in columns the arrow says
-   it. Clipped rather than hidden, and without `overflow`, so it is still read and never counts as
-   a box that scrolls. */
-.kd-who {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .kd-number {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.35rem;
-  height: 1.35rem;
+  min-width: 1.4rem;
+  height: 1.4rem;
   margin-right: 0.35rem;
   padding: 0 0.25rem;
   border: 1px solid var(--input);
   border-radius: 999px;
   color: var(--muted-foreground);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1;
   vertical-align: 0.1em;
 }
@@ -220,53 +229,48 @@
   border-right: 9px solid var(--muted-foreground);
 }
 
-/* A step a participant takes on its own: a loop out from its lifeline and back. */
-.kd-step[data-towards^='self'] .kd-arrow {
-  width: 2.25rem;
-  height: 0.9rem;
-  margin-top: 0.2rem;
-  border: 2px solid var(--muted-foreground);
-  border-left: 0;
-  border-radius: 0 0.6rem 0.6rem 0;
-}
-
-.kd-step[data-towards^='self'] .kd-arrow::after {
-  top: auto;
-  bottom: -6px;
-  left: -1px;
-  border-right: 9px solid var(--muted-foreground);
-}
-
-.kd-step[data-towards='self-left'] .kd-arrow {
-  justify-self: end;
-  border-right: 0;
-  border-left: 2px solid var(--muted-foreground);
-  border-radius: 0.6rem 0 0 0.6rem;
-}
-
-.kd-step[data-towards='self-left'] .kd-arrow::after {
-  right: -1px;
-  left: auto;
-  border-right: 0;
-  border-left: 9px solid var(--muted-foreground);
-}
-
-/* A reply is dashed (KD7). */
+/* A reply is dashed (KD7): only the top for a straight arrow — a style on the other sides would
+   give them the default `medium` width — and every side a loop draws for a step on its own. */
 .kd-step[data-reply] .kd-arrow {
   border-top-style: dashed;
 }
 
-/* The key step: a heavier line, the accent, a filled number and the "Key step" tag — never the
-   colour alone (KD7). */
+.kd-step[data-reply][data-towards='self'] .kd-arrow {
+  border-right-style: dashed;
+  border-bottom-style: dashed;
+}
+
+.kd-step[data-reply][data-towards='self-left'] .kd-arrow {
+  border-bottom-style: dashed;
+  border-left-style: dashed;
+}
+
+/* The key step: the accent, a heavier line, its label set on a card, a filled number and the
+   "Key step" tag — never the colour alone (KD7). */
+.kd-step[data-highlight] .kd-label {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-control);
+  background: var(--card);
+}
+
 .kd-step[data-highlight] .kd-arrow {
-  border-top-width: 3px;
+  border-top-width: 4px;
   border-color: var(--primary);
 }
 
-.kd-step[data-highlight] .kd-arrow::after {
-  top: -6.5px;
-  border-left-color: var(--primary);
-  border-right-color: var(--primary);
+.kd-step[data-highlight]:is([data-towards='left'], [data-towards='right']) .kd-arrow::after {
+  top: -8px;
+  border-top-width: 6px;
+  border-bottom-width: 6px;
+}
+
+.kd-step[data-highlight][data-towards='right'] .kd-arrow::after {
+  border-left: 11px solid var(--primary);
+}
+
+.kd-step[data-highlight][data-towards='left'] .kd-arrow::after {
+  border-right: 11px solid var(--primary);
 }
 
 .kd-step[data-highlight] .kd-number {
@@ -277,6 +281,60 @@
 
 .kd-step[data-highlight] .kd-say {
   font-weight: 600;
+}
+
+/* A step a participant takes on its own: a loop out from its lifeline and back, its head pointing
+   back at the lifeline. Reply and key step restyle every side the loop draws, not only the top. */
+.kd-step[data-towards^='self'] {
+  padding-bottom: 0.6rem;
+}
+
+.kd-step[data-towards^='self'] .kd-arrow {
+  width: 2.75rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  border: 2px solid var(--muted-foreground);
+  border-left: 0;
+  border-radius: 0 0.6rem 0.6rem 0;
+}
+
+.kd-step[data-towards='self-left'] .kd-arrow {
+  justify-self: end;
+  border-right: 0;
+  border-left: 2px solid var(--muted-foreground);
+  border-radius: 0.6rem 0 0 0.6rem;
+}
+
+.kd-step[data-towards^='self'] .kd-arrow::after {
+  top: auto;
+  bottom: -6px;
+  left: -1px;
+  border-right: 9px solid var(--muted-foreground);
+}
+
+.kd-step[data-towards='self-left'] .kd-arrow::after {
+  right: -1px;
+  left: auto;
+  border-right: 0;
+  border-left: 9px solid var(--muted-foreground);
+}
+
+.kd-step[data-towards='self'][data-highlight] .kd-arrow {
+  border-width: 4px 4px 4px 0;
+  border-color: var(--primary);
+}
+
+.kd-step[data-towards='self-left'][data-highlight] .kd-arrow {
+  border-width: 4px 0 4px 4px;
+  border-color: var(--primary);
+}
+
+.kd-step[data-towards='self'][data-highlight] .kd-arrow::after {
+  border-right-color: var(--primary);
+}
+
+.kd-step[data-towards='self-left'][data-highlight] .kd-arrow::after {
+  border-left-color: var(--primary);
 }
 
 /* --- Caption -------------------------------------------------------------------------------- */
@@ -292,72 +350,4 @@
 
 .kd-caption strong {
   color: var(--foreground);
-}
-
-/* --- One row per step ----------------------------------------------------------------------- */
-
-/* 34rem: below it, three lanes leave each message under about 170px, and a sentence-long label
-   wraps to five lines over an arrow nobody can follow. */
-@container (max-width: 34rem) {
-  .kd-participants {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .kd-participant {
-    margin: 0;
-    text-align: left;
-  }
-
-  .kd-lifelines,
-  .kd-arrow {
-    display: none;
-  }
-
-  .kd-phase {
-    padding-right: 0.6rem;
-    padding-left: 0.6rem;
-  }
-
-  .kd-step {
-    display: block;
-    padding: 0.5rem 0 0.5rem 0.6rem;
-    border-left: 2px solid var(--input);
-  }
-
-  .kd-step + .kd-step {
-    margin-top: 0.35rem;
-  }
-
-  .kd-step[data-reply] {
-    border-left-style: dashed;
-  }
-
-  .kd-step[data-highlight] {
-    border-left: 3px solid var(--primary);
-  }
-
-  .kd-label {
-    display: block;
-    padding: 0;
-    text-align: left;
-  }
-
-  .kd-who {
-    position: static;
-    width: auto;
-    height: auto;
-    clip-path: none;
-    margin-right: 0.35rem;
-    color: var(--muted-foreground);
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    white-space: normal;
-  }
-
-  .kd-say {
-    display: block;
-    margin-top: 0.15rem;
-  }
 }

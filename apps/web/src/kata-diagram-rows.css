@@ -1,0 +1,96 @@
+/* A Kata diagram in its one-row-per-step layout: each step says its number, "sender → receiver"
+   and its text, with no arrows or lifelines. The column layout and everything both layouts share
+   are in kata-diagram.css; the reasoning is ADR 0025.
+
+   34rem: below it, three lanes leave each message under about 170px, and a sentence-long label
+   wraps to five lines over an arrow nobody can follow. The query is on the diagram's own width
+   (`container-type` on `.kata-diagram`), so a narrow lesson column gets this layout at any window
+   size: at 768px the column is about 406px wide. */
+
+@container (max-width: 34rem) {
+  /* Participants become compact chips, label and note on one line where they fit. */
+  .kd-participants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .kd-participant {
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+  }
+
+  .kd-participant-label,
+  .kd-participant-note {
+    display: inline;
+  }
+
+  .kd-participant-note {
+    margin-left: 0.35rem;
+  }
+
+  .kd-lifelines,
+  .kd-arrow {
+    display: none;
+  }
+
+  .kd-phase {
+    padding-right: 0.6rem;
+    padding-left: 0.6rem;
+  }
+
+  /* The edge each step hangs from says what the arrow would: dashed for a reply, heavy and in the
+     accent for the key step. Width and colour only on the key step, so a key reply stays dashed. */
+  .kd-step {
+    display: block;
+    padding: 0.5rem 0 0.5rem 0.6rem;
+    border-left: 2px solid var(--input);
+  }
+
+  .kd-step + .kd-step {
+    margin-top: 0.35rem;
+  }
+
+  .kd-step[data-reply] {
+    border-left-style: dashed;
+  }
+
+  .kd-step[data-highlight] {
+    border-left-width: 4px;
+    border-left-color: var(--primary);
+  }
+
+  .kd-label {
+    display: block;
+    padding: 0;
+    text-align: left;
+  }
+
+  .kd-step[data-highlight] .kd-label {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .kd-who {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin-right: 0.35rem;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    white-space: normal;
+  }
+
+  /* The tag on its own line, under the sender and receiver, rather than dangling after them. */
+  .kd-key {
+    display: table;
+    margin: 0.25rem 0 0.15rem;
+  }
+
+  .kd-say {
+    display: block;
+    margin-top: 0.15rem;
+  }
+}

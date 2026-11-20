@@ -97,6 +97,9 @@ export function rehypeRegionNames(place: string | undefined, idPrefix: string) {
     let tables = 0;
     let samples = 0;
     let diagrams = 0;
+    // The Mermaid fences already named as the fallback of the Kata fence before them. Kept here
+    // rather than read back off a node property, so only this run's own pairing can skip a fence.
+    const fallbacks = new Set<Element>();
 
     /**
      * Links a drawn diagram to the paragraph straight after `last` — the diagram's own fence, or
@@ -133,8 +136,7 @@ export function rehypeRegionNames(place: string | undefined, idPrefix: string) {
           `Code sample ${samples}${language ? `, ${language}` : ''}${where}`;
         return;
       }
-      // Already named as the fallback of the Kata fence before it.
-      if (node.properties[PAIRED] !== undefined) return;
+      if (fallbacks.has(node)) return;
 
       diagrams += 1;
       node.properties[REGION_NAME] = `Source of diagram ${diagrams}${where}`;
@@ -154,6 +156,7 @@ export function rehypeRegionNames(place: string | undefined, idPrefix: string) {
 
       // One diagram, two fences: the pair shares this number, and whichever one is drawn is the
       // one the "In words:" paragraph after the pair describes.
+      fallbacks.add(fallback);
       fallback.properties[REGION_NAME] = `Fallback source of diagram ${diagrams}${where}`;
       fallback.properties[DIAGRAM_NUMBER] = `Diagram ${diagrams}`;
       fallback.properties[DIAGRAM_PLACE] = where;

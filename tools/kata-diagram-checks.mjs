@@ -51,12 +51,23 @@ async function readKataDiagrams(page) {
             getComputedStyle(element).overflowX !== 'visible' &&
             element.scrollWidth > element.clientWidth + 1,
         ).length;
-        // KD7: a reply is dashed and a key step is heavier, never colour alone.
+        // KD7: a reply is dashed and a key step is heavier, never colour alone. Straight arrows
+        // only (not a step's loop on its own lifeline), and each must be its top edge alone: a
+        // second edge is a doubled, heavier line that reads as something else.
         const arrowOf = (selector) => {
-          const arrow = diagram.querySelector(`${selector} .kd-arrow`);
+          const arrow = diagram.querySelector(
+            `${selector}:is([data-towards='left'], [data-towards='right']) .kd-arrow`,
+          );
           if (!arrow || !visible(arrow)) return null;
           const style = getComputedStyle(arrow);
-          return { dash: style.borderTopStyle, weight: parseFloat(style.borderTopWidth) };
+          return {
+            dash: style.borderTopStyle,
+            weight: parseFloat(style.borderTopWidth),
+            others: ['Right', 'Bottom', 'Left'].reduce(
+              (sum, side) => sum + parseFloat(style[`border${side}Width`]),
+              0,
+            ),
+          };
         };
         const marker = diagram.querySelector('[data-highlight] .kd-key');
         // KD12: every kind of text the diagram writes, each measured on its own paper.
@@ -165,6 +176,17 @@ export async function checkKataDiagram(page, route, size, scheme, failures) {
   }
   if (diagram.plain && diagram.reply && diagram.reply.dash !== 'dashed') {
     failures.push(`${where} draws a reply arrow ${diagram.reply.dash}, expected dashed`);
+  }
+  for (const [kind, arrow] of [
+    ['plain', diagram.plain],
+    ['reply', diagram.reply],
+    ['key step', diagram.highlight],
+  ]) {
+    if (arrow && arrow.others !== 0) {
+      failures.push(
+        `${where} draws a ${kind} arrow with ${arrow.others}px of edges besides its line`,
+      );
+    }
   }
   if (diagram.plain && diagram.highlight && !(diagram.highlight.weight > diagram.plain.weight)) {
     failures.push(

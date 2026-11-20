@@ -13,7 +13,9 @@ import { describe, expect, it } from 'vitest';
  */
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const stylesheet = fs.readFileSync(path.join(here, 'kata-diagram.css'), 'utf8');
+/** Every stylesheet a Kata diagram is drawn with: the shared and column rules, and the row layout. */
+const sheets = fs.readdirSync(here).filter((name) => /^kata-diagram.*\.css$/.test(name));
+const stylesheet = sheets.map((name) => fs.readFileSync(path.join(here, name), 'utf8')).join('\n');
 
 /**
  * The declarations' values, with comments removed so prose about colour does not count. A value
@@ -55,6 +57,10 @@ function withoutPropertyNames(value: string): string {
 }
 
 describe('the Kata diagram stylesheet (KD9)', () => {
+  it('has both of its stylesheets to check', () => {
+    expect(sheets.sort()).toEqual(['kata-diagram-rows.css', 'kata-diagram.css']);
+  });
+
   it('has declarations to check', () => {
     expect(declarationValues(stylesheet).length).toBeGreaterThan(10);
   });
@@ -76,9 +82,12 @@ describe('the Kata diagram stylesheet (KD9)', () => {
     }
   });
 
-  it('is imported by the app, so the rules above are the ones a reader gets', () => {
-    const main = fs.readFileSync(path.join(here, 'main.tsx'), 'utf8');
+  it.each(['kata-diagram.css', 'kata-diagram-rows.css'])(
+    'has %s imported by the app, so the rules above are the ones a reader gets',
+    (sheet) => {
+      const main = fs.readFileSync(path.join(here, 'main.tsx'), 'utf8');
 
-    expect(main).toMatch(/^import '\.\/kata-diagram\.css';$/m);
-  });
+      expect(main).toContain(`import './${sheet}';`);
+    },
+  );
 });

@@ -151,7 +151,9 @@ function Sequence({ diagram }: { readonly diagram: SequenceDiagram }) {
 
   return (
     <figure className="kd-figure" style={{ '--kd-lanes': lanes } as CSSProperties}>
-      <ul className="kd-participants" aria-label="Participants">
+      {/* `role="list"` because the stylesheet takes the markers off, and Safari then stops
+          exposing an unstyled list as a list at all. */}
+      <ul className="kd-participants" role="list" aria-label="Participants">
         {diagram.participants.map((participant) => (
           <ParticipantCard key={participant.id} participant={participant} />
         ))}
@@ -169,7 +171,7 @@ function Sequence({ diagram }: { readonly diagram: SequenceDiagram }) {
         </div>
         {groupsOf(diagram.steps).map((group) => {
           const list = (
-            <ol className="kd-list" start={group.start === 1 ? undefined : group.start}>
+            <ol className="kd-list" role="list" start={group.start === 1 ? undefined : group.start}>
               {group.steps.map((step, at) => (
                 <StepRow
                   key={at}
@@ -235,7 +237,17 @@ function StepRow({
   readonly towards: Towards;
   readonly style: CSSProperties;
 }) {
-  const who = step.from === step.to ? `${from}, on its own` : `${from} → ${to}`;
+  // Each name is one unbreakable piece, so a narrow row breaks at the arrow, never mid-name.
+  const who =
+    step.from === step.to ? (
+      <>
+        <span className="kd-name">{from}</span>, on its own
+      </>
+    ) : (
+      <>
+        <span className="kd-name">{from}</span> → <span className="kd-name">{to}</span>
+      </>
+    );
   return (
     <li
       className="kd-step"
@@ -245,9 +257,12 @@ function StepRow({
       data-towards={towards}
     >
       <span className="kd-label">
-        {/* The list already numbers the step for assistive technology. */}
-        <span className="kd-number" aria-hidden="true">
+        {/* Read as "Step 3:". The list cannot be relied on to say the number: with its markers
+            styled off, browsers expose no item numbers, and the caption refers to steps by them. */}
+        <span className="kd-number">
+          <span className="kd-sr">Step </span>
           {number}
+          <span className="kd-sr">: </span>
         </span>
         <span className="kd-who">
           {who}
