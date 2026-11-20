@@ -1,14 +1,14 @@
 {
   "package_id": "QAAE-Q02",
   "read_first": "START_HERE.md",
-  "previous_release": "../../releases/qaae-q01-v1",
+  "previous_release": "../../releases/qaae-q02-v1",
   "accepted_feedback": [],
   "release": {
     "schema_version": "1.0.0",
     "release_id": "QAAE-Q02",
-    "version": "1.2.0-draft",
+    "version": "1.2.1-draft",
     "date": "2026-11-20",
-    "status": "owner-review candidate; modules Q01 and Q02 complete (twelve lessons, four kits); Q02 not read by the owner; not learner-tested",
+    "status": "owner-review candidate; modules Q01 and Q02 complete (twelve lessons, four kits); Lesson 1 draws its diagram as a Kata diagram; Q02 not read by the owner; not learner-tested",
     "audience": "Experienced manual testers starting test automation",
     "source_of_truth": "The supplied UTF-8 Markdown lesson files",
     "lesson_key_field": "candidate_lesson_id"

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "activity_set_id": "QAAE-Q01-ACTIVITIES",
-  "version": "1.2.0-draft",
+  "version": "1.2.1-draft",
   "purpose": "Owner learning rehearsal of modules Q01 and Q02 of the QA course",
   "presentation": "Use source_heading to place recording fields beside the canonical lesson section. Do not render prompt_markdown a second time when the section is already visible.",
   "prediction_policy": "Keep the original acknowledged prediction separate from later explanation; do not hide the authored walkthrough or impose an answer embargo.",
@@ -10,7 +10,7 @@
     {
       "activity_id": "ACT-Q01-01-01",
       "lesson_id": "LS-Q01-01",
-      "lesson_version": "1.0.1-draft",
+      "lesson_version": "1.0.2-draft",
       "kind": "interpretation",
       "title": "Practice A: find the unwritten knowledge",
       "source_heading": "Practice A: find the unwritten knowledge",
@@ -28,7 +28,7 @@
     {
       "activity_id": "ACT-Q01-01-02",
       "lesson_id": "LS-Q01-01",
-      "lesson_version": "1.0.1-draft",
+      "lesson_version": "1.0.2-draft",
       "kind": "judgment",
       "title": "Practice B: say exactly what a test checks",
       "source_heading": "Practice B: say exactly what a test checks",
@@ -46,7 +46,7 @@
     {
       "activity_id": "ACT-Q01-01-03",
       "lesson_id": "LS-Q01-01",
-      "lesson_version": "1.0.1-draft",
+      "lesson_version": "1.0.2-draft",
       "kind": "prediction",
       "title": "Practice C: predict a failure, then interpret it",
       "source_heading": "Practice C: predict a failure, then interpret it",

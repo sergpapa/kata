@@ -1,0 +1,160 @@
+{
+  "release_id": "QAAE-Q02",
+  "previous_version": "1.2.0-draft",
+  "version": "1.2.1-draft",
+  "accepted_feedback": [],
+  "lessons": [
+    {
+      "lesson_id": "LS-Q01-01",
+      "path": "lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "status": "changed",
+      "previous_version": "1.0.1-draft",
+      "version": "1.0.2-draft",
+      "previous_sha256": "e84905fa4c28bd7bbfaec1cb458f4ecd8793384019f198cd099ff668b6744768",
+      "sha256": "119cbf81cc06bc04ae2a6891a9152f95fc5a685f8c346e7bb8cfcb8fccad3163"
+    },
+    {
+      "lesson_id": "LS-M001-01",
+      "path": "lessons/M001_Lesson_01_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "8ed0a1ca0c1493fad509f409d254c8dd3d9e63991ae59e19444cb2f87323bb9b",
+      "sha256": "8ed0a1ca0c1493fad509f409d254c8dd3d9e63991ae59e19444cb2f87323bb9b"
+    },
+    {
+      "lesson_id": "LS-M001-02",
+      "path": "lessons/M001_Lesson_02_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "c031b9d8732d5c9ea44ae71b96507239e38329ad999d2ef939d4761c87937864",
+      "sha256": "c031b9d8732d5c9ea44ae71b96507239e38329ad999d2ef939d4761c87937864"
+    },
+    {
+      "lesson_id": "LS-Q01-02",
+      "path": "lessons/QAAE_Lesson_04_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "224055dad45b47fc29f33cecb606582950ae020b331f450b20b45c7fd7e64c9c",
+      "sha256": "224055dad45b47fc29f33cecb606582950ae020b331f450b20b45c7fd7e64c9c"
+    },
+    {
+      "lesson_id": "LS-Q01-03",
+      "path": "lessons/QAAE_Lesson_05_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "438fd7d4064757c379a5d1274b57a4dacce22ee937a7ac770edc1540f2982c2a",
+      "sha256": "438fd7d4064757c379a5d1274b57a4dacce22ee937a7ac770edc1540f2982c2a"
+    },
+    {
+      "lesson_id": "LS-M002-01",
+      "path": "lessons/M002_Lesson_01_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "eecd956d19ea8e49bd1594007e6331563052edc93a51860f693d948143a4d06a",
+      "sha256": "eecd956d19ea8e49bd1594007e6331563052edc93a51860f693d948143a4d06a"
+    },
+    {
+      "lesson_id": "LS-M002-02",
+      "path": "lessons/M002_Lesson_02_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "53c3b467cac368c28aeece1693520c3d0089436c3f0fb3f4e73ba56a5eda9043",
+      "sha256": "53c3b467cac368c28aeece1693520c3d0089436c3f0fb3f4e73ba56a5eda9043"
+    },
+    {
+      "lesson_id": "LS-M002-03",
+      "path": "lessons/M002_Lesson_03_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "3543732015244011f2088e6a6ed41ae6884a1812723c4286999f188ff57f9de1",
+      "sha256": "3543732015244011f2088e6a6ed41ae6884a1812723c4286999f188ff57f9de1"
+    },
+    {
+      "lesson_id": "LS-M002-04",
+      "path": "lessons/M002_Lesson_04_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "da14a14c907613fdb0208ce256e89faf3bdb2782ec5af42926266886522b93f2",
+      "sha256": "da14a14c907613fdb0208ce256e89faf3bdb2782ec5af42926266886522b93f2"
+    },
+    {
+      "lesson_id": "LS-M002-05",
+      "path": "lessons/M002_Lesson_05_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "70e4c4f809355467ad9b2d82399da11ca231f87059e3e0da4f0906091cdc5747",
+      "sha256": "70e4c4f809355467ad9b2d82399da11ca231f87059e3e0da4f0906091cdc5747"
+    },
+    {
+      "lesson_id": "LS-M002-06",
+      "path": "lessons/M002_Lesson_06_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "215a1364789787e6eb9f81de5d36065d6607f21c7e1d8374942a89cab8110523",
+      "sha256": "215a1364789787e6eb9f81de5d36065d6607f21c7e1d8374942a89cab8110523"
+    },
+    {
+      "lesson_id": "LS-M002-07",
+      "path": "lessons/M002_Lesson_07_Student_Edition_v1.md",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "da77455e3f4b554004d42023a0adf0b7221eae5268eb1c79d1eb22e0e57138ef",
+      "sha256": "da77455e3f4b554004d42023a0adf0b7221eae5268eb1c79d1eb22e0e57138ef"
+    }
+  ],
+  "labs": [
+    {
+      "lab_id": "M001-LAB-01",
+      "path": "labs/Workspace_Check_Kit_v1.zip",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "eae128624434ff7f4e950df1d6494069fe3a48ffb6c4848ec65951f8b34c9619",
+      "sha256": "eae128624434ff7f4e950df1d6494069fe3a48ffb6c4848ec65951f8b34c9619"
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-02",
+      "path": "labs/QAAE_First_Run_Kit_v1.zip",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "d960f0b846b57bb9cc37d756f10a2d54f328f7a0f04861530d2551c5335e5a7c",
+      "sha256": "d960f0b846b57bb9cc37d756f10a2d54f328f7a0f04861530d2551c5335e5a7c"
+    },
+    {
+      "lab_id": "QAAE-LAB-Q01-03",
+      "path": "labs/QAAE_Sample_Grading_Kit_v1.zip",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "a26eaa83fdba3c3522ddb8cf4d4d9e9bb6c2096edce178666cff337be40c66e3",
+      "sha256": "a26eaa83fdba3c3522ddb8cf4d4d9e9bb6c2096edce178666cff337be40c66e3"
+    },
+    {
+      "lab_id": "M002-LAB-01",
+      "path": "labs/Terminal_Practice_Kit_v1.zip",
+      "status": "unchanged",
+      "previous_version": "1.0.0-draft",
+      "version": "1.0.0-draft",
+      "previous_sha256": "b279a4ea71336fa6d030f91558c2f6310f14d7eb1660fae788e7d3fb78aba2f5",
+      "sha256": "b279a4ea71336fa6d030f91558c2f6310f14d7eb1660fae788e7d3fb78aba2f5"
+    }
+  ],
+  "activities": {
+    "path": "trial-activities.json",
+    "status": "changed",
+    "previous_sha256": "85452172373b69f2700b18a4e63f41dbd955957d0bd47dc22be38a7a016b5c83",
+    "sha256": "d16cd8b7c70073bc96eb5f7775ccd38c5f19c458eecf0f2f91de9d0aefe11cb2"
+  }
+}

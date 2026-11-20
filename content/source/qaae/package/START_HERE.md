@@ -1,9 +1,9 @@
 # QA Automation Engineering — modules Q01 and Q02 release
 
-Package `QAAE-Q02`, version `1.2.0-draft`, 2026-11-20. It supersedes `QAAE-Q01@1.1.0-draft` and
-adds module Q02, "Terminal and local program operation", to the QA Automation Engineering course.
-It was authored in this repository (ADR 0013) and built with `npm run release:build` from
-`content/source/qaae/`.
+Package `QAAE-Q02`, version `1.2.1-draft`, 2026-11-20. It supersedes `QAAE-Q02@1.2.0-draft`, whose
+Lesson 1 diagram it redraws, and `QAAE-Q01@1.1.0-draft` before it. It adds module Q02, "Terminal
+and local program operation", to the QA Automation Engineering course. It was authored in this
+repository (ADR 0013) and built with `npm run release:build` from `content/source/qaae/`.
 
 ## What it contains
 

@@ -17,6 +17,7 @@ import './activities.css';
 import './feedback.css';
 import './lab-kit.css';
 import './diagram.css';
+import './kata-diagram.css';
 import './unsaved.css';
 import './targets.css';
 

@@ -48,7 +48,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         title: 'QA Automation Engineering',
         releaseDir:
           env.KATA_RELEASE_DIR_QAAE ??
-          path.join(repoRoot, 'content', 'releases', 'qaae-q02-v1', 'content'),
+          path.join(repoRoot, 'content', 'releases', 'qaae-q02-v1_0_1', 'content'),
       },
     ],
     webDistDir: path.join(repoRoot, 'apps', 'web', 'dist'),

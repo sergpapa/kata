@@ -1,7 +1,7 @@
 ---
 document_id: QAAE-STUDENT-01
-version: "1.0.1-draft"
-date: "2026-11-19"
+version: "1.0.2-draft"
+date: "2026-11-20"
 audience: "Experienced manual testers starting test automation; no programming experience needed"
 module: Q01
 candidate_lesson_id: LS-Q01-01
@@ -251,6 +251,37 @@ Deciding which of your many expectations deserve to be written down is a design 
 ## 6. Follow one whole run
 
 Read this diagram from top to bottom. Time moves downward. Each arrow is an instruction or a message, and its label says what happens.
+
+```kata-diagram
+{
+  "kind": "sequence",
+  "participants": [
+    { "id": "runner", "label": "Test runner", "note": "runs your test code" },
+    { "id": "browser", "label": "Browser tab", "note": "a real browser" },
+    { "id": "site", "label": "Booking site", "note": "the product under test" }
+  ],
+  "steps": [
+    { "phase": "Open the rooms page" },
+    { "from": "runner", "to": "browser", "say": "Open the rooms page" },
+    { "from": "browser", "to": "site", "say": "Ask for the rooms page" },
+    { "from": "site", "to": "browser", "say": "The rooms page", "reply": true },
+    { "phase": "Choose the room" },
+    { "from": "runner", "to": "browser", "say": "When the Harbour Room link is ready, click it" },
+    { "from": "browser", "to": "site", "say": "Ask for the Harbour Room booking form" },
+    { "from": "site", "to": "browser", "say": "The booking form", "reply": true },
+    { "phase": "Book it" },
+    { "from": "runner", "to": "browser", "say": "Fill in date, start time and end time" },
+    { "from": "runner", "to": "browser", "say": "When the Book this room button is ready, click it" },
+    { "from": "browser", "to": "site", "say": "Send the booking" },
+    { "from": "site", "to": "browser", "say": "The confirmation page", "reply": true },
+    { "phase": "Check and record" },
+    { "from": "runner", "to": "browser", "say": "Is a Booking confirmed heading visible?", "highlight": true, "note": "The only check. Nothing reads the total." },
+    { "from": "browser", "to": "runner", "say": "Yes", "reply": true },
+    { "from": "runner", "to": "runner", "say": "Record the test as passed" }
+  ],
+  "caption": { "lead": "Passed means the one check came out true.", "text": "Step 11 is the only question this test asks, so a confirmation page showing €0.00 passes too." }
+}
+```
 
 ```mermaid
 sequenceDiagram

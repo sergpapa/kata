@@ -1,0 +1,363 @@
+/* One authored `kata-diagram` fence, drawn from the page's own elements. The contract is
+   docs/specs/kata-diagrams.md and the reasoning is ADR 0025; the component is
+   markdown/KataSequenceFigure.tsx.
+
+   Two layouts, chosen by the diagram's own width through a container query, never by the window:
+   a diagram in a narrow column on a wide screen still gets the layout that fits it.
+   - Columns: each participant is a lane with a lifeline down its centre, and each step is a grid
+     row whose arrow runs from one lifeline to another. The grid has two columns per lane, so lane
+     i's lifeline is grid line 2i+2 and the component only has to say where a step starts and ends.
+   - One row per step: number, "sender → receiver", text. No arrows, no lifelines.
+   Labels wrap in both, so nothing here ever scrolls sideways; tools/kata-diagram-checks.mjs fails
+   the build if it does.
+
+   Every colour is a theme token (KD9, kataDiagramStyles.test.ts), so the diagram follows the
+   scheme and the next design change with the rest of the page. */
+
+.kata-diagram {
+  container-type: inline-size;
+  padding: 1.25rem 1rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--background);
+}
+
+.kd-figure {
+  margin: 0;
+}
+
+/* The lesson's own list and paragraph spacing, taken off. `:where` keeps this at the specificity of
+   `.kata-diagram` alone, so every rule below that sets its own margin or padding still wins. */
+.kata-diagram :where(p, ul, ol, li) {
+  margin: 0;
+  padding: 0;
+}
+
+.kata-diagram :where(ul, ol) {
+  list-style: none;
+}
+
+/* --- Participants -------------------------------------------------------------------------- */
+
+.kd-participants {
+  display: grid;
+  grid-template-columns: repeat(var(--kd-lanes), minmax(0, 1fr));
+  margin-bottom: 0.5rem;
+}
+
+.kd-participant {
+  position: relative;
+  z-index: 1;
+  margin: 0 0.375rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.kd-participant-label {
+  display: block;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.kd-participant-note {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+/* --- Lifelines and phases ------------------------------------------------------------------ */
+
+.kd-steps {
+  position: relative;
+}
+
+.kd-lifelines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.kd-lifeline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--input);
+}
+
+/* A phase is a dashed box across every lane, with its name set into the top edge. */
+.kd-phase {
+  position: relative;
+  margin: 0.75rem 0;
+  padding: 1.6rem 0 0.4rem;
+  border: 1px dashed var(--input);
+  border-radius: var(--radius-control);
+}
+
+.kd-phase-unlabelled {
+  padding-top: 0.4rem;
+  border-color: transparent;
+}
+
+.kd-phase-label {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.6rem;
+  padding: 0 0.3rem;
+  background: var(--background);
+  color: var(--eyebrow);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* --- Steps in columns ---------------------------------------------------------------------- */
+
+.kd-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(calc(var(--kd-lanes) * 2), minmax(0, 1fr));
+  align-items: end;
+  padding: 0.35rem 0;
+}
+
+.kd-label {
+  grid-row: 1;
+  grid-column: var(--kd-start) / var(--kd-end);
+  padding: 0 0.5rem;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Said in words for a screen reader, and shown in the one-row layout; in columns the arrow says
+   it. Clipped rather than hidden, and without `overflow`, so it is still read and never counts as
+   a box that scrolls. */
+.kd-who {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.kd-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  margin-right: 0.35rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--input);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1;
+  vertical-align: 0.1em;
+}
+
+.kd-key {
+  display: inline-block;
+  margin-right: 0.35rem;
+  padding: 0 0.4rem;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+}
+
+.kd-note {
+  display: block;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.kd-arrow {
+  position: relative;
+  grid-row: 2;
+  grid-column: var(--kd-start) / var(--kd-end);
+  height: 0;
+  margin-top: 0.35rem;
+  border-top: 2px solid var(--muted-foreground);
+}
+
+/* The head: a triangle drawn with borders, in the line's own colour. */
+.kd-arrow::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.kd-step[data-towards='right'] .kd-arrow::after {
+  right: -1px;
+  border-left: 9px solid var(--muted-foreground);
+}
+
+.kd-step[data-towards='left'] .kd-arrow::after {
+  left: -1px;
+  border-right: 9px solid var(--muted-foreground);
+}
+
+/* A step a participant takes on its own: a loop out from its lifeline and back. */
+.kd-step[data-towards^='self'] .kd-arrow {
+  width: 2.25rem;
+  height: 0.9rem;
+  margin-top: 0.2rem;
+  border: 2px solid var(--muted-foreground);
+  border-left: 0;
+  border-radius: 0 0.6rem 0.6rem 0;
+}
+
+.kd-step[data-towards^='self'] .kd-arrow::after {
+  top: auto;
+  bottom: -6px;
+  left: -1px;
+  border-right: 9px solid var(--muted-foreground);
+}
+
+.kd-step[data-towards='self-left'] .kd-arrow {
+  justify-self: end;
+  border-right: 0;
+  border-left: 2px solid var(--muted-foreground);
+  border-radius: 0.6rem 0 0 0.6rem;
+}
+
+.kd-step[data-towards='self-left'] .kd-arrow::after {
+  right: -1px;
+  left: auto;
+  border-right: 0;
+  border-left: 9px solid var(--muted-foreground);
+}
+
+/* A reply is dashed (KD7). */
+.kd-step[data-reply] .kd-arrow {
+  border-top-style: dashed;
+}
+
+/* The key step: a heavier line, the accent, a filled number and the "Key step" tag — never the
+   colour alone (KD7). */
+.kd-step[data-highlight] .kd-arrow {
+  border-top-width: 3px;
+  border-color: var(--primary);
+}
+
+.kd-step[data-highlight] .kd-arrow::after {
+  top: -6.5px;
+  border-left-color: var(--primary);
+  border-right-color: var(--primary);
+}
+
+.kd-step[data-highlight] .kd-number {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.kd-step[data-highlight] .kd-say {
+  font-weight: 600;
+}
+
+/* --- Caption -------------------------------------------------------------------------------- */
+
+.kd-caption {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.kd-caption strong {
+  color: var(--foreground);
+}
+
+/* --- One row per step ----------------------------------------------------------------------- */
+
+/* 34rem: below it, three lanes leave each message under about 170px, and a sentence-long label
+   wraps to five lines over an arrow nobody can follow. */
+@container (max-width: 34rem) {
+  .kd-participants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .kd-participant {
+    margin: 0;
+    text-align: left;
+  }
+
+  .kd-lifelines,
+  .kd-arrow {
+    display: none;
+  }
+
+  .kd-phase {
+    padding-right: 0.6rem;
+    padding-left: 0.6rem;
+  }
+
+  .kd-step {
+    display: block;
+    padding: 0.5rem 0 0.5rem 0.6rem;
+    border-left: 2px solid var(--input);
+  }
+
+  .kd-step + .kd-step {
+    margin-top: 0.35rem;
+  }
+
+  .kd-step[data-reply] {
+    border-left-style: dashed;
+  }
+
+  .kd-step[data-highlight] {
+    border-left: 3px solid var(--primary);
+  }
+
+  .kd-label {
+    display: block;
+    padding: 0;
+    text-align: left;
+  }
+
+  .kd-who {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    margin-right: 0.35rem;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+
+  .kd-say {
+    display: block;
+    margin-top: 0.15rem;
+  }
+}

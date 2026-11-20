@@ -1,18 +1,47 @@
 # Verification and known limits
 
-What was checked for `QAAE-Q02@1.2.0-draft`, and what was not. Author rehearsal, independent
+What was checked for `QAAE-Q02@1.2.1-draft`, and what was not. Author rehearsal, independent
 review and automated checks only. No learner has used these lessons. The owner has not yet read the
 seven M002 lessons, or the four lessons Q01 added in `1.1.0-draft`.
 
 ## This release
 
 Built on 2026-11-20 with `npm run release:build` from `content/source/qaae/`, which the tool's own
-test rebuilds and compares with this package byte for byte (`apps/server/src/realQaaeSource.test.ts`).
+test rebuilds and compares with this package byte for byte
+(`apps/server/src/authoring/realQaaeSource.test.ts`).
 The build recomputed every hash and ran the app's importer on the result (`package-verification.json`).
 The app imports this release beside the full-stack release, serves every lesson with its activities
 (`apps/server/src/realQaaeRelease.test.ts`), and the screenshot gate opens each lesson at 375, 768 and
-1440 pixels in both schemes (`npm run screenshots`). Every Q01 lesson, kit and activity is carried
-unchanged from `QAAE-Q01@1.1.0-draft`.
+1440 pixels in both schemes (`npm run screenshots`). `1.2.1-draft` changes only Lesson 1, whose
+diagram is now a Kata diagram; every other lesson, kit and activity is byte for byte
+`QAAE-Q02@1.2.0-draft`.
+
+## Lesson 1's Kata diagram (new in 1.2.1-draft)
+
+### Checked, 2026-11-20
+
+- **Same diagram, new drawing.** The Kata diagram's 13 messages are the Mermaid block's 13:
+  same senders, receivers, words and order, with a reply wherever Mermaid draws a dashed arrow
+  (`apps/web/src/markdown/kataLessons.test.tsx`). With the Kata fence removed, the lesson is
+  `1.0.1-draft` apart from its `version` and `date`, so the Mermaid block and the "In words:"
+  paragraph are unchanged.
+- **Drawn in the page, not Mermaid.** The page draws one Kata diagram and no diagram frame, and
+  Mermaid is never asked for it. In Chromium at 375, 768 and 1440 pixels in both schemes, the
+  diagram is no wider than the lesson column, nothing inside it scrolls sideways, and every kind of
+  text in it measures at least 4.5:1 on its background (`npm run screenshots`). At 1440 it draws
+  lanes and arrows, replies dashed and the key step heavier. At 375 and 768 the lesson column is
+  narrower than 34rem, so it draws one row per step.
+- **The added content.** The phase names, the participants' notes, the key-step note ("The only
+  check. Nothing reads the total.") and the caption restate Sections 5 and 6, as checked against
+  the lesson's own text by its author. They add no claim the lesson does not make.
+
+### Not checked
+
+- No separate review session read the added phase names, notes and caption.
+- Firefox and WebKit. The layout uses CSS container queries, which both support, but neither was
+  run.
+- A screen reader. The steps are an ordered list whose items say "sender → receiver" in words, but
+  no screen reader has read it.
 
 ## The seven M002 lessons and their kit (new in 1.2.0-draft)
 

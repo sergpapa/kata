@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1-draft — 2026-11-20
+
+- Lesson 1 (`LS-Q01-01`) moves to `1.0.2-draft`. Section 6's diagram is drawn as a Kata diagram
+  (ADR 0025): the same 13 messages, grouped into four phases, with step 11, the heading check,
+  marked as the key step and a caption tying it to Section 5. It fits the column at every width
+  and becomes one row per step on a narrow screen. The Mermaid block stays directly after it,
+  unchanged, and is drawn only if the Kata diagram cannot be. The "In words:" paragraph is
+  unchanged. Its three activities move to `lesson_version` `1.0.2-draft`.
+- Changes no other lesson, kit or activity.
+
 ## 1.2.0-draft — 2026-11-20
 
 Package renamed from `QAAE-Q01` to `QAAE-Q02`, because it now holds module Q02 as well.
