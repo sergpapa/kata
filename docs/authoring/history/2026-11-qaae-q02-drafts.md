@@ -1,20 +1,22 @@
 # Q02 draft set
 
+> **Archived 2026-11-20.** This was `content/drafts/qaae-q02/README.md`. The drafts were packaged that day as `QAAE-Q02@1.2.0-draft` (`content/releases/qaae-q02-v1/`). The lessons and kit now live in `content/source/qaae/`, the command lists in `content/source/qaae/verification/m002/`, and the review and verification record in the package's `Verification_and_Known_Limits.md`. The text below is as it stood before packaging.
+
 Drafts of module Q02 of the QA Automation Engineering course, "Terminal and local program operation". Q02 is the full-stack module M002, shared unchanged (`docs/courses/qa-automation/Module_Syllabus_v0_1.md`), so the lessons carry M002 IDs, no lesson number in their titles, and refer to no QA-only lesson. Nothing here is in a release.
 
 **State on 2026-11-20: written, reviewed by two fresh reviewers, revised, and every command re-run against the revised text. Not packaged, and not read by the owner.** The remaining work is under "Still to do". The 2026-11-20 revision is in the working tree and was not committed by the session that made it.
 
 ## What is here
 
-| Module order | Lesson ID | File | Title | Words |
-| --- | --- | --- | --- | --- |
-| 1 | `LS-M002-01` | `lessons/M002_Lesson_01_Student_Edition_v1.md` | Where the terminal is standing | 5,012 |
-| 2 | `LS-M002-02` | `lessons/M002_Lesson_02_Student_Edition_v1.md` | What a program receives | 5,369 |
-| 3 | `LS-M002-03` | `lessons/M002_Lesson_03_Student_Edition_v1.md` | Change files without regret | 4,851 |
-| 4 | `LS-M002-04` | `lessons/M002_Lesson_04_Student_Edition_v1.md` | Output, messages and the exit code | 5,464 |
-| 5 | `LS-M002-05` | `lessons/M002_Lesson_05_Student_Edition_v1.md` | The settings a program is handed | 5,562 |
-| 6 | `LS-M002-06` | `lessons/M002_Lesson_06_Student_Edition_v1.md` | Programs that keep running | 5,462 |
-| 7 | `LS-M002-07` | `lessons/M002_Lesson_07_Student_Edition_v1.md` | It worked on their computer | 5,930 |
+| Module order | Lesson ID    | File                                           | Title                              | Words |
+| ------------ | ------------ | ---------------------------------------------- | ---------------------------------- | ----- |
+| 1            | `LS-M002-01` | `lessons/M002_Lesson_01_Student_Edition_v1.md` | Where the terminal is standing     | 5,012 |
+| 2            | `LS-M002-02` | `lessons/M002_Lesson_02_Student_Edition_v1.md` | What a program receives            | 5,369 |
+| 3            | `LS-M002-03` | `lessons/M002_Lesson_03_Student_Edition_v1.md` | Change files without regret        | 4,851 |
+| 4            | `LS-M002-04` | `lessons/M002_Lesson_04_Student_Edition_v1.md` | Output, messages and the exit code | 5,464 |
+| 5            | `LS-M002-05` | `lessons/M002_Lesson_05_Student_Edition_v1.md` | The settings a program is handed   | 5,562 |
+| 6            | `LS-M002-06` | `lessons/M002_Lesson_06_Student_Edition_v1.md` | Programs that keep running         | 5,462 |
+| 7            | `LS-M002-07` | `lessons/M002_Lesson_07_Student_Edition_v1.md` | It worked on their computer        | 5,930 |
 
 All seven use one kit, `labs/terminal-practice-kit`. Word counts exclude front matter and include practice explanations and the troubleshooting section. The revision added 200 to 450 words to each lesson. `verification/` holds the command list for each lesson and the two scripts that run a list in one shell session.
 
@@ -36,23 +38,23 @@ Two reviewers read commit `25c3193` in separate sessions, as ADR 0013 asks. Neit
 
 **Taken, most serious first:**
 
-| Where | What was wrong | What changed |
-| --- | --- | --- |
-| Lesson 7, kit | With `ORDERS_DIR` set as the explanation says, Dana's steps 3 and 4 fail with `data\data` in the path | Decision 7. Help text, `--settings`, Lesson 5 Practice B and Lesson 7 Part 1 follow it |
-| Lesson 2 §6 | The heading said the shell fills in before it cuts. It cuts first | Heading and text corrected. bash's second cut of an unquoted variable is shown from a run |
-| Lessons 5 and 6 | `# bash or zsh` as the first line of a code block. Interactive zsh does not treat `#` as a comment (confirmed in a zsh terminal) | Labels moved above the blocks |
-| Lesson 3 §7, kit | From inside `sandbox` on Windows, the reset crashed with `EPERM` and left the folder half deleted | `reset-sandbox.mjs` refuses from inside `sandbox` on every system. The lesson has the learner try it |
-| `.gitignore` | Line 8, `data/`, hid the kit's four order files from git | Now `/data/`. The files show as untracked |
-| Lesson 4 | Standard input, `echo` and "fields" were used before they were taught. The order file was never shown | The lesson prints the file and defines a field first, teaches standard input before the pipe, explains `echo $?`, and has a pause point |
-| Lesson 5 | The pocket-note transcript gave the opposite result where it stood, because the variable was still exported | The variable is removed first. An exported variable staying exported is stated |
-| Lesson 7, template | "The last two columns" did not exist, and a table cell cannot hold PowerShell's six-line messages | The template has six content columns and a "Full output" section. The lesson shows one filled row |
-| Lessons 4, 5, 7 | Ubuntu's helper changes the "command not found" message | Stated where each message is shown |
-| Lesson 2 | Curved quotation marks, `&`, `~` and `#` were described wrongly for PowerShell or zsh | The character table is cut to what the lesson uses. The rest is corrected from runs |
-| Lesson 1 | "No exceptions" was contradicted later. The scene was not mapped | Reworded, with a mapping table and the one limit of the comparison |
-| All | The author's limits ("could not capture") sat in the student text | Moved to each lesson's `runtime_target` |
-| All | No way to tell Windows PowerShell 5.1 from PowerShell 7 | Lesson 1 shows `$PSVersionTable.PSVersion`. Each lesson names where 7 is documented to differ |
-| Kit | `node.EXE` printed where the lesson shows `node.exe`. `tick.running` had no final newline. "Tomás" printed as mojibake from `cat` in PowerShell 5.1 | Fixed. The name is spelled Tomas everywhere |
-| Links | Four of 17 did not support the sentence beside them | Moved to a sentence they support, or removed. The `process.exitCode` anchor is `#processexitcode-1` |
+| Where              | What was wrong                                                                                                                                      | What changed                                                                                                                            |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Lesson 7, kit      | With `ORDERS_DIR` set as the explanation says, Dana's steps 3 and 4 fail with `data\data` in the path                                               | Decision 7. Help text, `--settings`, Lesson 5 Practice B and Lesson 7 Part 1 follow it                                                  |
+| Lesson 2 §6        | The heading said the shell fills in before it cuts. It cuts first                                                                                   | Heading and text corrected. bash's second cut of an unquoted variable is shown from a run                                               |
+| Lessons 5 and 6    | `# bash or zsh` as the first line of a code block. Interactive zsh does not treat `#` as a comment (confirmed in a zsh terminal)                    | Labels moved above the blocks                                                                                                           |
+| Lesson 3 §7, kit   | From inside `sandbox` on Windows, the reset crashed with `EPERM` and left the folder half deleted                                                   | `reset-sandbox.mjs` refuses from inside `sandbox` on every system. The lesson has the learner try it                                    |
+| `.gitignore`       | Line 8, `data/`, hid the kit's four order files from git                                                                                            | Now `/data/`. The files show as untracked                                                                                               |
+| Lesson 4           | Standard input, `echo` and "fields" were used before they were taught. The order file was never shown                                               | The lesson prints the file and defines a field first, teaches standard input before the pipe, explains `echo $?`, and has a pause point |
+| Lesson 5           | The pocket-note transcript gave the opposite result where it stood, because the variable was still exported                                         | The variable is removed first. An exported variable staying exported is stated                                                          |
+| Lesson 7, template | "The last two columns" did not exist, and a table cell cannot hold PowerShell's six-line messages                                                   | The template has six content columns and a "Full output" section. The lesson shows one filled row                                       |
+| Lessons 4, 5, 7    | Ubuntu's helper changes the "command not found" message                                                                                             | Stated where each message is shown                                                                                                      |
+| Lesson 2           | Curved quotation marks, `&`, `~` and `#` were described wrongly for PowerShell or zsh                                                               | The character table is cut to what the lesson uses. The rest is corrected from runs                                                     |
+| Lesson 1           | "No exceptions" was contradicted later. The scene was not mapped                                                                                    | Reworded, with a mapping table and the one limit of the comparison                                                                      |
+| All                | The author's limits ("could not capture") sat in the student text                                                                                   | Moved to each lesson's `runtime_target`                                                                                                 |
+| All                | No way to tell Windows PowerShell 5.1 from PowerShell 7                                                                                             | Lesson 1 shows `$PSVersionTable.PSVersion`. Each lesson names where 7 is documented to differ                                           |
+| Kit                | `node.EXE` printed where the lesson shows `node.exe`. `tick.running` had no final newline. "Tomás" printed as mojibake from `cat` in PowerShell 5.1 | Fixed. The name is spelled Tomas everywhere                                                                                             |
+| Links              | Four of 17 did not support the sentence beside them                                                                                                 | Moved to a sentence they support, or removed. The `process.exitCode` anchor is `#processexitcode-1`                                     |
 
 Smaller ones taken: a route for a learner who already uses a terminal, at the top of Lessons 1 to 6. Lessons named by title, never by position. "Signal" defined. The marker explained as a stand-in for a port. Reused process numbers. `type ls` after the PATH repair. The Lesson 3 failed-delete block recaptured on the right file. `/bin` as a second name for `/usr/bin` in the PATH example.
 
@@ -89,15 +91,15 @@ Nothing was run on macOS or in PowerShell 7.
 - **No file in the kit needs an execute permission**, by design, so an archive built on Windows works on macOS and Linux.
 - **Activity records are not yet cut.** Each lesson has five, and every heading appears once in its lesson.
 
-| Lesson | Prediction activity | Its feedback heading |
-| --- | --- | --- |
-| 1 | Predict, then run from another folder | What the two runs show |
-| 2 | Predict, then run with a space in the name | Why the space broke it |
-| 3 | Predict, then list before you delete | What the listing showed |
-| 4 | Predict, then send the report into a file | What stayed on the screen |
-| 5 | Predict, then run the unchanged command | What changed, and what did not |
-| 6 | Predict, then stop it from outside | A request and a forced stop |
-| 7 | Run the first two steps, and log them | The first three rows |
+| Lesson | Prediction activity                        | Its feedback heading           |
+| ------ | ------------------------------------------ | ------------------------------ |
+| 1      | Predict, then run from another folder      | What the two runs show         |
+| 2      | Predict, then run with a space in the name | Why the space broke it         |
+| 3      | Predict, then list before you delete       | What the listing showed        |
+| 4      | Predict, then send the report into a file  | What stayed on the screen      |
+| 5      | Predict, then run the unchanged command    | What changed, and what did not |
+| 6      | Predict, then stop it from outside         | A request and a forced stop    |
+| 7      | Run the first two steps, and log them      | The first three rows           |
 
 Plus Practice A to D in every lesson, with the feedback heading `Practice explanations`. Lesson 7 also has `Hints for Practice A`.
 

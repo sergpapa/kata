@@ -221,7 +221,7 @@ describe('the worked answers in the released lessons', () => {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
   const releases = [
     'content/releases/http-first-fifteen-v1_0_1/content',
-    'content/releases/qaae-q01-v1/content',
+    'content/releases/qaae-q02-v1/content',
   ];
 
   for (const release of releases) {

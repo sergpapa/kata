@@ -1,14 +1,14 @@
 {
-  "package_id": "QAAE-Q01",
+  "package_id": "QAAE-Q02",
   "read_first": "START_HERE.md",
-  "previous_release": "../../releases/qaae-lesson-01-v1",
+  "previous_release": "../../releases/qaae-q01-v1",
   "accepted_feedback": [],
   "release": {
     "schema_version": "1.0.0",
-    "release_id": "QAAE-Q01",
-    "version": "1.1.0-draft",
-    "date": "2026-11-19",
-    "status": "owner-review candidate; module Q01 complete (five lessons, three kits); not learner-tested",
+    "release_id": "QAAE-Q02",
+    "version": "1.2.0-draft",
+    "date": "2026-11-20",
+    "status": "owner-review candidate; modules Q01 and Q02 complete (twelve lessons, four kits); Q02 not read by the owner; not learner-tested",
     "audience": "Experienced manual testers starting test automation",
     "source_of_truth": "The supplied UTF-8 Markdown lesson files",
     "lesson_key_field": "candidate_lesson_id"
@@ -18,7 +18,14 @@
     "M001_Lesson_01_Student_Edition_v1.md",
     "M001_Lesson_02_Student_Edition_v1.md",
     "QAAE_Lesson_04_Student_Edition_v1.md",
-    "QAAE_Lesson_05_Student_Edition_v1.md"
+    "QAAE_Lesson_05_Student_Edition_v1.md",
+    "M002_Lesson_01_Student_Edition_v1.md",
+    "M002_Lesson_02_Student_Edition_v1.md",
+    "M002_Lesson_03_Student_Edition_v1.md",
+    "M002_Lesson_04_Student_Edition_v1.md",
+    "M002_Lesson_05_Student_Edition_v1.md",
+    "M002_Lesson_06_Student_Edition_v1.md",
+    "M002_Lesson_07_Student_Edition_v1.md"
   ],
   "labs": [
     {
@@ -41,6 +48,19 @@
       "archive": "QAAE_Sample_Grading_Kit_v1.zip",
       "lesson_ids": [
         "LS-Q01-03"
+      ]
+    },
+    {
+      "lab_id": "M002-LAB-01",
+      "archive": "Terminal_Practice_Kit_v1.zip",
+      "lesson_ids": [
+        "LS-M002-01",
+        "LS-M002-02",
+        "LS-M002-03",
+        "LS-M002-04",
+        "LS-M002-05",
+        "LS-M002-06",
+        "LS-M002-07"
       ]
     }
   ]

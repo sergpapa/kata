@@ -1,19 +1,118 @@
 # Verification and known limits
 
-What was checked for `QAAE-Q01@1.1.0-draft`, and what was not. Author rehearsal, independent
-review and automated checks only. No learner has used these lessons, and the owner has not yet read
-the four new ones.
+What was checked for `QAAE-Q02@1.2.0-draft`, and what was not. Author rehearsal, independent
+review and automated checks only. No learner has used these lessons. The owner has not yet read the
+seven M002 lessons, or the four lessons Q01 added in `1.1.0-draft`.
 
 ## This release
 
-Built on 2026-11-19 with `npm run release:build` from `content/source/qaae/`, which the tool's own
+Built on 2026-11-20 with `npm run release:build` from `content/source/qaae/`, which the tool's own
 test rebuilds and compares with this package byte for byte (`apps/server/src/realQaaeSource.test.ts`).
 The build recomputed every hash and ran the app's importer on the result (`package-verification.json`).
 The app imports this release beside the full-stack release, serves every lesson with its activities
 (`apps/server/src/realQaaeRelease.test.ts`), and the screenshot gate opens each lesson at 375, 768 and
-1440 pixels in both schemes (`npm run screenshots`).
+1440 pixels in both schemes (`npm run screenshots`). Every Q01 lesson, kit and activity is carried
+unchanged from `QAAE-Q01@1.1.0-draft`.
 
-## The four new lessons and their kits
+## The seven M002 lessons and their kit (new in 1.2.0-draft)
+
+### Review
+
+Written by Fable 5.2 on 2026-11-19 and 2026-11-20. Reviewed on 2026-11-20 by two fresh reviewers in
+separate sessions (ADR 0013); neither saw the drafts' README or the roadmap. One walked the lessons as the
+learner against the authoring standard and the owner's recorded feedback. The other checked every
+technical claim against the kit and the shells. The author re-ran every command at the same time and
+found 9 of the same defects independently.
+
+| Reviewer | Blocker | Major | Minor |
+| --- | --- | --- | --- |
+| As the learner | 2 | 10 | 18 |
+| Technical claims | 3 | 7 | 18 |
+
+The most serious, all corrected:
+
+- With `ORDERS_DIR` set as Lesson 7's explanation said, Dana's steps 3 and 4 failed with `data\data`
+  in the path. `ORDERS_DIR` is now a second place the checker looks, tried only when nothing is found
+  from the current folder. The help text, `--settings`, Lesson 5 Practice B and Lesson 7 Part 1
+  follow it.
+- Lesson 2 said the shell fills in before it cuts the command into words. It cuts first.
+- Lessons 5 and 6 put `# bash or zsh` as a code block's first line. Interactive zsh does not treat
+  `#` as a comment. The shell labels now sit above the blocks, in every lesson.
+- On Windows, `reset-sandbox.mjs` run from inside `sandbox` crashed with `EPERM` and left the folder
+  half deleted. It now refuses to run from inside `sandbox` on every system, and Lesson 3 has the
+  learner try it.
+- Lesson 4 used standard input, `echo` and "fields" before teaching them, and never showed the
+  order file.
+- Lesson 5's pocket-note transcript gave the opposite result where it stood, because the variable
+  was still exported.
+- The command log template had no "last two columns" for Lesson 7 to refer to, and a table cell
+  could not hold PowerShell's six-line messages. It now has six content columns and a "Full output"
+  section.
+- Ubuntu's helper changes the "command not found" message. Lessons 4, 5 and 7 say so where each
+  message is shown.
+- PowerShell 5.1 and PowerShell 7 could not be told apart. Lesson 1 shows `$PSVersionTable.PSVersion`
+  and each lesson names where 7 is documented to differ.
+
+Not taken, with the reason:
+
+- **Split Lesson 4 in two.** Seven lessons is the owner's decision (ADR 0024). The lesson has a
+  pause point between streams and exit codes.
+- **Graduated hints in Lessons 1 to 6.** The full-stack reference lesson has none either. Lesson 7
+  has them where the task is independent.
+- **A stale `tick.running` in Tomas's note in Lesson 7.** The module's exit task is a path or
+  environment problem, and the note already has five things to find.
+- **A primary source for each zsh fact and for `kill` sending a request.** The zsh facts rest on
+  the author's runs. The Bash manual section on `kill` answered HTTP 429 twice and was not read.
+- **`find-on-path.mjs` following PowerShell's preference for `.ps1`.** Its header comment says it
+  does not. The lessons use it for `node` only.
+
+### Checked, 2026-11-20
+
+- **Every command in the seven lessons**, before and after the revision, in all three shells:
+  Windows 11 with Windows PowerShell 5.1 and Node.js v24.12.0; Ubuntu 24.04 in WSL with bash 5.2.21,
+  zsh 5.9 and Node.js v24.22.3. The only differences between the two runs are the kit changes listed
+  above. Every block marked as the author's run was captured, not written from memory. The command
+  lists and the two runners are in `content/source/qaae/verification/m002/` in the repository; they
+  are not part of the kit.
+- **What the captures changed.** The home folder was renamed to the example user maria's. A
+  `line N:` inside bash's own messages and wrapped long lines in PowerShell tables, both added by
+  the capture method, were removed. The Windows `find-on-path.mjs` block in Lesson 5 is a
+  constructed example and is labelled as one.
+- **Interactive terminal, Linux**: Ctrl+C in bash and zsh, the `Killed` line in bash and zsh, and
+  `#` at a zsh prompt.
+- **Ctrl+C on Windows**: a reviewer sent a console Ctrl+C event to `tick.mjs` and got the closing
+  line ending "Marker removed".
+- **Diagrams**: the five Mermaid blocks, in Lessons 1, 2, 4, 5 and 6, parse and render with the
+  app's Mermaid 11.17.2 in Chromium, inside the app's lesson page, at 375, 768 and 1440 pixels in
+  both schemes (`npm run screenshots`: layout, axe and 44px checks passed on all 33 routes). The
+  drawings were looked at. Four fit their frame at 1440. Lesson 2's sequence diagram does not: its
+  fourth participant, `show-args.mjs`, and the end of the note over Node.js lie past the frame's
+  right edge, so even a desktop reader scrolls sideways inside the frame to see them. It was left as
+  written for the author to shorten.
+- **Activities**: each `source_heading` and `feedback_source_heading` appears exactly once in its
+  lesson, outside code blocks, and each `prompt_markdown` is the text from its heading to the next
+  heading.
+
+### Not checked, 2026-11-20
+
+- **macOS, and PowerShell 7.**
+- **The Linux runs' start-up files.** Commands were fed to `bash --norc --noprofile` and `zsh -f`,
+  so the runs show none of what a system adds: Ubuntu's suggestions after "command not found",
+  aliases, and prompts.
+- **Six checks that need a person at a keyboard**, in VS Code's terminal on Windows:
+  1. Tab completion: `cd da` and Tab (Lesson 1 §5). PowerShell's own completion engine answered
+     `.\data`.
+  2. PowerShell's question before deleting a folder that has files in it (Lesson 3 §6).
+  3. Ctrl+C on `node tick.mjs` in a real terminal (Lesson 6 §3).
+  4. Ctrl+C with text selected copies instead of stopping (Lesson 6 §3).
+  5. Closing the terminal panel with `tick.mjs` running, then checking for the process and the
+     marker (Lesson 6 §6).
+  6. `>>` after an open quotation mark in PowerShell (Lesson 2, "If something does not match").
+- **Inside the app**, beyond the importer and the screenshot gate. Saving an answer in each new
+  activity, and downloading the kit from the app, were not done by hand.
+- **Any learner.** Reading time, difficulty and whether the analogies work are unmeasured.
+
+## The four Q01 lessons added in 1.1.0-draft (2026-11-19)
 
 ### Review
 

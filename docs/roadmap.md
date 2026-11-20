@@ -53,40 +53,33 @@ on the same plan allowance. Neither the merge nor its checks started a Claude ru
 `data/kata.sqlite`; it is additive. Export,
 earlier conversations and the accessibility pass add no migration.
 
-**The QA course serves all of module Q01** (2026-11-19). `npm run release:build` can add lessons
-and kits to a release (spec `docs/specs/release-additions.md`; removal is still refused). It built
-`content/releases/qaae-q01-v1/` (`QAAE-Q01@1.1.0-draft`) from `content/source/qaae/`, and
-`config.ts` points the QA course at it: QA Lesson 1 (1.0.1-draft), "Set up a safe workspace", "When
-something goes wrong", "Run a test someone else wrote" and "How good are your tests?", with three
-kits and 24 activities (ADR 0023). The owner has not read the four new lessons. Every kit command
-was run on Windows 11 only; the record is the package's `Verification_and_Known_Limits.md`.
-`previous_release` in `content/source/qaae/release.json` stays on `qaae-lesson-01-v1` until the
-next reissue starts (handbook, "Reissuing a release").
-
-**Q02 is reviewed and revised, not packaged, and the revision is uncommitted** (2026-11-20). Seven
-M002 lessons and the `terminal-practice-kit` are in `content/drafts/qaae-q02/`. Two fresh reviewers
-read commit `25c3193` (ADR 0013): 5 blockers, 17 major and 36 minor findings between them, with
-overlap. The author re-ran every command in Windows PowerShell 5.1, bash and zsh before and after
-the revision. The drafts' README lists what was taken, the five findings declined with reasons, and
-six keyboard checks only the owner can make. Changes that reach beyond wording: `ORDERS_DIR` is now
-a second place the checker looks (Lesson 7's explanation contradicted the kit), `reset-sandbox.mjs`
-refuses to run from inside `sandbox` (it crashed on Windows), and the shell labels moved out of the
-code blocks (interactive zsh does not treat `#` as a comment). ADR 0024 records the owner's
-PowerShell-beside-bash/zsh decision. `.gitignore` line 8 is `/data/` now: as `data/` it hid the
-kit's four order files from git, and would have hidden them under `content/source/` too. Those
-four files are still untracked. The command lists and runners are in
-`content/drafts/qaae-q02/verification/`.
+**The QA course serves modules Q01 and Q02** (2026-11-20). `content/releases/qaae-q02-v1/`
+(`QAAE-Q02@1.2.0-draft`) was built with `npm run release:build` from `content/source/qaae/`, and
+`config.ts` points the QA course at it. It is twelve lessons, four kits and 59 activities. Q01's
+five lessons, three kits and 24 activities are byte for byte those of `qaae-q01-v1`. Q02 adds the
+seven M002 terminal lessons (ADR 0024), `Terminal_Practice_Kit_v1.zip` (`M002-LAB-01`, serving
+all seven) and 35 activities, each prompt cut from its lesson's own section text. The owner has
+read none of Q02, nor Q01's four newer lessons. Kit commands ran on Windows 11 (PowerShell 5.1) and
+in WSL (bash, zsh), never on macOS or PowerShell 7; the record is the package's
+`Verification_and_Known_Limits.md`, which also lists six checks only a person at a keyboard can
+make. `previous_release` in `content/source/qaae/release.json` points at `qaae-q01-v1`, the build's
+baseline for `qaae-q02-v1`; move it to `qaae-q02-v1` when the next reissue starts (handbook,
+"Reissuing a release"). The Q02 command lists and runners are in
+`content/source/qaae/verification/m002/`, and the drafts' README is archived as
+`docs/authoring/history/2026-11-qaae-q02-drafts.md`. `content/drafts/` is gone, and so are its
+ignore lines in `eslint.config.js`, `.prettierignore` and `.gitattributes`.
 
 **Incident, 2026-11-19.** Removing the finished Q01 drafts with `rm -rf content/drafts` also deleted
 21 uncommitted files of another session's Q02 drafts. That session restored all 21 from its
-transcript by 17:10. The four order files among them were never in git (see the ignore rule above). The `content/drafts/` ignore lines in `eslint.config.js`, `.prettierignore` and
-`.gitattributes` are kept for it.
+transcript by 17:10. The four order files among them were never in git until `.gitignore` line 8
+became `/data/` (it was `data/`, which matched the kit's `data/` folder too).
 
-After the merge, under nvm's Node 24.12: `npm run typecheck`, `npm run lint`, `npm run build` and
-`npm run screenshots` (26 routes × 3 widths × 2 schemes, axe clean, 10 diagrams read) pass. `npm
-test` passed 1568 of 1568 on its last full run. `npm run format:check` passes now that the
-`a11y-pass` worktree is removed (2026-11-20; its branch, fully merged, is deleted too). Run filtered vitest from
-`C:/…`, not `c:\…` (see memory).
+After the Q02 packaging (2026-11-20), under nvm's Node 24.12: `npm run typecheck`, `npm run lint`,
+`npm run format:check`, `npm run build` and `npm run screenshots` (33 routes × 3 widths × 2 schemes,
+axe clean, 15 diagrams read) pass. The full `npm test` run took 560 s on a loaded machine and failed
+30 of 1575, all timeouts or missing elements across 18 files; those 18 files then passed 264 of 264
+alone, and `realQaaeRelease.test.ts` passed 10 of 10 alone (its 12-lesson serve takes 364–572 ms).
+No budget was widened. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
 
 **Known and not fixed.** `README.md` describes neither practice feedback, Export nor earlier
 conversations. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts`
@@ -102,14 +95,14 @@ yet; the owner will judge Lessons 6+ first and decide then.
 
 Next action: the owner restarts their dev server, tries feedback and Start over on a Lesson 5
 activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.md` (and 6–8, 9–13,
-14–15 with theirs). They continue reading QA Lesson 1, Lessons 5–8 and QA Lessons 2–5 in the app,
-and decide whether to split the two longest new Q01 lessons. Optionally they listen to one lesson
-with NVDA or Narrator. Development next, in a fresh session: commit the Q02 revision, then package
-Q02 (the drafts' README has the brief: cut 35 activity records, add the kit manifest, move lessons
-and kit into `content/source/qaae/`, build the next QA release, point `config.ts`, the release tests
-and `tools/screenshots.mjs` at it, render the five diagrams). Packaging is mechanical, so Sonnet 5.5
-can do it (handbook). One finding for the next Q01 reissue: `M001_Lesson_02` shows bash's
-"command not found" line without saying that Ubuntu words it differently.
+14–15 with theirs). They continue reading QA Lesson 1, Lessons 5–8, QA Lessons 2–5 and the seven Q02
+lessons in the app (restart the dev server to pick up `qaae-q02-v1`), make the six Q02 keyboard
+checks, and decide whether to split the two longest new Q01 lessons. Optionally they listen to one
+lesson with NVDA or Narrator. Development next: bring the module syllabus's two-line Q02 entry up
+to date. Two findings for the next QA reissue: `M001_Lesson_02` shows bash's "command not found"
+line without saying that Ubuntu words it differently, and the sequence diagram in "What a program
+receives" (`LS-M002-02`) is wider than its frame even at 1440, so its fourth participant needs a
+sideways scroll; shorter labels would fix it (author's change, moves the lesson to 1.0.1-draft).
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -274,6 +267,11 @@ can do it (handbook). One finding for the next Q01 reissue: `M001_Lesson_02` sho
       13 findings, all taken; then PASS) and POST (PASS), `/code-review` at medium (9 findings, 6
       taken, 3 declined with reasons). Record in `docs/specs/release-additions.md`.
 - [ ] **Owner reading of QA Lessons 2–5**, and a run of the three kits on macOS or Linux.
+- [x] **Module Q02 packaged.** Done 2026-11-20. Seven M002 lessons, `M002-LAB-01` and 35
+      activities are in `qaae-q02-v1` (`QAAE-Q02@1.2.0-draft`), current for the QA course; Q01
+      carried byte for byte. No app code changed, so no test-guardian or `/code-review` pass; the
+      release tests, the source rebuild test and the screenshot gate cover it.
+- [ ] **Owner reading of the seven Q02 lessons**, the six keyboard checks, and a kit run on macOS.
 - [ ] **BookingLab practice-application spec**, the QA course's critical path.
 - [ ] **Owner reading of Lessons 5–15**, then a correction reissue built with the tool.
 - [ ] **Lesson 16 (M021-08)**, written and reviewed in separate sessions; adding a lesson and kit to

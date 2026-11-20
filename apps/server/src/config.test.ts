@@ -45,7 +45,7 @@ describe('the default configuration', () => {
     const qaae = loadConfig({}).courses.find((course) => course.courseId === 'QAAE');
 
     expect(qaae?.releaseDir.split(path.sep).join('/')).toContain(
-      'content/releases/qaae-q01-v1/content',
+      'content/releases/qaae-q02-v1/content',
     );
     expect(fs.existsSync(path.join(qaae?.releaseDir ?? '', 'learning-release.json'))).toBe(true);
   });

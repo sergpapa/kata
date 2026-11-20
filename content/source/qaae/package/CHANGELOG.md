@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.2.0-draft — 2026-11-20
+
+Package renamed from `QAAE-Q01` to `QAAE-Q02`, because it now holds module Q02 as well.
+
+- Adds the seven lessons of module Q02 (the shared module M002), each at `1.0.0-draft`: "Where the
+  terminal is standing" (`LS-M002-01`), "What a program receives" (`LS-M002-02`), "Change files
+  without regret" (`LS-M002-03`), "Output, messages and the exit code" (`LS-M002-04`), "The
+  settings a program is handed" (`LS-M002-05`), "Programs that keep running" (`LS-M002-06`) and
+  "It worked on their computer" (`LS-M002-07`).
+- Adds one kit at `1.0.0-draft`: `M002-LAB-01` (`Terminal_Practice_Kit_v1.zip`), serving all
+  seven.
+- Adds 35 activities, `ACT-M002-01-01` to `ACT-M002-07-05`.
+- Changes no Q01 lesson, kit or activity.
+
 ## 1.1.0-draft — 2026-11-19
 
 Package renamed from `QAAE-LESSON-01` to `QAAE-Q01`, because it now holds the whole module.

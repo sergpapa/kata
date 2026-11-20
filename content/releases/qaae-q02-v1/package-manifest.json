@@ -1,0 +1,101 @@
+{
+  "package_id": "QAAE-Q02",
+  "version": "1.2.0-draft",
+  "date": "2026-11-20",
+  "read_first": "START_HERE.md",
+  "release_manifest": "content/learning-release.json",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "0a5a155a997b8cb882c390717dd735c10e4a9e4eb967733434773cc48084aca3"
+    },
+    {
+      "path": "START_HERE.md",
+      "sha256": "337aae880571f2e2f2c97fc2fe6e32c7918c904dc1e784d4cf07777a76d4b134"
+    },
+    {
+      "path": "Verification_and_Known_Limits.md",
+      "sha256": "abf58506179d5d4c88432686598a3d8b95fe82ce158a0b39ac6e27e8ee63077c"
+    },
+    {
+      "path": "content/labs/QAAE_First_Run_Kit_v1.zip",
+      "sha256": "d960f0b846b57bb9cc37d756f10a2d54f328f7a0f04861530d2551c5335e5a7c"
+    },
+    {
+      "path": "content/labs/QAAE_Sample_Grading_Kit_v1.zip",
+      "sha256": "a26eaa83fdba3c3522ddb8cf4d4d9e9bb6c2096edce178666cff337be40c66e3"
+    },
+    {
+      "path": "content/labs/Terminal_Practice_Kit_v1.zip",
+      "sha256": "b279a4ea71336fa6d030f91558c2f6310f14d7eb1660fae788e7d3fb78aba2f5"
+    },
+    {
+      "path": "content/labs/Workspace_Check_Kit_v1.zip",
+      "sha256": "eae128624434ff7f4e950df1d6494069fe3a48ffb6c4848ec65951f8b34c9619"
+    },
+    {
+      "path": "content/learning-release.json",
+      "sha256": "344dfcbed54c75beec7cf21ee16264cc49fc35849889ab1d559ce9f6e7f9bfb7"
+    },
+    {
+      "path": "content/lessons/M001_Lesson_01_Student_Edition_v1.md",
+      "sha256": "8ed0a1ca0c1493fad509f409d254c8dd3d9e63991ae59e19444cb2f87323bb9b"
+    },
+    {
+      "path": "content/lessons/M001_Lesson_02_Student_Edition_v1.md",
+      "sha256": "c031b9d8732d5c9ea44ae71b96507239e38329ad999d2ef939d4761c87937864"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_01_Student_Edition_v1.md",
+      "sha256": "eecd956d19ea8e49bd1594007e6331563052edc93a51860f693d948143a4d06a"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_02_Student_Edition_v1.md",
+      "sha256": "53c3b467cac368c28aeece1693520c3d0089436c3f0fb3f4e73ba56a5eda9043"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_03_Student_Edition_v1.md",
+      "sha256": "3543732015244011f2088e6a6ed41ae6884a1812723c4286999f188ff57f9de1"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_04_Student_Edition_v1.md",
+      "sha256": "da14a14c907613fdb0208ce256e89faf3bdb2782ec5af42926266886522b93f2"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_05_Student_Edition_v1.md",
+      "sha256": "70e4c4f809355467ad9b2d82399da11ca231f87059e3e0da4f0906091cdc5747"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_06_Student_Edition_v1.md",
+      "sha256": "215a1364789787e6eb9f81de5d36065d6607f21c7e1d8374942a89cab8110523"
+    },
+    {
+      "path": "content/lessons/M002_Lesson_07_Student_Edition_v1.md",
+      "sha256": "da77455e3f4b554004d42023a0adf0b7221eae5268eb1c79d1eb22e0e57138ef"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_01_Student_Edition_v1.md",
+      "sha256": "e84905fa4c28bd7bbfaec1cb458f4ecd8793384019f198cd099ff668b6744768"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_04_Student_Edition_v1.md",
+      "sha256": "224055dad45b47fc29f33cecb606582950ae020b331f450b20b45c7fd7e64c9c"
+    },
+    {
+      "path": "content/lessons/QAAE_Lesson_05_Student_Edition_v1.md",
+      "sha256": "438fd7d4064757c379a5d1274b57a4dacce22ee937a7ac770edc1540f2982c2a"
+    },
+    {
+      "path": "content/trial-activities.json",
+      "sha256": "85452172373b69f2700b18a4e63f41dbd955957d0bd47dc22be38a7a016b5c83"
+    },
+    {
+      "path": "package-verification.json",
+      "sha256": "89a288457349b4e1b776d73d4c37070f3e3598243de883ef50ae3406962cf273"
+    },
+    {
+      "path": "release-changes.json",
+      "sha256": "7a210b9af2fcf6fa90ac08a20e6f1532590f9736bebdf961688a755be8586317"
+    }
+  ]
+}

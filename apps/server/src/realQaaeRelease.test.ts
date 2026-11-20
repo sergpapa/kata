@@ -10,11 +10,12 @@ import { inertFeedback } from './modules/feedback/testkit/fakeRunner.js';
 /**
  * Criteria C15–C16 in docs/specs/multi-course.md and A10 in docs/specs/release-additions.md, against
  * the QA course's current release and the real full-stack release beside it — the pair the owner
- * actually starts the app with. Since 2026-11-19 that is the Q01 release: five lessons, three kits.
+ * actually starts the app with. Since 2026-11-20 that is the Q02 release: modules Q01 and Q02, twelve
+ * lessons, four kits.
  */
 
-/** Q01 in course order (ADR 0023), with the kit each lesson uses. */
-const Q01 = [
+/** Q01 then Q02 in course order (ADRs 0023 and 0024), with the kit each lesson uses. */
+const LESSONS = [
   {
     lesson_id: 'LS-Q01-01',
     document_id: 'QAAE-STUDENT-01',
@@ -49,6 +50,55 @@ const Q01 = [
     module: 'Q01',
     lab_id: 'QAAE-LAB-Q01-03',
     prefix: 'ACT-Q01-03-',
+  },
+  {
+    lesson_id: 'LS-M002-01',
+    document_id: 'M002-STUDENT-01',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-01-',
+  },
+  {
+    lesson_id: 'LS-M002-02',
+    document_id: 'M002-STUDENT-02',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-02-',
+  },
+  {
+    lesson_id: 'LS-M002-03',
+    document_id: 'M002-STUDENT-03',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-03-',
+  },
+  {
+    lesson_id: 'LS-M002-04',
+    document_id: 'M002-STUDENT-04',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-04-',
+  },
+  {
+    lesson_id: 'LS-M002-05',
+    document_id: 'M002-STUDENT-05',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-05-',
+  },
+  {
+    lesson_id: 'LS-M002-06',
+    document_id: 'M002-STUDENT-06',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-06-',
+  },
+  {
+    lesson_id: 'LS-M002-07',
+    document_id: 'M002-STUDENT-07',
+    module: 'M002',
+    lab_id: 'M002-LAB-01',
+    prefix: 'ACT-M002-07-',
   },
 ] as const;
 
@@ -94,16 +144,16 @@ describe('the QA course’s current release', () => {
     }
   });
 
-  it('carries Q01’s five lessons in course order, each with its kit (A10)', () => {
+  it('carries Q01’s five lessons and Q02’s seven in course order, each with its kit (A10)', () => {
     const manifest = readJson<{ release_id: string; lessons: ManifestLesson[] }>(
       'learning-release.json',
     );
 
-    expect(manifest.release_id).toBe('QAAE-Q01');
+    expect(manifest.release_id).toBe('QAAE-Q02');
     expect(manifest.lessons.map((lesson) => lesson.lesson_id)).toEqual(
-      Q01.map((lesson) => lesson.lesson_id),
+      LESSONS.map((lesson) => lesson.lesson_id),
     );
-    for (const [index, expected] of Q01.entries()) {
+    for (const [index, expected] of LESSONS.entries()) {
       expect(manifest.lessons[index]).toMatchObject({
         lesson_id: expected.lesson_id,
         document_id: expected.document_id,
@@ -113,7 +163,7 @@ describe('the QA course’s current release', () => {
     }
   });
 
-  it('offers three kits, each serving the lessons that name it (A10)', () => {
+  it('offers four kits, each serving the lessons that name it (A10)', () => {
     const manifest = readJson<{
       lab_downloads: { lab_id: string; path: string; lesson_ids: string[] }[];
     }>('learning-release.json');
@@ -122,6 +172,18 @@ describe('the QA course’s current release', () => {
       ['M001-LAB-01', ['LS-M001-01', 'LS-M001-02']],
       ['QAAE-LAB-Q01-02', ['LS-Q01-02']],
       ['QAAE-LAB-Q01-03', ['LS-Q01-03']],
+      [
+        'M002-LAB-01',
+        [
+          'LS-M002-01',
+          'LS-M002-02',
+          'LS-M002-03',
+          'LS-M002-04',
+          'LS-M002-05',
+          'LS-M002-06',
+          'LS-M002-07',
+        ],
+      ],
     ]);
     for (const lab of manifest.lab_downloads) {
       expect(fs.existsSync(path.join(releaseDir, lab.path)), lab.path).toBe(true);
@@ -135,7 +197,7 @@ describe('the QA course’s current release', () => {
     expect(new Set(activities.map((activity) => activity.activity_id)).size).toBe(
       activities.length,
     );
-    for (const expected of Q01) {
+    for (const expected of LESSONS) {
       const lesson = manifest.lessons.find((entry) => entry.lesson_id === expected.lesson_id);
       const own = activities.filter((activity) => activity.lesson_id === expected.lesson_id);
       expect(own.length, expected.lesson_id).toBeGreaterThan(0);
@@ -145,7 +207,9 @@ describe('the QA course’s current release', () => {
       }
     }
     expect(
-      activities.every((activity) => Q01.some((lesson) => lesson.lesson_id === activity.lesson_id)),
+      activities.every((activity) =>
+        LESSONS.some((lesson) => lesson.lesson_id === activity.lesson_id),
+      ),
     ).toBe(true);
   });
 
@@ -177,7 +241,7 @@ describe('the QA course’s current release', () => {
       courses: importCourses(db, loadConfig({}).courses),
     });
 
-    for (const { lesson_id } of Q01) {
+    for (const { lesson_id } of LESSONS) {
       const response = await app.inject({
         method: 'GET',
         url: `/api/courses/QAAE/lessons/${lesson_id}`,

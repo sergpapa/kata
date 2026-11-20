@@ -1,0 +1,39 @@
+{
+  "lab_id": "M002-LAB-01",
+  "version": "1.0.0-draft",
+  "date": "2026-11-20",
+  "lessons": [
+    "LS-M002-01",
+    "LS-M002-02",
+    "LS-M002-03",
+    "LS-M002-04",
+    "LS-M002-05",
+    "LS-M002-06",
+    "LS-M002-07"
+  ],
+  "entry_document": "README.md",
+  "runtime": "Node.js 24.x; standard library only; no packages to install",
+  "start_commands": [
+    "node where.mjs data/orders-2026-11.csv",
+    "node show-args.mjs one two three",
+    "node reset-sandbox.mjs",
+    "node check-orders.mjs data/orders-2026-09.csv",
+    "node show-env.mjs ORDERS_LIMIT",
+    "node find-on-path.mjs node",
+    "node tick.mjs"
+  ],
+  "execution_location": "learner native desktop",
+  "shells": "Windows PowerShell 5.1, bash and zsh; the lessons show a block for each shell family where the typing differs (ADR 0024)",
+  "writes": "reset-sandbox.mjs deletes and rebuilds sandbox/ in the kit folder and refuses to run from inside it; tick.mjs keeps tick.running in the kit folder while it runs; redirections the lessons ask for write report and message files into the terminal's current folder",
+  "validation": {
+    "windows_11_powershell_5_1_node_24_12": "passed",
+    "ubuntu_24_04_wsl_bash_5_2_node_24_22": "passed",
+    "ubuntu_24_04_wsl_zsh_5_9_node_24_22": "passed",
+    "linux_runs_non_interactive": "commands fed to a shell started without start-up files; Ctrl+C, Killed and # at a zsh prompt captured in an interactive terminal",
+    "macos": "not_verified",
+    "powershell_7": "not_verified",
+    "interactive_terminal_windows": "not_verified",
+    "learner_trial": "not_performed"
+  },
+  "files": []
+}
