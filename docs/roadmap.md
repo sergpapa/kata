@@ -53,33 +53,41 @@ on the same plan allowance. Neither the merge nor its checks started a Claude ru
 `data/kata.sqlite`; it is additive. Export,
 earlier conversations and the accessibility pass add no migration.
 
-**The QA course serves modules Q01 and Q02** (2026-11-20). `content/releases/qaae-q02-v1/`
-(`QAAE-Q02@1.2.0-draft`) was built with `npm run release:build` from `content/source/qaae/`, and
-`config.ts` points the QA course at it. It is twelve lessons, four kits and 59 activities. Q01's
-five lessons, three kits and 24 activities are byte for byte those of `qaae-q01-v1`. Q02 adds the
-seven M002 terminal lessons (ADR 0024), `Terminal_Practice_Kit_v1.zip` (`M002-LAB-01`, serving
-all seven) and 35 activities, each prompt cut from its lesson's own section text. The owner has
-read none of Q02, nor Q01's four newer lessons. Kit commands ran on Windows 11 (PowerShell 5.1) and
-in WSL (bash, zsh), never on macOS or PowerShell 7; the record is the package's
+**The QA course serves `qaae-q02-v1_0_1`** (`QAAE-Q02@1.2.1-draft`, 2026-11-20), built with
+`npm run release:build` from `content/source/qaae/`; `config.ts` points the QA course at it. It is
+twelve lessons, four kits and 59 activities. It changes only QA Lesson 1 (`1.0.2-draft`) and its
+three activities against `qaae-q02-v1`, which is now the build's baseline (`previous_release` in
+`content/source/qaae/release.json`; move it to `qaae-q02-v1_0_1` when the next reissue starts).
+Q02 adds the seven M002 terminal lessons (ADR 0024) and `Terminal_Practice_Kit_v1.zip`. The owner
+has read none of Q02, nor Q01's four newer lessons. Kit commands ran on Windows 11 (PowerShell 5.1)
+and in WSL (bash, zsh), never on macOS or PowerShell 7; the record is the package's
 `Verification_and_Known_Limits.md`, which also lists six checks only a person at a keyboard can
-make. `previous_release` in `content/source/qaae/release.json` points at `qaae-q01-v1`, the build's
-baseline for `qaae-q02-v1`; move it to `qaae-q02-v1` when the next reissue starts (handbook,
-"Reissuing a release"). The Q02 command lists and runners are in
-`content/source/qaae/verification/m002/`, and the drafts' README is archived as
-`docs/authoring/history/2026-11-qaae-q02-drafts.md`. `content/drafts/` is gone, and so are its
-ignore lines in `eslint.config.js`, `.prettierignore` and `.gitattributes`.
+make. The Q02 command lists and runners are in `content/source/qaae/verification/m002/`.
+
+**Kata diagrams: 1 of 15 lesson diagrams migrated** (ADR 0025, `docs/specs/kata-diagrams.md`,
+2026-11-20). A `kata-diagram` fence holds JSON describing a sequence (participants, steps, phases,
+a key step, notes, a caption); `KataSequenceFigure.tsx` draws it from the page's own elements with
+theme tokens, as lanes and arrows or, below 34rem of diagram width, one row per step. A `mermaid`
+fence directly after it is its fallback, drawn only if the Kata fence is refused. QA Lesson 1 is
+the first; the owner asked for all 15. Not built yet: the flowchart kind (8 of the remaining 14
+are flowcharts), and refusing a bad fence at `release:build` (needs a module shared by server and
+web). Until then the screenshot gate is where a refused Kata diagram fails.
 
 **Incident, 2026-11-19.** Removing the finished Q01 drafts with `rm -rf content/drafts` also deleted
 21 uncommitted files of another session's Q02 drafts. That session restored all 21 from its
 transcript by 17:10. The four order files among them were never in git until `.gitignore` line 8
 became `/data/` (it was `data/`, which matched the kit's `data/` folder too).
 
-After the Q02 packaging (2026-11-20), under nvm's Node 24.12: `npm run typecheck`, `npm run lint`,
-`npm run format:check`, `npm run build` and `npm run screenshots` (33 routes × 3 widths × 2 schemes,
-axe clean, 15 diagrams read) pass. The full `npm test` run took 560 s on a loaded machine and failed
-30 of 1575, all timeouts or missing elements across 18 files; those 18 files then passed 264 of 264
-alone, and `realQaaeRelease.test.ts` passed 10 of 10 alone (its 12-lesson serve takes 364–572 ms).
-No budget was widened. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
+After the Kata diagram slice (2026-11-20), under nvm's Node 24.12: `npm run typecheck`,
+`npm run lint`, `npm run format:check`, `npm run build` and `npm run screenshots` (33 routes × 3
+widths × 2 schemes, axe clean, 14 Mermaid diagrams read, 1 Kata diagram fitted and measured) pass.
+The full `npm test` passed 1830 of 1830 before the review fixes; after them it passed 1857 of 1859,
+the two failures timeouts or missing elements in `lessonRegionNames.test.tsx` and
+`CopyBlock.test.tsx`, which render Mermaid fences this slice did not touch.
+`lessonRegionNames.test.tsx` failed 4 of 10 runs alone while a graphify rebuild ran, then 1 of 10;
+the commit before the slice passed 10 of 10 at the same time, and interleaved timings were the same
+(0.5–2.2 s either side), so the failures are load, not a regression. No budget was widened. Run
+filtered vitest from PowerShell, not Git Bash (see memory).
 
 **Known and not fixed.** `README.md` describes neither practice feedback, Export nor earlier
 conversations. The field labels are written twice (`apps/server/src/modules/learner/fieldLabels.ts`
@@ -99,10 +107,12 @@ activity, and exports Lessons 1–5 to send with `Owner_Review_After_Lesson_05.m
 lessons in the app (restart the dev server to pick up `qaae-q02-v1`), make the six Q02 keyboard
 checks, and decide whether to split the two longest new Q01 lessons. Optionally they listen to one
 lesson with NVDA or Narrator. Development next: bring the module syllabus's two-line Q02 entry up
-to date. Two findings for the next QA reissue: `M001_Lesson_02` shows bash's "command not found"
-line without saying that Ubuntu words it differently, and the sequence diagram in "What a program
-receives" (`LS-M002-02`) is wider than its frame even at 1440, so its fourth participant needs a
-sideways scroll; shorter labels would fix it (author's change, moves the lesson to 1.0.1-draft).
+to date. One finding for the next QA reissue: `M001_Lesson_02` shows bash's "command not found" line
+without saying that Ubuntu words it differently. Development next: migrate the other two QA
+sequence diagrams (`LS-M002-02`, "What a program receives", whose Mermaid drawing is wider than its
+frame even at 1440, and `QAAE_Lesson_04`) and the four HTTP ones as Kata diagrams, then add the
+flowchart kind for the eight flowcharts. The owner can see QA Lesson 1's new diagram after
+restarting the dev server.
 
 ## Milestone 1 — Read the authored lessons faithfully (goal: the owner can read every released lesson — 1–15 since the FIRST-FIFTEEN release — in the app, in the authored wording and order)
 
@@ -272,6 +282,14 @@ sideways scroll; shorter labels would fix it (author's change, moves the lesson 
       carried byte for byte. No app code changed, so no test-guardian or `/code-review` pass; the
       release tests, the source rebuild test and the screenshot gate cover it.
 - [ ] **Owner reading of the seven Q02 lessons**, the six keyboard checks, and a kit run on macOS.
+- [x] **Kata diagrams, slice 1.** Done 2026-11-20 (ADR 0025). Lesson diagrams as JSON drawn by a
+      trusted component, Mermaid kept as the fallback; QA Lesson 1 migrated and reissued as
+      `qaae-q02-v1_0_1`. test-guardian PRE (PASS with findings, all taken) and POST (PASS),
+      `/code-review` at medium (8 findings, all taken), design review (ship with nits; 5 taken, 2
+      declined with reasons). Record in `docs/specs/kata-diagrams.md`.
+- [ ] **Kata diagrams, the other 14**: six more sequence diagrams (two QA, four HTTP), then the
+      flowchart kind for eight; then refuse a bad fence at `release:build`. The HTTP lessons need
+      their course's editable source seeded first (`npm run release:seed`).
 - [ ] **BookingLab practice-application spec**, the QA course's critical path.
 - [ ] **Owner reading of Lessons 5–15**, then a correction reissue built with the tool.
 - [ ] **Lesson 16 (M021-08)**, written and reviewed in separate sessions; adding a lesson and kit to
@@ -609,6 +627,31 @@ need an approved data policy and a named reviewer before they mean anything.
 - 2026-11-19, before the release-additions slice: `npm test` (1492 tests at the last full run, before the split that kept the count), `npm run typecheck`, `npm run build` and `npm run screenshots` (22 routes × 3 widths × 2 schemes, now also opening an earlier conversation) pass under nvm's Node 24.12. `npm run lint` and `npm run format:check` failed only on the untracked `content/drafts/qaae-q01/`; the drafting session has since added `content/drafts/` to `eslint.config.js`, `.prettierignore` and `.gitattributes`, and checked that both tools now skip it. Neither full command was re-run after that. `apps`, `tools` and `docs` are clean. Run filtered vitest from `C:/…`, not `c:\…` (see memory). **The rest of QA module Q01 is drafted, reviewed and not released** (ADR 0023, 2026-11-19). Four lessons and three kits are in `content/drafts/qaae-q01/`, uncommitted: two M001 lessons shared with the full-stack course ("Set up a safe workspace", "When something goes wrong") and QA Lessons 4 and 5 ("Run a test someone else wrote", "How good are your tests?", with a Docker-free sample grading kit). Two fresh reviewers found 12 high, 35 medium and 25 low; all were taken except the proposal to split the two longest lessons, which is the owner's call. Every command was run on Windows 11 only. The app cannot show them yet: `release:build` refuses a build that adds a lesson or a kit. The packaging brief, the Lesson 1 wording correction it needs, and the full list of what was and was not checked are in `content/drafts/qaae-q01/README.md`.
 
 Kept so a reader can see what the state said before it was replaced, never to be resumed from.
+
+- **2026-11-20, before the Kata diagram slice.** The QA paragraph and the check results it replaced:
+
+  **The QA course serves modules Q01 and Q02** (2026-11-20). `content/releases/qaae-q02-v1/`
+  (`QAAE-Q02@1.2.0-draft`) was built with `npm run release:build` from `content/source/qaae/`, and
+  `config.ts` points the QA course at it. It is twelve lessons, four kits and 59 activities. Q01's
+  five lessons, three kits and 24 activities are byte for byte those of `qaae-q01-v1`. Q02 adds the
+  seven M002 terminal lessons (ADR 0024), `Terminal_Practice_Kit_v1.zip` (`M002-LAB-01`, serving
+  all seven) and 35 activities, each prompt cut from its lesson's own section text. The owner has
+  read none of Q02, nor Q01's four newer lessons. Kit commands ran on Windows 11 (PowerShell 5.1) and
+  in WSL (bash, zsh), never on macOS or PowerShell 7; the record is the package's
+  `Verification_and_Known_Limits.md`, which also lists six checks only a person at a keyboard can
+  make. `previous_release` in `content/source/qaae/release.json` points at `qaae-q01-v1`, the build's
+  baseline for `qaae-q02-v1`; move it to `qaae-q02-v1` when the next reissue starts (handbook,
+  "Reissuing a release"). The Q02 command lists and runners are in
+  `content/source/qaae/verification/m002/`, and the drafts' README is archived as
+  `docs/authoring/history/2026-11-qaae-q02-drafts.md`. `content/drafts/` is gone, and so are its
+  ignore lines in `eslint.config.js`, `.prettierignore` and `.gitattributes`.
+
+  After the Q02 packaging (2026-11-20), under nvm's Node 24.12: `npm run typecheck`, `npm run lint`,
+  `npm run format:check`, `npm run build` and `npm run screenshots` (33 routes × 3 widths × 2 schemes,
+  axe clean, 15 diagrams read) pass. The full `npm test` run took 560 s on a loaded machine and failed
+  30 of 1575, all timeouts or missing elements across 18 files; those 18 files then passed 264 of 264
+  alone, and `realQaaeRelease.test.ts` passed 10 of 10 alone (its 12-lesson serve takes 364–572 ms).
+  No budget was widened. Run filtered vitest from `C:/…`, not `c:\…` (see memory).
 
 - **2026-11-19, before earlier feedback conversations and the accessibility pass** (both slices
   started from this state; it was the last one they shared).

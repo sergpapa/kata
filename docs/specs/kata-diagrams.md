@@ -1,6 +1,6 @@
 # Spec — Kata diagrams, slice 1: sequence diagrams, QA Lesson 1
 
-Status: in progress, started 2026-11-20.
+Status: slice 1 done 2026-11-20 (QA Lesson 1). The other 14 diagrams are not started.
 
 ## Why
 
@@ -139,8 +139,8 @@ The reader (`readKataDiagram`) returns phases as `{ kind: 'phase', label }` and 
 - **JSON, not YAML.** The `yaml` package costs 30.5 KB gzipped (measured with esbuild), a 22%
   increase on a 138 KB entry chunk, or an asynchronous load and a pending state for every diagram.
   JSON parses synchronously with nothing added.
-- **Existing tokens only.** A highlight uses `--primary`; lines use `--muted-foreground` and
-  `--border`. No new theme token, so no new contrast pair for `theme.test.ts`.
+- **Existing tokens only.** A highlight uses `--primary`; lines use `--muted-foreground`, `--input`
+  and `--border`. No new theme token, so no new contrast pair for `theme.test.ts`.
 - **The architect agent is skipped.** The change is local to the web renderer and its decision is
   recorded in ADR 0025.
 
@@ -152,3 +152,63 @@ The reader (`readKataDiagram`) returns phases as `{ kind: 'phase', label }` and 
   gate is where a refused Kata diagram fails.
 - A fit check for the Mermaid diagrams that remain. They still scroll inside their frames.
 - Export: it carries learner responses, not lesson bodies, and is unchanged.
+
+## Slice record, 2026-11-20
+
+Built: `apps/web/src/markdown/kataDiagram.ts` (the reader), `KataSequenceFigure.tsx` (the
+drawing), the pairing in `regionNames.ts`, the wiring in `LessonMarkdown.tsx`,
+`apps/web/src/kata-diagram.css` and `kata-diagram-rows.css`, the gate in
+`tools/kata-diagram-checks.mjs`, QA Lesson 1 at `1.0.2-draft`, and the reissue
+`content/releases/qaae-q02-v1_0_1`. The component is not called `KataDiagram.tsx` because on Windows
+`./KataDiagram.js` resolved to the reader `kataDiagram.ts`, whose name differs only in case.
+
+Commits: `0a96371` failing tests, spec and ADR; `21101cc` the owner-approved test fix below;
+`8e24dc5` implementation and reissue; `a498e6f` review fixes.
+
+**Tests.** 37 for the reader; 25 for rendering and pairing, split across `KataDiagram.test.tsx`
+and `KataDiagramPairing.test.tsx`; 216 for the stylesheets, one per declaration plus 5; 6 for QA
+Lesson 1. KD7 and KD10 to KD12 are checked only in Chromium by the gate.
+
+**test-guardian PRE: PASS with findings, all taken.** Hostile markup in labels was untested; the
+colour test missed a last declaration without `;` and stripped `var()` fallbacks; KD3 lacked
+cases for an empty id, empty notes, a non-string message and an unknown sender; KD13 lacked
+"several blank lines" and "two Mermaid fences"; KD14 did not rule out an empty disclosure; the
+gate checked neither dashed replies, heavier key steps, inner scrolling nor most text kinds; the
+Lesson 1 test could miss a Mermaid line its pattern did not parse. Its unexplained failure, a
+`previous_version` of `1.1.0-draft`, was the source still pointing at Q01; KD19 now says the
+pointer moves first.
+
+**A test changed after PRE, with the owner's approval.** `kataLessons.test.tsx` searched for
+"```kata-diagram\n", but lesson files are stored CRLF because releases hash their bytes. Three
+tests failed on a correct lesson, and "Mermaid fence unchanged" passed by comparing undefined with
+undefined. It now reads both lessons with CRLF as LF and first asserts the previous fence and
+paragraph are found. test-guardian POST: PASS, a strengthening, nothing gamed.
+
+**`/code-review` at medium: 8 findings, all taken.** Screen readers heard no step numbers (list
+markers styled off; Safari also drops the list role): steps now say "Step n:" and lists carry
+`role="list"`. A highlighted step on its own drew its arrowhead at the top. A step on its own as a
+reply or key step changed only its top edge. In the row layout a key reply lost its dashes. The
+pairing skip was keyed on a node property rather than this run's own pairing. The worked-answer
+check still read the superseded release. The roadmap was stale. Two files were over 350 lines.
+
+**Design review: ship with nits; 5 taken, 2 declined.** Taken: the key step now sits on an outlined
+card with a 4px arrow; names break only at the arrow; participants are compact chips on a narrow
+diagram; the key-step tag gets its own line there; the self loop is larger and step numbers are
+0.75rem. Declined:
+
+- _Mask the lifelines between phases._ Lifelines are continuous on purpose: a participant exists
+  for the whole run, not phase by phase, and masking inside phases too would remove them.
+- _More colour for state._ No theme token fits a second state colour, and the reply already has a
+  distinct dash in both layouts. Revisit with the flowchart kind, which may need states.
+  Its contrast concern is answered by measurement: the gate checks every kind of diagram text at
+  4.5:1 or more on its own background, in both schemes, at every width.
+
+**Found by looking, not by a check.** After the review fixes the reply arrows drew 9px of extra
+border, because `border-style: dashed` on all sides gave the zero-width ones the default `medium`
+width. The gate now fails any straight arrow with an edge besides its line; it failed on the
+broken bundle and passed on the fix.
+
+**Not done.** The other 14 diagrams; the flowchart kind; refusing a bad fence at
+`release:build`; Firefox, WebKit and a screen reader. The gate's element captures show the sticky
+top bar over the diagram's top, because the diagram is taller than the viewport; the full-page
+captures are clean.

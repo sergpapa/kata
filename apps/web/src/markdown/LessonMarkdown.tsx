@@ -6,18 +6,8 @@ import rehypeSlug from 'rehype-slug';
 import type { Element, Root } from 'hast';
 import { visit } from 'unist-util-visit';
 import { isSafeHttpUrl, rehypeInertElements, remarkInertContent } from './inertNodes.js';
-import { MermaidDiagram } from './MermaidDiagram.js';
-import { KataDiagram } from './KataSequenceFigure.js';
-import {
-  DESCRIBED_BY,
-  DIAGRAM_NUMBER,
-  DIAGRAM_PLACE,
-  KATA_LANGUAGE,
-  languageOf,
-  PAIRED,
-  REGION_NAME,
-  rehypeRegionNames,
-} from './regionNames.js';
+import { diagramFence, isDiagramLanguage } from './DiagramFence.js';
+import { languageOf, REGION_NAME, rehypeRegionNames } from './regionNames.js';
 import { CopyBlock } from './CopyBlock.js';
 import { ActivityPanel } from '../activities/ActivityPanel.js';
 import {
@@ -145,41 +135,9 @@ const components: Components = {
       </div>
     );
 
-    // A diagram is the one fence that becomes something other than itself. The block above is
-    // handed over as the fallback rather than rebuilt, so the labelled source a reader falls back
-    // to is the same markup every other fence gets — including its character-for-character text.
-    if (language !== 'mermaid' && language !== KATA_LANGUAGE) return block;
-    const describedBy = node?.properties?.[DESCRIBED_BY];
-    const number = node?.properties?.[DIAGRAM_NUMBER];
-    const place = node?.properties?.[DIAGRAM_PLACE];
-    const paired = node?.properties?.[PAIRED];
-
-    if (language === KATA_LANGUAGE) {
-      return (
-        <KataDiagram
-          source={fenceText(node)}
-          describedBy={typeof describedBy === 'string' ? describedBy : undefined}
-          number={typeof number === 'string' ? number : 'Diagram'}
-          place={typeof place === 'string' ? place : ''}
-          hasFallback={paired === 'fallback'}
-        >
-          {block}
-        </KataDiagram>
-      );
-    }
-    // The fallback of a Kata diagram that drew: it adds nothing, and Mermaid is never loaded for it
-    // (docs/specs/kata-diagrams.md KD14).
-    if (paired === 'superseded') return null;
-    return (
-      <MermaidDiagram
-        source={fenceText(node)}
-        describedBy={typeof describedBy === 'string' ? describedBy : undefined}
-        number={typeof number === 'string' ? number : 'Diagram'}
-        place={typeof place === 'string' ? place : ''}
-      >
-        {block}
-      </MermaidDiagram>
-    );
+    // A diagram is the one fence that becomes something other than itself (DiagramFence.tsx).
+    if (!isDiagramLanguage(language)) return block;
+    return diagramFence(node, language, fenceText(node), block);
   },
 
   /** A wide table scrolls inside its own box, so the page never scrolls sideways at 375px. */

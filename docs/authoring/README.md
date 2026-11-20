@@ -144,8 +144,15 @@ on 2026-11-19. The full-stack course has none yet.
 7. Follow the printed make-current steps 1 to 3. Leave step 4, `previous_release`, for the start of
    the next reissue (step 2 above). Update the release path in the test that rebuilds the course's
    release from its source.
-8. Check what the tool does not: render the changed lessons' Mermaid blocks in the app
+8. Check what the tool does not: render the changed lessons' diagrams in the app
    (`npm run screenshots`), and run the changed kits' own tests.
+
+**Diagrams.** A sequence diagram is a `kata-diagram` fence holding JSON, with the old `mermaid`
+fence directly after it as its fallback (ADR 0025; format and rules in
+`docs/specs/kata-diagrams.md`). Give each step's text in a few words; the drawing wraps it. Mark
+the step the lesson is about with `"highlight": true` and say why in its `note`. Keep the
+"In words:" paragraph straight after the pair. Flowcharts stay Mermaid until the flowchart kind
+exists.
 
 ## Lessons from the old loop
 

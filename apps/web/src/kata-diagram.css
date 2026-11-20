@@ -2,8 +2,7 @@
    docs/specs/kata-diagrams.md and the reasoning is ADR 0025; the component is
    markdown/KataSequenceFigure.tsx.
 
-   Two layouts, chosen by the diagram's own width through a container query, never by the window:
-   a diagram in a narrow column on a wide screen still gets the layout that fits it.
+   Two layouts, chosen by the diagram's own width through a container query, never the window's:
    - Columns, in this file: each participant is a lane with a lifeline down its centre, and each
      step is a grid row whose arrow runs from one lifeline to another. The grid has two columns per
      lane, so lane i's lifeline is grid line 2i+2 and the component only says where a step starts
